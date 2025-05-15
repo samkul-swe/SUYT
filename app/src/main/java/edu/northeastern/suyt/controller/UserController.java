@@ -3,6 +3,7 @@ package edu.northeastern.suyt.controller;
 import edu.northeastern.suyt.model.User;
 
 public class UserController {
+
     public boolean registerUser(String username, String email, String password) {
         // Implement registration logic
         // For now, just return true to simulate success

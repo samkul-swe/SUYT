@@ -22,6 +22,7 @@ import edu.northeastern.suyt.ui.adapters.TipAdapter;
 
 public class TipsFragment extends Fragment implements View.OnClickListener {
 
+
     private RecyclerView recyclerView;
     private TipAdapter adapter;
     private RecyclingTipController tipController;
@@ -45,10 +46,10 @@ public class TipsFragment extends Fragment implements View.OnClickListener {
         btnAll = view.findViewById(R.id.btn_all);
 
         // Set click listeners
-        btnReduce.setOnClickListener((View.OnClickListener) this);
-        btnReuse.setOnClickListener((View.OnClickListener) this);
-        btnRecycle.setOnClickListener((View.OnClickListener) this);
-        btnAll.setOnClickListener((View.OnClickListener) this);
+        btnReduce.setOnClickListener(this);
+        btnReuse.setOnClickListener(this);
+        btnRecycle.setOnClickListener(this);
+        btnAll.setOnClickListener(this);
 
         // Load all tips initially
         loadTips("All");

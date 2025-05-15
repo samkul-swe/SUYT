@@ -1,17 +1,11 @@
 package edu.northeastern.suyt.ui.adapters;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -21,7 +15,7 @@ import edu.northeastern.suyt.model.RecyclingTip;
 
 public class TipAdapter extends RecyclerView.Adapter<TipAdapter.TipViewHolder>  {
 
-    private final List<RecyclingTip> tips;
+    private List<RecyclingTip> tips;
 
     public TipAdapter(List<RecyclingTip> tips) {
         this.tips = tips;

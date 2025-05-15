@@ -17,10 +17,13 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 
 public class SignUpActivity extends AppCompatActivity {
+
     private EditText usernameEditText;
     private EditText emailEditText;
     private EditText passwordEditText;
     private EditText confirmPasswordEditText;
+    private Button signUpButton;
+    private TextView loginTextView;
     private UserController userController;
 
     @Override
@@ -35,8 +38,8 @@ public class SignUpActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         confirmPasswordEditText = findViewById(R.id.confirm_password_edit_text);
-        Button signUpButton = findViewById(R.id.sign_up_button);
-        TextView loginTextView = findViewById(R.id.login_text_view);
+        signUpButton = findViewById(R.id.sign_up_button);
+        loginTextView = findViewById(R.id.login_text_view);
 
         // Set click listeners
         signUpButton.setOnClickListener(new View.OnClickListener() {

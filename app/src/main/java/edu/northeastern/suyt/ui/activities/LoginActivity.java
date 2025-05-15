@@ -15,8 +15,11 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
 
 public class LoginActivity extends AppCompatActivity {
+
     private EditText emailEditText;
     private EditText passwordEditText;
+    private Button loginButton;
+    private TextView signUpTextView;
     private UserController userController;
 
     @Override
@@ -29,23 +32,13 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize views
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
-        Button loginButton = findViewById(R.id.login_button);
-        TextView signUpTextView = findViewById(R.id.sign_up_text_view);
+        loginButton = findViewById(R.id.login_button);
+        signUpTextView = findViewById(R.id.sign_up_text_view);
 
         // Set click listeners
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                attemptLogin();
-            }
-        });
+        loginButton.setOnClickListener(v -> attemptLogin());
 
-        signUpTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                navigateToSignUp();
-            }
-        });
+        signUpTextView.setOnClickListener(v -> navigateToSignUp());
     }
 
     private void attemptLogin() {
@@ -79,6 +72,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish();
+        finish(); // This will close the login activity so user can't go back
     }
 }

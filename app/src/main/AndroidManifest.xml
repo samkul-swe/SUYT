@@ -13,26 +13,17 @@
         android:theme="@style/Theme.SUYT"
         tools:targetApi="31">
         <activity
-            android:name=".ui.adapters.TipAdapter"
-            android:exported="false" />
-        <activity
             android:name=".ui.activities.SplashActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.SignUpActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".ui.activities.LoginActivity" />
+        <activity android:name=".ui.activities.SignUpActivity" />
+        <activity android:name=".ui.activities.MainActivity" />
     </application>
 
 </manifest>

@@ -1,9 +1,7 @@
 package edu.northeastern.suyt.ui.activities;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -12,38 +10,43 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 import edu.northeastern.suyt.ui.fragments.ProfileFragment;
+import edu.northeastern.suyt.ui.fragments.RRRFragment;
 import edu.northeastern.suyt.ui.fragments.TipsFragment;
 
-public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
+
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Load default fragment
-        loadFragment(new HomeFragment());
-    }
+        // Use the newer listener API
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            Fragment fragment = null;
+            int id = item.getItemId();
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Fragment fragment = null;
+            if (id == R.id.nav_rrr) {
+                fragment = new RRRFragment();
+            } else if (id == R.id.nav_home) {
+                fragment = new HomeFragment();
+            } else if (id == R.id.nav_tips) {
+                fragment = new TipsFragment();
+            } else if (id == R.id.nav_profile) {
+                fragment = new ProfileFragment();
+            }
 
-        // Use item.getItemId() for comparison instead of R.id directly
-        int id = item.getItemId();
+            return loadFragment(fragment);
+        });
 
-        if (id == R.id.nav_home) {
-            fragment = new HomeFragment();
-        } else if (id == R.id.nav_tips) {
-            fragment = new TipsFragment();
-        } else if (id == R.id.nav_profile) {
-            fragment = new ProfileFragment();
+        // Check if this is the first creation (not a configuration change)
+        if (savedInstanceState == null) {
+            // Load RRR Fragment by default
+            bottomNavigationView.setSelectedItemId(R.id.nav_rrr);
         }
-
-        return loadFragment(fragment);
     }
 
     private boolean loadFragment(Fragment fragment) {

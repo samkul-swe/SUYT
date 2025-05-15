@@ -4,7 +4,7 @@ public class User {
     private String userId;
     private String username;
     private String email;
-    private String password;
+    private String password; // In a real app, never store plain text passwords
 
     public User() {
         // Required empty constructor

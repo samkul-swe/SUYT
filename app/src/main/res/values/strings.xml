@@ -3,7 +3,7 @@
     <string name="app_name">SUYT - Suit Up Your Trash</string>
 
     <!-- Login and Sign Up -->
-    <string name="login_title">SUYT - Suit Up Your Trash!</string>
+    <string name="login_title">Welcome Back</string>
     <string name="sign_up_title">Create Account</string>
     <string name="hint_username">Username</string>
     <string name="hint_email">Email</string>
@@ -18,16 +18,25 @@
     <!-- Home Fragment -->
     <string name="welcome_message">Welcome to SUYT</string>
     <string name="home_subtitle">Featured tips for reducing waste</string>
+    <string name="view_stats_button">View My RRR Stats</string>
+
+    <!-- Stats Screen -->
+    <string name="stats_title">My Recycling Stats</string>
+    <string name="total_points">Total Points</string>
+    <string name="total_activities">Activities</string>
+    <string name="category_recycle">Recycle</string>
+    <string name="category_reuse">Reuse</string>
+    <string name="category_reduce">Reduce</string>
 
     <!-- Tips Fragment -->
     <string name="tips_title">Recycling Tips</string>
     <string name="category_all">All</string>
-    <string name="category_reduce">Reduce</string>
-    <string name="category_reuse">Reuse</string>
-    <string name="category_recycle">Recycle</string>
 
     <!-- Menu Items -->
     <string name="menu_home">Home</string>
     <string name="menu_tips">Tips</string>
     <string name="menu_profile">Profile</string>
+    <string name="menu_rrr">RRR</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
