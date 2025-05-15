@@ -15,7 +15,6 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
 
 public class LoginActivity extends AppCompatActivity {
-
     private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton;

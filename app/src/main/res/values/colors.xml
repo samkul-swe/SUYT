@@ -8,4 +8,8 @@
     <color name="colorReduce">#F44336</color>
     <color name="colorReuse">#FFC107</color>
     <color name="colorRecycle">#2196F3</color>
+
+    <color name="gray">#DCDCDC</color>
+    <color name="green">#E0F6E0</color>
+
 </resources>

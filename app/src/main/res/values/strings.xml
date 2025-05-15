@@ -3,7 +3,7 @@
     <string name="app_name">SUYT - Suit Up Your Trash</string>
 
     <!-- Login and Sign Up -->
-    <string name="login_title">Welcome Back</string>
+    <string name="login_title">SUYT</string>
     <string name="sign_up_title">Create Account</string>
     <string name="hint_username">Username</string>
     <string name="hint_email">Email</string>
@@ -11,9 +11,10 @@
     <string name="hint_confirm_password">Confirm Password</string>
     <string name="btn_login">Login</string>
     <string name="btn_sign_up">Sign Up</string>
-    <string name="new_user_sign_up">New user? Sign up</string>
+    <string name="new_user_sign_up">Don\'t have an account? Sign up</string>
     <string name="already_have_account">Already have an account? Login</string>
     <string name="btn_logout">Logout</string>
+    <string name="forgot_password">Forgot Password? </string>
 
     <!-- Home Fragment -->
     <string name="welcome_message">Welcome to SUYT</string>
