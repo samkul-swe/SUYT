@@ -9,7 +9,7 @@ import edu.northeastern.suyt.model.RecyclableItem;
 public class RecyclableItemController {
 
     // In a real app, this would interface with a database or API
-    private List<RecyclableItem> items;
+    private final List<RecyclableItem> items;
 
     public RecyclableItemController() {
         // Initialize with sample data

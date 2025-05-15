@@ -18,8 +18,8 @@ import edu.northeastern.suyt.model.RecyclingPost;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
-    private List<RecyclingPost> posts;
-    private RecyclingPostController postController;
+    private final List<RecyclingPost> posts;
+    private final RecyclingPostController postController;
 
     public PostAdapter(List<RecyclingPost> posts) {
         this.posts = posts;

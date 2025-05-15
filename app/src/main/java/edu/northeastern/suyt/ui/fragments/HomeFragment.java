@@ -24,9 +24,6 @@ import edu.northeastern.suyt.ui.adapters.PostAdapter;
 
 public class HomeFragment extends Fragment {
 
-    private RecyclerView recyclerView;
-    private PostAdapter adapter;
-    private RecyclingPostController postController;
     private UserStatsController statsController;
 
     private TextView totalPointsTextView;
@@ -39,7 +36,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Initialize controllers
-        postController = new RecyclingPostController();
+        RecyclingPostController postController = new RecyclingPostController();
         statsController = new UserStatsController();
 
         // Initialize user stats views
@@ -51,12 +48,12 @@ public class HomeFragment extends Fragment {
         loadUserStats();
 
         // Set up recycler view for posts
-        recyclerView = view.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Load and display community posts
         List<RecyclingPost> posts = postController.getAllPosts();
-        adapter = new PostAdapter(posts);
+        PostAdapter adapter = new PostAdapter(posts);
         recyclerView.setAdapter(adapter);
 
         return view;

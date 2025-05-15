@@ -24,9 +24,7 @@ public class TipsFragment extends Fragment implements View.OnClickListener {
 
 
     private RecyclerView recyclerView;
-    private TipAdapter adapter;
     private RecyclingTipController tipController;
-    private Button btnReduce, btnReuse, btnRecycle, btnAll;
 
     @Nullable
     @Override
@@ -40,10 +38,10 @@ public class TipsFragment extends Fragment implements View.OnClickListener {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Initialize buttons
-        btnReduce = view.findViewById(R.id.btn_reduce);
-        btnReuse = view.findViewById(R.id.btn_reuse);
-        btnRecycle = view.findViewById(R.id.btn_recycle);
-        btnAll = view.findViewById(R.id.btn_all);
+        Button btnReduce = view.findViewById(R.id.btn_reduce);
+        Button btnReuse = view.findViewById(R.id.btn_reuse);
+        Button btnRecycle = view.findViewById(R.id.btn_recycle);
+        Button btnAll = view.findViewById(R.id.btn_all);
 
         // Set click listeners
         btnReduce.setOnClickListener(this);
@@ -79,7 +77,7 @@ public class TipsFragment extends Fragment implements View.OnClickListener {
             tips = tipController.getTipsByCategory(category);
         }
 
-        adapter = new TipAdapter(tips);
+        TipAdapter adapter = new TipAdapter(tips);
         recyclerView.setAdapter(adapter);
     }
 }

@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -21,7 +20,6 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,8 +56,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private Button recycleButton;
     private Button reuseButton;
     private Button reduceButton;
-    private FloatingActionButton camereFab;
-    private FloatingActionButton downloadsFab;
     private TextView infoContentTextView;
     private CardView infoCardView;
     private ProgressBar progressBar;
@@ -82,8 +78,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         recycleButton = view.findViewById(R.id.recycle_button);
         reuseButton = view.findViewById(R.id.reuse_button);
         reduceButton = view.findViewById(R.id.reduce_button);
-        camereFab = view.findViewById(R.id.camera_fab);
-        downloadsFab = view.findViewById(R.id.gallery_fab);
+        FloatingActionButton cameraFab = view.findViewById(R.id.camera_fab);
+        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab);
         infoContentTextView = view.findViewById(R.id.info_content_text_view);
         infoCardView = view.findViewById(R.id.info_card_view);
         progressBar = view.findViewById(R.id.progress_bar);
@@ -94,7 +90,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceButton.setOnClickListener(this);
 
         // Set FAB listeners
-        camereFab.setOnClickListener(v -> {
+        cameraFab.setOnClickListener(v -> {
             if (checkPermission(Manifest.permission.CAMERA, REQUEST_CAMERA_PERMISSION)) {
                 openCamera();
             }

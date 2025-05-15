@@ -15,7 +15,7 @@ import edu.northeastern.suyt.model.RecyclingTip;
 
 public class TipAdapter extends RecyclerView.Adapter<TipAdapter.TipViewHolder>  {
 
-    private List<RecyclingTip> tips;
+    private final List<RecyclingTip> tips;
 
     public TipAdapter(List<RecyclingTip> tips) {
         this.tips = tips;

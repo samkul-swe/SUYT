@@ -18,9 +18,6 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 
 public class ProfileFragment extends Fragment {
-    private TextView usernameTextView;
-    private TextView emailTextView;
-    private Button logoutButton;
     private UserController userController;
 
     @Nullable
@@ -31,21 +28,16 @@ public class ProfileFragment extends Fragment {
         userController = new UserController();
 
         // Initialize views
-        usernameTextView = view.findViewById(R.id.username_text_view);
-        emailTextView = view.findViewById(R.id.email_text_view);
-        logoutButton = view.findViewById(R.id.logout_button);
+        TextView usernameTextView = view.findViewById(R.id.username_text_view);
+        TextView emailTextView = view.findViewById(R.id.email_text_view);
+        Button logoutButton = view.findViewById(R.id.logout_button);
 
         // Set dummy data for now
         usernameTextView.setText("John Doe");
         emailTextView.setText("john.doe@example.com");
 
         // Set click listener for logout
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logout();
-            }
-        });
+        logoutButton.setOnClickListener(v -> logout());
 
         return view;
     }
