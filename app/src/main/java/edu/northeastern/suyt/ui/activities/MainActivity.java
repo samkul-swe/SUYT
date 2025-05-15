@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if this is the first creation (not a configuration change)
         if (savedInstanceState == null) {
-            // Load RRR Fragment by default
-            bottomNavigationView.setSelectedItemId(R.id.nav_rrr);
+            // Load Home Fragment by default
+            bottomNavigationView.setSelectedItemId(R.id.nav_home);
         }
     }
 
