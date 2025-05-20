@@ -15,6 +15,11 @@
     <string name="already_have_account">Already have an account? Login</string>
     <string name="btn_logout">Logout</string>
     <string name="forgot_password">Forgot Password? </string>
+    <string name="password_requirement">Password must:</string>
+    <string name="password_length">• Be at least 8 characters long</string>
+    <string name="password_uppercase">• Contain at least one uppercase letter</string>
+    <string name="password_character">• Contain at least one special character</string>
+    <string name="password_digit">• Contain at least one number</string>
 
     <!-- Home Fragment -->
     <string name="welcome_message">Welcome to SUYT</string>

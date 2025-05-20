@@ -2,6 +2,9 @@ package edu.northeastern.suyt.ui.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -16,6 +19,8 @@ import edu.northeastern.suyt.model.User;
 public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
+    private Button loginButton;
+    private TextView signUpTextView, forgotPasswordTextView;
     private UserController userController;
 
     @Override
@@ -25,11 +30,22 @@ public class LoginActivity extends AppCompatActivity {
 
         userController = new UserController();
 
+        if (userController.isUserSignedIn()) {
+            navigateToMain();
+            return;
+        }
+
         // Initialize views
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
-        Button loginButton = findViewById(R.id.login_button);
-        TextView signUpTextView = findViewById(R.id.sign_up_text_view);
+        loginButton = findViewById(R.id.login_button);
+        signUpTextView = findViewById(R.id.sign_up_text_view);
+        String signupHtmlText = "Don't have an account? <font color='#3344DD'>Sign up here!</font>";
+        signUpTextView.setText(Html.fromHtml(signupHtmlText, Html.FROM_HTML_MODE_LEGACY));
+
+        forgotPasswordTextView = findViewById(R.id.forgot_password);
+        String forgotPassword = "<font color='#3344DD'>Forgot Password?</font>";
+        forgotPasswordTextView.setText(Html.fromHtml(forgotPassword, Html.FROM_HTML_MODE_LEGACY));
 
         // Set click listeners
         loginButton.setOnClickListener(v -> attemptLogin());
@@ -42,21 +58,53 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
 
         // Validate inputs
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (email.isEmpty()) {
+            emailEditText.setError("Email is required");
+            emailEditText.requestFocus();
             return;
         }
 
-        // Attempt login
-        User user = userController.loginUser(email, password);
-        if (user != null) {
-            // Login successful
-            Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-            navigateToMain();
-        } else {
-            // Login failed
-            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+        if (password.isEmpty()) {
+            passwordEditText.setError("Password is required");
+            passwordEditText.requestFocus();
+            return;
         }
+
+        loginButton.setEnabled(false);
+
+        // Attempt login
+        userController.signInUser(email, password, new UserController.AuthCallback() {
+            @Override
+            public void onSuccess(User user) {
+                runOnUiThread(() -> {
+                    // Hide progress
+//                    if (progressBar != null) {
+//                        progressBar.setVisibility(View.GONE);
+//                    }
+
+                    // Login successful
+                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    navigateToMain();
+                });
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                runOnUiThread(() -> {
+                    // Hide progress
+//                    if (progressBar != null) {
+//                        progressBar.setVisibility(View.GONE);
+//                    }
+
+                    // Re-enable login button
+                    loginButton.setEnabled(true);
+
+                    // Show error message
+                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    Log.e("TAG", "Login failed: " + errorMessage);
+                });
+            }
+        });
     }
 
     private void navigateToSignUp() {

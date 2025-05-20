@@ -1,23 +1,226 @@
 package edu.northeastern.suyt.controller;
 
+import android.util.Log;
+
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import edu.northeastern.suyt.model.User;
 
 public class UserController {
+    private static final String TAG = "UserController";
+    private static final String USERS_COLLECTION = "users";
 
-    public boolean registerUser(String username, String email, String password) {
-        // Implement registration logic
-        // For now, just return true to simulate success
-        return true;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
+    public UserController() {
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
     }
 
-    public User loginUser(String email, String password) {
-        // Implement login logic
-        // For now, return a dummy user to simulate success
-        return new User("1", "dummy_user", email, "");
+    /**
+     * Register a new user with Firebase Authentication and Firestore
+     */
+    public void registerUser(String username, String email, String password, RegisterCallback callback) {
+        Log.d(TAG, "Starting registration for: " + email);
+
+        // First, create authentication record
+        try {
+            // First, create authentication record
+            mAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Authentication successful");
+
+                            // Get Firebase user
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                            if (firebaseUser != null) {
+                                // Create User object
+                                User user = User.fromFirebaseUser(firebaseUser, username);
+
+                                // Save to Firestore
+                                db.collection(USERS_COLLECTION)
+                                        .document(user.getUserId())
+                                        .set(user.toMap())
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "User data stored successfully - calling onSuccess");
+                                            callback.onSuccess();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Failed to store user data", e);
+                                            callback.onFailure("Failed to store user data: " + e.getMessage());
+                                        });
+                            } else {
+                                Log.e(TAG, "User is null after successful authentication");
+                                callback.onFailure("Authentication successful but user is null");
+                            }
+                        } else {
+                            // Authentication failed
+                            Log.e(TAG, "Authentication failed", task.getException());
+                            String errorMessage = task.getException() != null ?
+                                    task.getException().getMessage() : "Authentication failed";
+                            callback.onFailure(errorMessage);
+                        }
+                    });
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected exception in registerUser", e);
+            callback.onFailure("Unexpected error: " + e.getMessage());
+        }
     }
 
-    public boolean logoutUser() {
-        // Implement logout logic
-        return true;
+    /**
+     * Sign in an existing user
+     */
+    public void signInUser(String email, String password, AuthCallback callback) {
+        Log.d(TAG, "Attempting sign in for: " + email);
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Sign in successful");
+
+                        // Get user data from Firestore
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            getUserData(firebaseUser.getUid(), callback);
+                        } else {
+                            callback.onFailure("Sign in successful but user is null");
+                        }
+                    } else {
+                        // Sign in failed
+                        Log.e(TAG, "Sign in failed", task.getException());
+                        String errorMessage = task.getException() != null ?
+                                task.getException().getMessage() : "Sign in failed";
+                        callback.onFailure(errorMessage);
+                    }
+                });
+    }
+
+    /**
+     * Get user data from Firestore
+     */
+    public void getUserData(String userId, AuthCallback callback) {
+        db.collection(USERS_COLLECTION)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Convert document to User object
+                        User user = documentSnapshot.toObject(User.class);
+                        callback.onSuccess(user);
+                    } else {
+                        callback.onFailure("User data not found");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure("Failed to get user data: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Get current user data from Firestore
+     */
+    public void getCurrentUserData(AuthCallback callback) {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            getUserData(firebaseUser.getUid(), callback);
+        } else {
+            callback.onFailure("No user is signed in");
+        }
+    }
+
+    /**
+     * Check if a user is signed in
+     */
+    public boolean isUserSignedIn() {
+        return mAuth.getCurrentUser() != null;
+    }
+
+    /**
+     * Get the current Firebase user ID
+     */
+    public String getCurrentUserId() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        return (user != null) ? user.getUid() : null;
+    }
+
+    /**
+     * Sign out the current user
+     */
+    public void signOut() {
+        mAuth.signOut();
+    }
+
+    /**
+     * Update user profile
+     */
+    public void updateUserProfile(User user, UpdateCallback callback) {
+        if (user == null || user.getUserId() == null) {
+            callback.onFailure("Invalid user data");
+            return;
+        }
+
+        db.collection(USERS_COLLECTION)
+                .document(user.getUserId())
+                .update(user.toMap())
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * Increment user recycling count and points
+     */
+    public void incrementRecycling(int pointsToAdd, UpdateCallback callback) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            callback.onFailure("No user signed in");
+            return;
+        }
+
+        // Use a transaction to safely update counters
+        db.runTransaction(transaction -> {
+                    DocumentSnapshot snapshot = transaction.get(
+                            db.collection(USERS_COLLECTION).document(userId));
+
+                    if (snapshot.exists()) {
+                        // Get current values
+                        Long currentCount = snapshot.getLong("recycleCount");
+                        Long currentPoints = snapshot.getLong("points");
+
+                        int newCount = (currentCount != null ? currentCount.intValue() : 0) + 1;
+                        int newPoints = (currentPoints != null ? currentPoints.intValue() : 0) + pointsToAdd;
+
+                        // Update with new values
+                        transaction.update(db.collection(USERS_COLLECTION).document(userId),
+                                "recycleCount", newCount,
+                                "points", newPoints);
+                    }
+
+                    return null;
+                }).addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * Callback interfaces
+     */
+    public interface RegisterCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface AuthCallback {
+        void onSuccess(User user);
+        void onFailure(String errorMessage);
+    }
+
+    public interface UpdateCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
     }
 }
