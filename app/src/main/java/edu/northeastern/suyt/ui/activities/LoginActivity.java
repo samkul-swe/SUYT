@@ -77,12 +77,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(User user) {
                 runOnUiThread(() -> {
-                    // Hide progress
-//                    if (progressBar != null) {
-//                        progressBar.setVisibility(View.GONE);
-//                    }
-
-                    // Login successful
                     Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                     navigateToMain();
                 });
@@ -116,6 +110,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish(); // This will close the login activity so user can't go back
+        finish();
     }
 }

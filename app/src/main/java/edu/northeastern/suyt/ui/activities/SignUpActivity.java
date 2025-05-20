@@ -45,7 +45,6 @@ public class SignUpActivity extends AppCompatActivity {
 
         userController = new UserController();
 
-        // Initialize views
         usernameEditText = findViewById(R.id.username_edit_text);
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
@@ -58,8 +57,6 @@ public class SignUpActivity extends AppCompatActivity {
         requirementNumber = findViewById(R.id.requirement_number);
         requirementSpecial = findViewById(R.id.requirement_special);
 
-
-        // Set click listeners
         signUpButton.setOnClickListener(v -> attemptSignUp());
         String loginText = "Already have an account? <font color='#3344DD'>Login here!</font>";
         loginTextView.setText(Html.fromHtml(loginText, Html.FROM_HTML_MODE_LEGACY));
@@ -142,63 +139,58 @@ public class SignUpActivity extends AppCompatActivity {
         }
 
         signUpButton.setEnabled(false);
-        if (loadingIndicator != null) {
-            loadingIndicator.setVisibility(View.VISIBLE);
-        } else {
-            Log.e("SignUpActivity", "loadingIndicator is null");
-        }
         setLoadingIndicatorVisibility(View.VISIBLE);
+
         Toast.makeText(SignUpActivity.this, "Contacting authentication server...", Toast.LENGTH_SHORT).show();
 
         try {
-            // Now call Firebase
             userController.registerUser(username, email, password, new UserController.RegisterCallback() {
                 @Override
                 public void onSuccess() {
                     new android.os.Handler(getMainLooper()).post(() -> {
-                        if (loadingIndicator != null) {
-                            loadingIndicator.setVisibility(View.GONE);
-                        }
+                        loadingIndicator.setVisibility(View.GONE);
                         Toast.makeText(SignUpActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                        navigateToLogin();
+                        showEmailVerificationDialog(email);
                     });
                 }
-
                 @Override
                 public void onFailure(String errorMessage) {
                     new android.os.Handler(getMainLooper()).post(() -> {
-                        if (loadingIndicator != null) {
-                            loadingIndicator.setVisibility(View.GONE);
-                        }
+                        loadingIndicator.setVisibility(View.GONE);
                         signUpButton.setEnabled(true);
                         Toast.makeText(SignUpActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                     });
                 }
             });
         } catch (Exception e) {
-
             signUpButton.setEnabled(true);
-            if (loadingIndicator != null) {
-                loadingIndicator.setVisibility(View.GONE);
-            }
-
-            // Show error message
-            Toast.makeText(SignUpActivity.this,
-                    "Error: " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
+            loadingIndicator.setVisibility(View.GONE);
             Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
+    private void showEmailVerificationDialog(String email){
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Verify Your Email")
+                .setMessage("Your account has been created successfully! A verification email has been sent to " +
+                        email + ". Please check your inbox and verify your email before logging in.")
+                .setPositiveButton("OK", (dialog, which) -> {
+                    navigateToLogin();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
 
     private void navigateToLogin() {
         finish();
     }
 
-    private void setLoadingIndicatorVisibility(int visibility) {
+    private void setLoadingIndicatorVisibility(int visible) {
         if (loadingIndicator != null) {
-            loadingIndicator.setVisibility(visibility);
+            loadingIndicator.setVisibility(visible);
         } else {
-            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + visibility);
+            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + visible);
         }
     }
 }

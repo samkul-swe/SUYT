@@ -9,6 +9,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Map;
+
 import edu.northeastern.suyt.model.User;
 
 public class UserController {
@@ -29,9 +31,7 @@ public class UserController {
     public void registerUser(String username, String email, String password, RegisterCallback callback) {
         Log.d(TAG, "Starting registration for: " + email);
 
-        // First, create authentication record
         try {
-            // First, create authentication record
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -41,12 +41,24 @@ public class UserController {
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
                                 // Create User object
+                                firebaseUser.sendEmailVerification()
+                                        .addOnCompleteListener(emailTask -> {
+                                            if(emailTask.isSuccessful()) {
+                                                Log.d("Signup Activity", "Verification email sent to: " + email);
+                                            }else{
+                                                Log.e("Signup Activity", "Failed to send verification email",
+                                                        emailTask.getException());
+                                            }
+                                        });
                                 User user = User.fromFirebaseUser(firebaseUser, username);
+
+                                Map<String, Object> userData = user.toMap();
+                                userData.put("emailVerified", false);
 
                                 // Save to Firestore
                                 db.collection(USERS_COLLECTION)
                                         .document(user.getUserId())
-                                        .set(user.toMap())
+                                        .set(userData)
                                         .addOnSuccessListener(aVoid -> {
                                             Log.d(TAG, "User data stored successfully - calling onSuccess");
                                             callback.onSuccess();
@@ -73,11 +85,9 @@ public class UserController {
         }
     }
 
-    /**
-     * Sign in an existing user
-     */
+
     public void signInUser(String email, String password, AuthCallback callback) {
-        Log.d(TAG, "Attempting sign in for: " + email);
+        Log.d("Signup Activity", "Attempting sign in for: " + email);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
@@ -87,10 +97,31 @@ public class UserController {
                         // Get user data from Firestore
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
-                            getUserData(firebaseUser.getUid(), callback);
+                            if (firebaseUser.isEmailVerified()) {
+                                db.collection(USERS_COLLECTION)
+                                        .document(firebaseUser.getUid())
+                                        .update("emailVerified", true)
+                                        .addOnCompleteListener(updateTask -> {
+                                            getUserData(firebaseUser.getUid(), callback);
+                                        });
+                            } else {
+                                firebaseUser.sendEmailVerification()
+                                        .addOnCompleteListener(emailTask -> {
+                                            if (emailTask.isSuccessful()) {
+                                                Log.d("Signup Activity", "Verification sent from login");
+                                            } else {
+                                                Log.e("SignUp Activity", "Failed to send verification email", emailTask.getException());
+                                            }
+                                        });
+                                mAuth.signOut();
+                                callback.onFailure("Please verify your email before signing in. " +
+                                        "A new verification email has been sent to " + email);
+                            }
                         } else {
                             callback.onFailure("Sign in successful but user is null");
                         }
+
+
                     } else {
                         // Sign in failed
                         Log.e(TAG, "Sign in failed", task.getException());
