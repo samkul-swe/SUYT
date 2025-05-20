@@ -206,9 +206,21 @@ public class UserController {
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
-    /**
-     * Callback interfaces
-     */
+    public void logoutUser(LogoutCallback callback){
+        try{
+            Log.d("Signup Activity", "Logging out from profile");
+            String userId = getCurrentUserId();
+            mAuth.signOut();
+            callback.onSuccess();
+        }catch(Exception e){
+            Log.e(TAG, "Error during logout", e);
+            callback.onFailure("Logout failed: " + e.getMessage());
+        }
+    }
+
+
+
+
     public interface RegisterCallback {
         void onSuccess();
         void onFailure(String errorMessage);
@@ -220,6 +232,11 @@ public class UserController {
     }
 
     public interface UpdateCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface LogoutCallback {
         void onSuccess();
         void onFailure(String errorMessage);
     }

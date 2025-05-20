@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.fragments;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
@@ -37,12 +39,19 @@ public class ProfileFragment extends Fragment {
         emailTextView.setText("john.doe@example.com");
 
         // Set click listener for logout
-        logoutButton.setOnClickListener(v -> logout());
+        logoutButton.setOnClickListener(v -> showLogoutConfirmatioBox());
 
         return view;
     }
 
-    private void logout() {
+    private void showLogoutConfirmatioBox() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> performLogout())
+                .setNegativeButton("Cancel", null)
+                .show();
+
 //        boolean success = userController.logoutUser();
 //        if (success) {
 //            // Navigate to login screen
@@ -52,4 +61,32 @@ public class ProfileFragment extends Fragment {
 //            getActivity().finish();
 //        }
     }
+
+    public void performLogout(){
+        userController.logoutUser(new UserController.LogoutCallback() {
+            @Override
+            public void onSuccess() {
+                if(getActivity() == null || !isAdded()){
+                    return;
+                }
+
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                getActivity().finish();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                if(getActivity() == null || isAdded()){
+                    return;
+                }
+
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+    }
+
 }
