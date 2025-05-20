@@ -3,7 +3,10 @@ package edu.northeastern.suyt.controller;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -204,6 +207,125 @@ public class UserController {
     }
 
     /**
+     * Update user email after verifying with password
+     * @param newEmail New email address to set
+     * @param password Current password for verification
+     * @return Task that can be used to track the operation
+     */
+    public Task<Void> updateUserEmail(String newEmail, String password) {
+        Log.d(TAG, "Attempting to update email to: " + newEmail);
+
+        // Get current user
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Log.e(TAG, "No user is currently logged in");
+            return Tasks.forException(new Exception("No user is currently logged in"));
+        }
+
+        String currentEmail = currentUser.getEmail();
+        if (currentEmail == null) {
+            Log.e(TAG, "Current user has no email");
+            return Tasks.forException(new Exception("Current user has no email"));
+        }
+
+        // Create credential for re-authentication
+        AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, password);
+
+        // Re-authenticate user before updating email
+        return currentUser.reauthenticate(credential)
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Failed to re-authenticate", task.getException());
+                        throw new Exception("Incorrect password. Please try again.");
+                    }
+
+                    Log.d(TAG, "User re-authenticated successfully");
+                    return currentUser.updateEmail(newEmail);
+                })
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Failed to update email in Authentication", task.getException());
+                        throw task.getException();
+                    }
+
+                    Log.d(TAG, "Email updated in Authentication");
+
+                    // Update email in Firestore
+                    return db.collection(USERS_COLLECTION)
+                            .document(currentUser.getUid())
+                            .update("email", newEmail);
+                })
+                .continueWith(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Failed to update email in Firestore", task.getException());
+                        throw task.getException();
+                    }
+
+                    Log.d(TAG, "Email updated in Firestore");
+                    return null;
+                });
+    }
+
+    /**
+     * Update user email with callback pattern (alternative implementation)
+     * @param newEmail New email address to set
+     * @param password Current password for verification
+     * @param callback Callback to handle success or failure
+     */
+    public void updateUserEmailWithCallback(String newEmail, String password, UpdateCallback callback) {
+        updateUserEmail(newEmail, password)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    /**
+     * Update user password after verifying current password
+     * @param currentPassword Current password for verification
+     * @param newPassword New password to set
+     * @return Task that can be used to track the operation
+     */
+    public Task<Void> updateUserPassword(String currentPassword, String newPassword) {
+        Log.d(TAG, "Attempting to update password");
+
+        // Get current user
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Log.e(TAG, "No user is currently logged in");
+            return Tasks.forException(new Exception("No user is currently logged in"));
+        }
+
+        String currentEmail = currentUser.getEmail();
+        if (currentEmail == null) {
+            Log.e(TAG, "Current user has no email");
+            return Tasks.forException(new Exception("Current user has no email"));
+        }
+
+        // Create credential for re-authentication
+        AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, currentPassword);
+
+        // Re-authenticate user before updating password
+        return currentUser.reauthenticate(credential)
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Failed to re-authenticate", task.getException());
+                        throw new Exception("Incorrect password. Please try again.");
+                    }
+
+                    Log.d(TAG, "User re-authenticated successfully");
+                    return currentUser.updatePassword(newPassword);
+                })
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Failed to update password", task.getException());
+                        throw task.getException();
+                    }
+
+                    Log.d(TAG, "Password updated successfully");
+                    return Tasks.forResult(null);
+                });
+    }
+
+    /**
      * Increment user recycling count and points
      */
     public void incrementRecycling(int pointsToAdd, UpdateCallback callback) {
@@ -248,9 +370,6 @@ public class UserController {
             callback.onFailure("Logout failed: " + e.getMessage());
         }
     }
-
-
-
 
     public interface RegisterCallback {
         void onSuccess();
