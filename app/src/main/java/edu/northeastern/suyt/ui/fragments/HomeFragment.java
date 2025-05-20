@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -20,15 +21,21 @@ import edu.northeastern.suyt.controller.RecyclingPostController;
 import edu.northeastern.suyt.controller.UserStatsController;
 import edu.northeastern.suyt.model.RecyclingPost;
 import edu.northeastern.suyt.model.UserStats;
+import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
-    private UserStatsController statsController;
 
+    private TextView userRankTextView;
     private TextView totalPointsTextView;
-    private TextView moneySavedTextView;
-    private TextView localUpdateTextView;
+    private TextView aheadOfUsersTextView;
+    private TextView co2SavedTextView;
+    private RecyclerView recyclerView;
+    private PostAdapter adapter;
+
+    private RecyclingPostController postController;
+    private UserStatsController statsController;
 
     @Nullable
     @Override
@@ -36,27 +43,34 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Initialize controllers
-        RecyclingPostController postController = new RecyclingPostController();
+        postController = new RecyclingPostController();
         statsController = new UserStatsController();
 
-        // Initialize user stats views
+        // Initialize views
+        userRankTextView = view.findViewById(R.id.user_rank_text_view);
         totalPointsTextView = view.findViewById(R.id.total_points_text_view);
-        moneySavedTextView = view.findViewById(R.id.money_saved_text_view);
-        localUpdateTextView = view.findViewById(R.id.local_update_text_view);
+        aheadOfUsersTextView = view.findViewById(R.id.ahead_of_users_text_view);
+        co2SavedTextView = view.findViewById(R.id.co2_saved_text_view);
+        recyclerView = view.findViewById(R.id.recycler_view);
+
+        // Set up recycler view
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Load user stats
         loadUserStats();
 
-        // Set up recycler view for posts
-        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Load and display community posts
-        List<RecyclingPost> posts = postController.getAllPosts();
-        PostAdapter adapter = new PostAdapter(posts);
-        recyclerView.setAdapter(adapter);
+        // Load community posts
+        loadCommunityPosts();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh data when returning to this fragment
+        loadUserStats();
+        loadCommunityPosts();
     }
 
     private void loadUserStats() {
@@ -64,27 +78,32 @@ public class HomeFragment extends Fragment {
         UserStats stats = statsController.getUserStats();
 
         // Update UI with stats
+        userRankTextView.setText(statsController.getUserRank());
         totalPointsTextView.setText(String.valueOf(stats.getTotalPoints()));
 
-        // Calculate money saved (example calculation - $0.10 per point)
-        double moneySaved = stats.getTotalPoints() * 0.10;
-        moneySavedTextView.setText(String.format("$%.2f", moneySaved));
+        // Calculate and display stats for comparison
+        int aheadPercentage = statsController.getAheadOfUsersPercentage();
+        aheadOfUsersTextView.setText(String.format("You're ahead of %d%% of users", aheadPercentage));
 
-        // Set local recycling update (in a real app, this would come from a location-based service)
-        localUpdateTextView.setText(getLocalRecyclingUpdate());
+        // Display CO2 savings
+        float co2Saved = statsController.calculateCO2Saved();
+        co2SavedTextView.setText(String.format("%.1f kg CO2 saved", co2Saved));
     }
 
-    private String getLocalRecyclingUpdate() {
-        // In a real app, this would fetch data based on user's location
-        // For now, we'll return a static message
-        return "San Jose now accepts clean pizza boxes in recycling bins! " +
-                "Remember to remove any food residue before recycling.";
+    private void loadCommunityPosts() {
+        // Get all posts from controller
+        List<RecyclingPost> posts = postController.getAllPosts();
+
+        // Initialize adapter with posts and click listener
+        adapter = new PostAdapter(posts, this);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        // Refresh stats when returning to this fragment
-        loadUserStats();
+    public void onPostClick(RecyclingPost post) {
+        // Open post detail activity when a post is clicked
+        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
+        intent.putExtra("POST_ID", post.getId());
+        startActivity(intent);
     }
 }

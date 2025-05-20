@@ -13,17 +13,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.RecyclingPostController;
 import edu.northeastern.suyt.model.RecyclingPost;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
-    private final List<RecyclingPost> posts;
-    private final RecyclingPostController postController;
+    private List<RecyclingPost> posts;
+    private OnPostClickListener listener;
 
-    public PostAdapter(List<RecyclingPost> posts) {
+    public interface OnPostClickListener {
+        void onPostClick(RecyclingPost post);
+    }
+
+    public PostAdapter(List<RecyclingPost> posts, OnPostClickListener listener) {
         this.posts = posts;
-        this.postController = new RecyclingPostController();
+        this.listener = listener;
     }
 
     @NonNull
@@ -43,8 +46,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.likesTextView.setText(String.valueOf(post.getLikes()));
         holder.dateTextView.setText(post.getDate());
 
-        // In a real app, we would load the image using a library like Glide or Picasso
-        // For now, we'll use a placeholder based on the category
+        // In a real app, load image using a library like Glide or Picasso
+        // For this example, use placeholder based on category
         if (post.getCategory().equals("Reuse")) {
             holder.postImageView.setImageResource(R.drawable.placeholder_reuse);
         } else if (post.getCategory().equals("Recycle")) {
@@ -64,10 +67,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
         // Set up like button click listener
         holder.likeButton.setOnClickListener(v -> {
-            // In a real app, this would update the like count in the database
+            // Increment likes and update UI
             post.setLikes(post.getLikes() + 1);
             holder.likesTextView.setText(String.valueOf(post.getLikes()));
-            postController.likePost(post.getId());
+        });
+
+        // Set up item click listener to open post details
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onPostClick(post);
+            }
         });
     }
 

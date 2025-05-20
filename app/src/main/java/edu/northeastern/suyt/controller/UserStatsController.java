@@ -3,9 +3,54 @@ package edu.northeastern.suyt.controller;
 import edu.northeastern.suyt.model.UserStats;
 
 public class UserStatsController {
+    // In a real app, this would interface with a database or API
+
     public UserStats getUserStats() {
         // For now, return dummy data to simulate user stats
         return new UserStats(125, 85, 210, 42);
+    }
+
+    public String getUserRank() {
+        // This would calculate the user's rank based on their stats
+        // For now, return a dummy rank
+        UserStats stats = getUserStats();
+        int totalPoints = stats.getTotalPoints();
+
+        if (totalPoints > 400) {
+            return "Rank: Eco Warrior";
+        } else if (totalPoints > 300) {
+            return "Rank: Sustainability Pro";
+        } else if (totalPoints > 200) {
+            return "Rank: Green Guardian";
+        } else if (totalPoints > 100) {
+            return "Rank: Earth Protector";
+        } else {
+            return "Rank: Recycling Rookie";
+        }
+    }
+
+    public int getAheadOfUsersPercentage() {
+        // This would calculate what percentage of users the current user is ahead of
+        // For now, return a dummy percentage
+        UserStats stats = getUserStats();
+        int totalPoints = stats.getTotalPoints();
+
+        // Simple calculation based on total points for demo purposes
+        // In a real app, this would compare to actual user statistics
+        return Math.min(100, totalPoints / 5);
+    }
+
+    public float calculateCO2Saved() {
+        // This would calculate estimated CO2 savings based on activities
+        // For now, return a dummy value
+        UserStats stats = getUserStats();
+
+        // Simple calculation based on points for demo purposes
+        float recycleImpact = stats.getRecyclePoints() * 0.15f;  // kg CO2 per recycle point
+        float reuseImpact = stats.getReusePoints() * 0.25f;      // kg CO2 per reuse point
+        float reduceImpact = stats.getReducePoints() * 0.3f;     // kg CO2 per reduce point
+
+        return recycleImpact + reuseImpact + reduceImpact;
     }
 
     public String getRecycleInfo() {
