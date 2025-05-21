@@ -43,6 +43,7 @@
     <string name="menu_tips">Tips</string>
     <string name="menu_profile">Profile</string>
     <string name="menu_rrr">RRR</string>
+    <string name="menu_achievements">Achievements</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_home"
         android:title="@string/menu_home" />
     <item
+        android:id="@+id/nav_achievements"
+        android:icon="@drawable/ic_achievements"
+        android:title="@string/menu_achievements" />
+    <item
         android:id="@+id/nav_tips"
         android:icon="@drawable/ic_tips"
         android:title="@string/menu_tips" />

@@ -1,0 +1,25 @@
+<!-- flower_iris.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <path
+        android:fillColor="#673AB7"
+        android:pathData="M480,680C370,680 280,590 280,480C280,370 370,280 480,280C590,280 680,370 680,480C680,590 590,680 480,680Z"/>
+    <path
+        android:fillColor="#9575CD"
+        android:pathData="M480,480L380,280C380,280 480,330 480,330C480,330 580,280 580,280L480,480Z"/>
+    <path
+        android:fillColor="#9575CD"
+        android:pathData="M480,480L280,380C280,380 380,480 380,480C380,480 380,580 380,580L480,480Z"/>
+    <path
+        android:fillColor="#9575CD"
+        android:pathData="M480,480L380,680C380,680 480,630 480,630C480,630 580,680 580,680L480,480Z"/>
+    <path
+        android:fillColor="#9575CD"
+        android:pathData="M480,480L680,580C680,580 580,480 580,480C580,480 580,380 580,380L480,480Z"/>
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M480,680L480,860C480,860 520,860 520,860C520,860 520,680 520,680C520,680 480,680 480,680Z"/>
+</vector>

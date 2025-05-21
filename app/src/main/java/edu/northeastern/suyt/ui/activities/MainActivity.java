@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new TipsFragment();
             } else if (id == R.id.nav_profile) {
                 fragment = new ProfileFragment();
+            } else if (id == R.id.nav_achievements) {
+                // Navigate to achievements screen
+                startActivity(new Intent(this, AchievementsActivity.class));
+                return true;
             }
 
             return loadFragment(fragment);
