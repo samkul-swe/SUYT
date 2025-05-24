@@ -59,7 +59,6 @@ public class User {
     @Exclude
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
-        map.put("userId", userId);
         map.put("username", username);
         map.put("email", email);
         return map;

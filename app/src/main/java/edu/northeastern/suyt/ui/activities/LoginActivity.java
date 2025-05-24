@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private Button loginButton;
     private TextView signUpTextView, forgotPasswordTextView;
+    private ProgressBar loadingIndicator;
     private UserController userController;
 
     @Override
@@ -42,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
         signUpTextView = findViewById(R.id.sign_up_text_view);
         String signupHtmlText = "Don't have an account? <font color='#3344DD'>Sign up here!</font>";
         signUpTextView.setText(Html.fromHtml(signupHtmlText, Html.FROM_HTML_MODE_LEGACY));
+        loadingIndicator = findViewById(R.id.loading_indicator);
 
         forgotPasswordTextView = findViewById(R.id.forgot_password);
         String forgotPassword = "<font color='#3344DD'>Forgot Password?</font>";
@@ -70,42 +73,57 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         loginButton.setEnabled(false);
+        setLoadingIndicatorVisibility(View.VISIBLE);
 
-        // Attempt login
-        userController.signInUser(email, password, new UserController.AuthCallback() {
-            @Override
-            public void onSuccess(User user) {
-                runOnUiThread(() -> {
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                    navigateToMain();
-                });
-            }
+        try{
+            userController.signInUser(email, password, new UserController.AuthCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    runOnUiThread(() -> {
+                        setLoadingIndicatorVisibility(View.GONE);
+                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                        navigateToMain();
+                    });
+                }
 
-            @Override
-            public void onFailure(String errorMessage) {
-                runOnUiThread(() -> {
-                    // Hide progress
-//                    if (progressBar != null) {
-//                        progressBar.setVisibility(View.GONE);
-//                    }
+                @Override
+                public void onFailure(String errorMessage) {
+                    runOnUiThread(() -> {
+                        setLoadingIndicatorVisibility(View.GONE);
+                        loginButton.setEnabled(true);
 
-                    // Re-enable login button
-                    loginButton.setEnabled(true);
+                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        String title = "";
+                        String message = "";
 
-                    // Show error message
-                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                    showEmailVerificationDialog(errorMessage);
-                    Log.e("signup activity", "Login failed: " + errorMessage);
-                });
-            }
-        });
+                        if(errorMessage.contains("Verify Email")){
+                            title = "Email Verification Required";
+                            message = "Please verify your email before signing in. A new verification email has been sent to the registered email address.";
+                        }else if(errorMessage.equals("Invalid Credentials")){
+                            title = "Check your email or password";
+                            message = "Please verify your email and password. Use 'Sign Up' to register or 'Forgot Password' to reset your password.";
+                        }else{
+                            title = "Login Failed";
+                            message = "Error in processing request. Please try again later.";
+                        }
+
+                        showErrorDialog(message, title);
+                        Log.e("signup activity", "Login failed: " + errorMessage);
+                    });
+                }
+            });
+
+        }catch(Exception e){
+            loginButton.setEnabled(true);
+            setLoadingIndicatorVisibility(View.GONE);
+            Toast.makeText(LoginActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
-    private void showEmailVerificationDialog(String errorMessage){
+    private void showErrorDialog(String errorMessage, String title){
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Verify Your Email")
-                .setMessage(errorMessage +" Please verify your email before login. A verification email has been sent to " +
-                          ". Please check your inbox and verify your email before logging in.")
+        builder.setTitle(title)
+                .setMessage(errorMessage)
                 .setPositiveButton("OK", (dialog, which) -> {
 
                 })
@@ -123,5 +141,13 @@ public class LoginActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void setLoadingIndicatorVisibility(int visible) {
+        if (loadingIndicator != null) {
+            loadingIndicator.setVisibility(visible);
+        } else {
+            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + visible);
+        }
     }
 }

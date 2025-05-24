@@ -7,10 +7,12 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.List;
 import java.util.Map;
 
 import edu.northeastern.suyt.model.User;
@@ -91,21 +93,13 @@ public class UserController {
     public void signInUser(String email, String password, AuthCallback callback) {
         Log.d("Signup Activity", "Attempting sign in for: " + email);
 
-        try{
-
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Sign in successful");
-
-                        // Get user data from Firestore
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        if (firebaseUser != null) {
+        try {
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Log.d("signup activity", "Sign in successful");
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                            if (firebaseUser != null) {
                             if (firebaseUser.isEmailVerified()) {
                                 db.collection(USERS_COLLECTION)
                                         .document(firebaseUser.getUid())
@@ -123,22 +117,34 @@ public class UserController {
                                             }
                                         });
                                 mAuth.signOut();
-                                callback.onFailure("Please verify your email before signing in. " +
-                                        "A new verification email has been sent to " + email);
+                                callback.onFailure("Verify Email " + email);
                             }
                         } else {
-                            callback.onFailure("Sign in successful but user is null");
+                            callback.onFailure("User_Null");
                         }
+                        } else {
+                            Log.e("signup activity", "Sign in failed", task.getException());
+                            Exception exception = task.getException();
 
+                            if (exception instanceof FirebaseAuthException) {
+                                FirebaseAuthException authException = (FirebaseAuthException) exception;
+                                String errorCode = authException.getErrorCode();
 
-                    } else {
-                        // Sign in failed
-                        Log.e(TAG, "Sign in failed", task.getException());
-                        String errorMessage = task.getException() != null ?
-                                task.getException().getMessage() : "Sign in failed";
-                        callback.onFailure(errorMessage);
-                    }
-                });
+                                Log.d("signup activity", "Error code: " + errorCode);
+
+                                if (errorCode.equals("ERROR_INVALID_CREDENTIAL")) {
+                                    callback.onFailure("Invalid Credentials");
+                                } else {
+                                    callback.onFailure("Error: " + authException.getMessage());
+                                }
+                            } else {
+                                callback.onFailure("Unknown error occurred");
+                            }
+                        }
+                    });
+        }catch (Exception e) {
+            callback.onFailure("Unexpected error: " + e.getMessage());
+        }
     }
 
     /**
@@ -161,6 +167,8 @@ public class UserController {
                     callback.onFailure("Failed to get user data: " + e.getMessage());
                 });
     }
+
+
 
     /**
      * Get current user data from Firestore
@@ -395,5 +403,10 @@ public class UserController {
     public interface LogoutCallback {
         void onSuccess();
         void onFailure(String errorMessage);
+    }
+
+    public interface EmailCheckCallback {
+        void onEmailExists(boolean exists);
+        void onError(String errorMessage);
     }
 }

@@ -19,3 +19,5 @@ gradle-wrapper.properties
 .idea/modules.xml
 .idea/navEditor.xml
 .idea/misc.xml
+
+local.properties
