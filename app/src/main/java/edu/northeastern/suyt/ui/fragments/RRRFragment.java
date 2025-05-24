@@ -9,17 +9,19 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log; // Added for logging
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +39,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map; // Added for ActivityResultContracts.RequestMultiplePermissions
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.RecyclableItemController;
@@ -45,11 +48,13 @@ import edu.northeastern.suyt.model.RecyclableItem;
 
 public class RRRFragment extends Fragment implements View.OnClickListener {
 
+    private static final String TAG = "RRRFragment"; // Tag for logging
 
-    private static final int REQUEST_CAMERA_PERMISSION = 100;
-    private static final int REQUEST_STORAGE_PERMISSION = 101;
-    private static final int REQUEST_IMAGE_CAPTURE = 102;
-    private static final int REQUEST_PICK_IMAGE = 103;
+    // Removed old request codes as they are now handled by ActivityResultLauncher
+    // private static final int REQUEST_CAMERA_PERMISSION = 100;
+    // private static final int REQUEST_STORAGE_PERMISSION = 101;
+    // private static final int REQUEST_IMAGE_CAPTURE = 102;
+    // private static final int REQUEST_PICK_IMAGE = 103;
 
     private ImageView itemImageView;
     private TextView itemNameTextView;
@@ -62,7 +67,30 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private RecyclableItemController itemController;
     private RecyclableItem currentItem;
-    private String currentPhotoPath;
+    private String currentPhotoPath; // Path for captured camera image
+
+    // ActivityResultLauncher for Camera
+    private ActivityResultLauncher<Uri> takePictureLauncher;
+    private Uri cameraPhotoUri; // URI where the camera photo will be saved
+
+    // ActivityResultLauncher for Gallery/File Picker
+    private ActivityResultLauncher<String[]> pickImageLauncher; // For Android 13+ permissions
+    private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher; // For launching the actual picker
+
+    // ActivityResultLauncher for Camera Permissions
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
+    // ActivityResultLauncher for Storage Permissions (for pre-Android 13)
+    private ActivityResultLauncher<String[]> requestStoragePermissionLauncher;
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Initialize ActivityResultLaunchers in onCreate or before fragment state is restored
+        setupActivityResultLaunchers();
+    }
 
     @Nullable
     @Override
@@ -79,7 +107,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reuseButton = view.findViewById(R.id.reuse_button);
         reduceButton = view.findViewById(R.id.reduce_button);
         FloatingActionButton cameraFab = view.findViewById(R.id.camera_fab);
-        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab);
+        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab); // Renamed from downloadsFab to galleryFab in XML for clarity
         infoContentTextView = view.findViewById(R.id.info_content_text_view);
         infoCardView = view.findViewById(R.id.info_card_view);
         progressBar = view.findViewById(R.id.progress_bar);
@@ -90,18 +118,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceButton.setOnClickListener(this);
 
         // Set FAB listeners
-        cameraFab.setOnClickListener(v -> {
-            if (checkPermission(Manifest.permission.CAMERA, REQUEST_CAMERA_PERMISSION)) {
-                openCamera();
-            }
-        });
-
-        // Update the gallery FAB to open file picker
-        downloadsFab.setOnClickListener(v -> {
-            if (checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_STORAGE_PERMISSION)) {
-                openFilePicker();
-            }
-        });
+        cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
+        downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
 
         // Initialize with placeholder state
         displayPlaceholderState();
@@ -109,108 +127,32 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         return view;
     }
 
-    private void displayPlaceholderState() {
-        itemImageView.setImageResource(R.drawable.ic_image_placeholder);
-        itemNameTextView.setText("Scan an item");
-        infoContentTextView.setText("Take a photo or select an image from your device to see recycling, reusing, and reducing options.");
-        infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary));
-
-        // Default button state
-        resetButtons();
-    }
-
-    private boolean checkPermission(String permission, int requestCode) {
-        if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(), new String[]{permission}, requestCode);
-            return false;
-        }
-        return true;
-    }
-
-    private void openCamera() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        // Ensure there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
-            // Create the file where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
-            }
-
-            // Continue only if the file was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(requireContext(),
-                        "com.example.suyt.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        } else {
-            Toast.makeText(requireContext(), "No camera app available", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    private void openFilePicker() {
-        // Use a simple approach that works across Android versions
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-
-        try {
-            startActivityForResult(Intent.createChooser(intent, "Select Image"), REQUEST_PICK_IMAGE);
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error opening file picker", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == Activity.RESULT_OK) {
-            progressBar.setVisibility(View.VISIBLE);
-
-            if (requestCode == REQUEST_IMAGE_CAPTURE) {
-                // Process the full-size image from photoUri
+    private void setupActivityResultLaunchers() {
+        // Launcher for taking pictures
+        takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
+            if (result) { // Image was successfully captured
+                progressBar.setVisibility(View.VISIBLE);
                 processCapturedPhoto();
+            } else {
+                Toast.makeText(requireContext(), "Photo capture cancelled", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-            } else if (requestCode == REQUEST_PICK_IMAGE && data != null) {
-                // Handle document selection from Downloads or other location
-                Uri selectedFileUri = data.getData();
+        // Launcher for picking images from gallery/files (using ACTION_OPEN_DOCUMENT for broader access)
+        // This is the actual launcher for the Intent
+        pickImageFromGalleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                progressBar.setVisibility(View.VISIBLE);
+                Uri selectedFileUri = result.getData().getData();
 
                 if (selectedFileUri != null) {
                     try {
-                        // Log the URI for debugging
-                        System.out.println("Selected URI: " + selectedFileUri.toString());
-
-                        // Load and display the image
+                        Log.d(TAG, "Selected URI: " + selectedFileUri.toString());
                         Bitmap bitmap = getBitmapFromUri(selectedFileUri);
                         itemImageView.setImageBitmap(bitmap);
-
-                        // Analyze image
                         analyzeImage(bitmap);
-
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed to load selected image", e);
                         Toast.makeText(requireContext(), "Failed to load selected image", Toast.LENGTH_SHORT).show();
                         progressBar.setVisibility(View.GONE);
                     }
@@ -218,93 +160,222 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                     Toast.makeText(requireContext(), "Error: No image was selected", Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.GONE);
                 }
+            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                Toast.makeText(requireContext(), "Image selection cancelled", Toast.LENGTH_SHORT).show();
             }
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(requireContext(), "Operation cancelled", Toast.LENGTH_SHORT).show();
+        });
+
+        // Launcher for requesting Camera permission
+        requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if (isGranted) {
+                openCamera();
+            } else {
+                Toast.makeText(requireContext(), "Camera permission is needed to take photos.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Launcher for requesting Storage permissions (for pre-Android 13)
+        requestStoragePermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            boolean allGranted = true;
+            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                if (!entry.getValue()) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                openFilePicker();
+            } else {
+                Toast.makeText(requireContext(), "Storage permissions are required to select images from your device.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    private void displayPlaceholderState() {
+        itemImageView.setImageResource(R.drawable.ic_image_placeholder); // Ensure this drawable exists
+        itemNameTextView.setText("Scan an item");
+        infoContentTextView.setText("Take a photo or select an image from your device to see recycling, reusing, and reducing options.");
+        infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary)); // Ensure colorPrimary exists
+
+        // Default button state
+        resetButtons();
+    }
+
+    // --- Permission Check and Request Methods ---
+
+    private void checkAndRequestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera();
+        } else {
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void checkAndRequestStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 (API 33) and higher
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                openFilePicker();
+            } else {
+                // Request the new granular media permission
+                requestStoragePermissionLauncher.launch(new String[]{Manifest.permission.READ_MEDIA_IMAGES});
+            }
+        } else { // Android 6 (API 23) to Android 12 (API 32)
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                openFilePicker();
+            } else {
+                // Request READ_EXTERNAL_STORAGE
+                requestStoragePermissionLauncher.launch(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
+            }
+        }
+    }
+
+
+    // --- Image Capture and Selection Logic ---
+
+    private void openCamera() {
+        try {
+            File photoFile = createImageFile();
+            cameraPhotoUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider", // Use your actual fileprovider authority
+                    photoFile
+            );
+            takePictureLauncher.launch(cameraPhotoUri);
+        } catch (IOException ex) {
+            Log.e(TAG, "Error creating image file for camera", ex);
+            Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+        currentPhotoPath = image.getAbsolutePath(); // Save path for processing after capture
+        return image;
+    }
+
+    private void openFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT); // ACTION_OPEN_DOCUMENT is preferred
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        // You can add this if you want to include downloads specifically, but ACTION_OPEN_DOCUMENT usually handles it
+        // intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+
+        try {
+            pickImageFromGalleryLauncher.launch(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening file picker", e);
+            Toast.makeText(requireContext(), "Error opening file picker: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void processCapturedPhoto() {
         if (currentPhotoPath != null) {
             try {
-                // Get the dimensions of the View
+                // Get the dimensions of the View (will be 0 if not yet laid out, so provide defaults)
                 int targetW = itemImageView.getWidth();
                 int targetH = itemImageView.getHeight();
 
-                // If the view dimensions are zero, use default values
-                if (targetW <= 0) targetW = 800;
-                if (targetH <= 0) targetH = 800;
+                if (targetW <= 0) targetW = 1024; // Default sensible size
+                if (targetH <= 0) targetH = 1024;
 
-                // Get the dimensions of the bitmap
-                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-                bmOptions.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-                int photoW = bmOptions.outWidth;
-                int photoH = bmOptions.outHeight;
-
-                // Determine how much to scale down the image
-                int scaleFactor = Math.max(1, Math.min(photoW/targetW, photoH/targetH));
-
-                // Decode the image file into a Bitmap sized to fill the View
-                bmOptions.inJustDecodeBounds = false;
-                bmOptions.inSampleSize = scaleFactor;
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                    bmOptions.inPurgeable = true;
+                // Decode bitmap from path, scaled
+                Bitmap bitmap = decodeSampledBitmapFromFile(currentPhotoPath, targetW, targetH);
+                if (bitmap != null) {
+                    itemImageView.setImageBitmap(bitmap);
+                    analyzeImage(bitmap);
+                } else {
+                    Toast.makeText(requireContext(), "Failed to load captured image bitmap.", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
                 }
 
-                Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-                itemImageView.setImageBitmap(bitmap);
-
-                // Analyze the image
-                analyzeImage(bitmap);
-
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error processing captured photo", e);
                 Toast.makeText(requireContext(), "Error loading captured image", Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
             }
         } else {
-            Toast.makeText(requireContext(), "Error: No image was captured", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Error: No image path for captured photo.", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
         }
     }
 
     private Bitmap getBitmapFromUri(Uri uri) throws IOException {
-        // Get input stream from the URI
-        InputStream input = requireActivity().getContentResolver().openInputStream(uri);
+        // Get the dimensions of the View (will be 0 if not yet laid out, so provide defaults)
+        int targetW = itemImageView.getWidth();
+        int targetH = itemImageView.getHeight();
 
-        // First decode with inJustDecodeBounds=true to check dimensions
+        if (targetW <= 0) targetW = 1024; // Default sensible size
+        if (targetH <= 0) targetH = 1024;
+
+        InputStream input = requireContext().getContentResolver().openInputStream(uri);
+        if (input == null) throw new IOException("Unable to open input stream for URI: " + uri);
+
+        // Decode image size
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(input, null, options);
-        input.close();
-
-        // The new size we want to scale to
-        int targetW = 800;
-        int targetH = 800;
+        input.close(); // Close the first input stream
 
         // Calculate inSampleSize
-        int scaleFactor = Math.max(1, Math.min(
-                options.outWidth / targetW,
-                options.outHeight / targetH));
+        options.inSampleSize = calculateInSampleSize(options, targetW, targetH);
 
         // Decode bitmap with inSampleSize set
-        options = new BitmapFactory.Options();
-        options.inSampleSize = scaleFactor;
-        options.inJustDecodeBounds = false;
-
-        input = requireActivity().getContentResolver().openInputStream(uri);
+        options.inJustDecodeBounds = false; // Set to false to decode the actual bitmap
+        input = requireContext().getContentResolver().openInputStream(uri); // Re-open stream
         Bitmap bitmap = BitmapFactory.decodeStream(input, null, options);
-        input.close();
-
+        if (input != null) {
+            input.close(); // Close the second input stream
+        }
         return bitmap;
     }
+
+    // Helper method for efficient bitmap loading (reduces memory usage)
+    private Bitmap decodeSampledBitmapFromFile(String path, int reqWidth, int reqHeight) {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true; // First decode with inJustDecodeBounds=true to check dimensions
+        BitmapFactory.decodeFile(path, options);
+
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight); // Calculate inSampleSize
+
+        options.inJustDecodeBounds = false; // Decode bitmap with inSampleSize set
+        return BitmapFactory.decodeFile(path, options);
+    }
+
+    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
+
+
+    // --- Item Analysis and UI Updates ---
 
     private void analyzeImage(Bitmap bitmap) {
         // In a real app, this would use ML to identify the item
         // For now, we'll simulate this with a delay and random item
 
-        new android.os.Handler().postDelayed(() -> {
+        // It's better to use a Handler associated with the main looper directly
+        new android.os.Handler(getContext().getMainLooper()).postDelayed(() -> {
             // Get a random item (for demo purposes)
             currentItem = itemController.getRandomItem();
 
@@ -346,7 +417,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void resetButtons() {
-        recycleButton.setBackgroundResource(R.drawable.button_normal);
+        recycleButton.setBackgroundResource(R.drawable.button_normal); // Ensure button_normal exists
         reuseButton.setBackgroundResource(R.drawable.button_normal);
         reduceButton.setBackgroundResource(R.drawable.button_normal);
 
@@ -357,8 +428,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private void setSelectedButton(Button button) {
         if (button == recycleButton) {
-            button.setBackgroundResource(R.drawable.button_selected_recycle);
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
+            button.setBackgroundResource(R.drawable.button_selected_recycle); // Ensure these drawables exist
+            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle)); // Ensure colors exist
         } else if (button == reuseButton) {
             button.setBackgroundResource(R.drawable.button_selected_reuse);
             infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));
@@ -385,20 +456,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private void showReduceInfo() {
         if (currentItem != null) {
             infoContentTextView.setText(currentItem.getReduceInfo());
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (requestCode == REQUEST_CAMERA_PERMISSION) {
-                openCamera();
-            } else if (requestCode == REQUEST_STORAGE_PERMISSION) {
-                openFilePicker();
-            }
-        } else {
-            String permissionType = (requestCode == REQUEST_CAMERA_PERMISSION) ? "Camera" : "Storage";
-            Toast.makeText(requireContext(), permissionType + " permission is needed to use this feature", Toast.LENGTH_SHORT).show();
         }
     }
 }

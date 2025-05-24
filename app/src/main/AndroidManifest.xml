@@ -27,9 +27,9 @@
         <activity
             android:name=".ui.activities.CreatePostActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.activities.SavedPostsActivity"
-            android:exported="false" />
+<!--        <activity-->
+<!--            android:name=".ui.activities.SavedPostsActivity"-->
+<!--            android:exported="false" />-->
         <activity
             android:name=".ui.activities.ForgotPassword"
             android:exported="false" />
