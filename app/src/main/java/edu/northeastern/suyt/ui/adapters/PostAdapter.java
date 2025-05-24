@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
-import edu.northeastern.suyt.firebase.repository.storage.PostImageRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 
@@ -62,11 +61,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         this.posts = posts;
         //Prefetch images to cache
         for (Post post : posts) {
-            PostImageRepository postImageRepository = new PostImageRepository();
             Glide.with(context)
-                    .load(postImageRepository.getPostImage(post.getImageUrl()))
-                    .preload(); // Prefetch the image
-            System.out.println(postImageRepository.getPostImage(post.getImageUrl()));
+                    .load(post.getImageUrl())
+                    .error(R.drawable.placeholder_image)
+                    .fallback(R.drawable.placeholder_image);
         }
         notifyDataSetChanged();
     }
@@ -81,20 +79,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = posts.get(position);
-        PostImageRepository postImageRepository = new PostImageRepository();
 
         // Execute heavy work in background
         executorService.execute(() -> {
-            String imageUrl = String.valueOf(postImageRepository.getPostImage(post.getImageUrl()));
+            String imageUrl = String.valueOf(post.getImageUrl());
 
             // Update UI on the main thread
             mainHandler.post(() -> {
                 Glide.with(holder.postImageView.getContext())
                         .load(imageUrl)
-                        .placeholder(R.drawable.placeholder_image)
-                        .thumbnail(0.25f) // Load a low-res version first (25% of the original size)
-                        .override(300, 300)
-                        .into(holder.postImageView);
+                        .error(R.drawable.placeholder_image)
+                        .fallback(R.drawable.placeholder_image);
 
                 holder.postImageView.setTag(post.getImageUrl());
                 holder.titleTextView.setText(post.getTitle());
