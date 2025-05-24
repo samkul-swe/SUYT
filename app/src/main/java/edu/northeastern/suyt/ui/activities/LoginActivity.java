@@ -20,8 +20,7 @@ import edu.northeastern.suyt.model.User;
 public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
-    private Button loginButton;
-    private TextView signUpTextView, forgotPasswordTextView;
+    private Button loginButton, signupButton, forgotPasswordButton;
     private ProgressBar loadingIndicator;
     private UserController userController;
 
@@ -41,19 +40,24 @@ public class LoginActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         loginButton = findViewById(R.id.login_button);
-        signUpTextView = findViewById(R.id.sign_up_text_view);
+        signupButton = findViewById(R.id.sign_up_text_view);
         String signupHtmlText = "Don't have an account? <font color='#3344DD'>Sign up here!</font>";
-        signUpTextView.setText(Html.fromHtml(signupHtmlText, Html.FROM_HTML_MODE_LEGACY));
+        signupButton.setText(Html.fromHtml(signupHtmlText, Html.FROM_HTML_MODE_LEGACY));
         loadingIndicator = findViewById(R.id.loading_indicator);
 
-        forgotPasswordTextView = findViewById(R.id.forgot_password);
+        forgotPasswordButton = findViewById(R.id.forgot_password);
         String forgotPassword = "<font color='#3344DD'>Forgot Password?</font>";
-        forgotPasswordTextView.setText(Html.fromHtml(forgotPassword, Html.FROM_HTML_MODE_LEGACY));
+        forgotPasswordButton.setText(Html.fromHtml(forgotPassword, Html.FROM_HTML_MODE_LEGACY));
 
         // Set click listeners
         loginButton.setOnClickListener(v -> attemptLogin());
+        signupButton.setOnClickListener(v -> navigateToSignUp());
+        forgotPasswordButton.setOnClickListener(v -> navigateToForgotPassword());
+    }
 
-        signUpTextView.setOnClickListener(v -> navigateToSignUp());
+    public void navigateToForgotPassword(){
+        Intent intent = new Intent(this, ForgotPassword.class);
+        startActivity(intent);
     }
 
     private void attemptLogin() {

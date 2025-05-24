@@ -11,5 +11,10 @@
         <item name="colorOnSecondary">@android:color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:windowBackground">@drawable/app_background</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+
+
     </style>
+
 </resources>

@@ -339,6 +339,55 @@ public class UserController {
                 });
     }
 
+    public void sendPasswordResetEmail(String email, PasswordResetCallback callback) {
+        Log.d(TAG, "Sending password reset email to: " + email);
+
+        if (email == null || email.trim().isEmpty()) {
+            callback.onFailure("Please enter your email address");
+            return;
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            callback.onFailure("Please enter a valid email address");
+            return;
+        }
+
+        mAuth.sendPasswordResetEmail(email.trim())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Password reset email sent successfully");
+                        callback.onSuccess();
+                    } else {
+                        Log.e(TAG, "Failed to send password reset email", task.getException());
+
+                        Exception exception = task.getException();
+                        String errorMessage = "Failed to send password reset email";
+
+                        if (exception instanceof FirebaseAuthException) {
+                            FirebaseAuthException authException = (FirebaseAuthException) exception;
+                            String errorCode = authException.getErrorCode();
+
+                            switch (errorCode) {
+                                case "ERROR_USER_NOT_FOUND":
+                                    errorMessage = "No account found with this email address";
+                                    break;
+                                case "ERROR_INVALID_EMAIL":
+                                    errorMessage = "Invalid email address";
+                                    break;
+                                case "ERROR_TOO_MANY_REQUESTS":
+                                    errorMessage = "Too many requests. Please try again later";
+                                    break;
+                                default:
+                                    errorMessage = authException.getMessage();
+                                    break;
+                            }
+                        }
+
+                        callback.onFailure(errorMessage);
+                    }
+                });
+    }
+
     /**
      * Increment user recycling count and points
      */
@@ -408,5 +457,10 @@ public class UserController {
     public interface EmailCheckCallback {
         void onEmailExists(boolean exists);
         void onError(String errorMessage);
+    }
+
+    public interface PasswordResetCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
     }
 }
