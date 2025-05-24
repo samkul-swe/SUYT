@@ -19,7 +19,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.FutureCallback;
@@ -51,7 +50,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView recyclePointsTextView;
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
-    private SwipeRefreshLayout swipeRefreshLayout;
 
     private HomeViewModel viewModel;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -107,19 +105,11 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         recyclePointsTextView = view.findViewById(R.id.recycle_points_text_view);
         recyclerView = view.findViewById(R.id.recycler_view);
 
-        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
-
         layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemViewCacheSize(20);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setOnRefreshListener(() -> {
-                viewModel.refreshPosts();
-            });
-        }
 
         return view;
     }
@@ -159,7 +149,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         recyclerView = null;
         postAdapter = null;
         layoutManager = null;
-        swipeRefreshLayout = null;
     }
 
     @Override
@@ -191,12 +180,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
             if (posts != null) {
                 updatePostsUI(posts);
                 restoreScrollPosition();
-            }
-        });
-
-        viewModel.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (swipeRefreshLayout != null) {
-                swipeRefreshLayout.setRefreshing(isLoading);
             }
         });
 
