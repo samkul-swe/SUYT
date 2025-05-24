@@ -10,8 +10,6 @@ public class TrashTip {
     private String description;
     private String category; // e.g., "Reduce", "Reuse", "Recycle"
 
-    public TrashTip() {}
-
     public TrashTip(String title, String description, String category) {
         this.title = title;
         this.description = description;

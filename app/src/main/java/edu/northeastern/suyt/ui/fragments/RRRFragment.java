@@ -10,7 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.util.JsonReader;
 import android.util.Log; // Added for logging
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -31,30 +31,34 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.ai.type.Content;
+import com.google.firebase.ai.type.GenerateContentResponse;
+import com.google.firebase.ai.type.Schema;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map; // Added for ActivityResultContracts.RequestMultiplePermissions
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.RecyclableItemController;
-import edu.northeastern.suyt.model.RecyclableItem;
+import edu.northeastern.suyt.gemini.GeminiClient;
+import edu.northeastern.suyt.model.TrashItem;
 
 
 public class RRRFragment extends Fragment implements View.OnClickListener {
 
-    private static final String TAG = "RRRFragment"; // Tag for logging
-
-    // Removed old request codes as they are now handled by ActivityResultLauncher
-    // private static final int REQUEST_CAMERA_PERMISSION = 100;
-    // private static final int REQUEST_STORAGE_PERMISSION = 101;
-    // private static final int REQUEST_IMAGE_CAPTURE = 102;
-    // private static final int REQUEST_PICK_IMAGE = 103;
+    private static final String TAG = "RRRFragment";
 
     private ImageView itemImageView;
     private TextView itemNameTextView;
@@ -65,22 +69,17 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private CardView infoCardView;
     private ProgressBar progressBar;
 
-    private RecyclableItemController itemController;
-    private RecyclableItem currentItem;
-    private String currentPhotoPath; // Path for captured camera image
+    private TrashItem currentItem;
+    private String currentPhotoPath;
+    private ThreadPoolExecutor geminiExecutor;
 
-    // ActivityResultLauncher for Camera
     private ActivityResultLauncher<Uri> takePictureLauncher;
-    private Uri cameraPhotoUri; // URI where the camera photo will be saved
+    private Uri cameraPhotoUri;
 
-    // ActivityResultLauncher for Gallery/File Picker
-    private ActivityResultLauncher<String[]> pickImageLauncher; // For Android 13+ permissions
-    private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher; // For launching the actual picker
+    private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
 
-    // ActivityResultLauncher for Camera Permissions
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
 
-    // ActivityResultLauncher for Storage Permissions (for pre-Android 13)
     private ActivityResultLauncher<String[]> requestStoragePermissionLauncher;
 
 
@@ -88,8 +87,10 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize ActivityResultLaunchers in onCreate or before fragment state is restored
         setupActivityResultLaunchers();
+
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
     }
 
     @Nullable
@@ -97,40 +98,41 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rrr, container, false);
 
-        // Initialize controllers
-        itemController = new RecyclableItemController();
-
-        // Initialize views
         itemImageView = view.findViewById(R.id.item_image_view);
         itemNameTextView = view.findViewById(R.id.item_name_text_view);
         recycleButton = view.findViewById(R.id.recycle_button);
         reuseButton = view.findViewById(R.id.reuse_button);
         reduceButton = view.findViewById(R.id.reduce_button);
         FloatingActionButton cameraFab = view.findViewById(R.id.camera_fab);
-        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab); // Renamed from downloadsFab to galleryFab in XML for clarity
+        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab);
         infoContentTextView = view.findViewById(R.id.info_content_text_view);
         infoCardView = view.findViewById(R.id.info_card_view);
         progressBar = view.findViewById(R.id.progress_bar);
 
-        // Set click listeners
         recycleButton.setOnClickListener(this);
         reuseButton.setOnClickListener(this);
         reduceButton.setOnClickListener(this);
 
-        // Set FAB listeners
         cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
         downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
 
-        // Initialize with placeholder state
         displayPlaceholderState();
 
         return view;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (geminiExecutor != null && !geminiExecutor.isShutdown()) {
+            geminiExecutor.shutdown();
+        }
+    }
+
     private void setupActivityResultLaunchers() {
-        // Launcher for taking pictures
         takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
-            if (result) { // Image was successfully captured
+            if (result) {
                 progressBar.setVisibility(View.VISIBLE);
                 processCapturedPhoto();
             } else {
@@ -138,8 +140,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        // Launcher for picking images from gallery/files (using ACTION_OPEN_DOCUMENT for broader access)
-        // This is the actual launcher for the Intent
         pickImageFromGalleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                 progressBar.setVisibility(View.VISIBLE);
@@ -165,7 +165,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        // Launcher for requesting Camera permission
         requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
             if (isGranted) {
                 openCamera();
@@ -174,7 +173,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        // Launcher for requesting Storage permissions (for pre-Android 13)
         requestStoragePermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
             boolean allGranted = true;
             for (Map.Entry<String, Boolean> entry : result.entrySet()) {
@@ -198,11 +196,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         infoContentTextView.setText("Take a photo or select an image from your device to see recycling, reusing, and reducing options.");
         infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary)); // Ensure colorPrimary exists
 
-        // Default button state
         resetButtons();
     }
-
-    // --- Permission Check and Request Methods ---
 
     private void checkAndRequestCameraPermission() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -213,32 +208,27 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void checkAndRequestStoragePermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 (API 33) and higher
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
                 openFilePicker();
             } else {
-                // Request the new granular media permission
                 requestStoragePermissionLauncher.launch(new String[]{Manifest.permission.READ_MEDIA_IMAGES});
             }
-        } else { // Android 6 (API 23) to Android 12 (API 32)
+        } else {
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 openFilePicker();
             } else {
-                // Request READ_EXTERNAL_STORAGE
                 requestStoragePermissionLauncher.launch(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
             }
         }
     }
-
-
-    // --- Image Capture and Selection Logic ---
 
     private void openCamera() {
         try {
             File photoFile = createImageFile();
             cameraPhotoUri = FileProvider.getUriForFile(
                     requireContext(),
-                    requireContext().getPackageName() + ".fileprovider", // Use your actual fileprovider authority
+                    requireContext().getPackageName() + ".fileprovider",
                     photoFile
             );
             takePictureLauncher.launch(cameraPhotoUri);
@@ -257,16 +247,14 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 ".jpg",
                 storageDir
         );
-        currentPhotoPath = image.getAbsolutePath(); // Save path for processing after capture
+        currentPhotoPath = image.getAbsolutePath();
         return image;
     }
 
     private void openFilePicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT); // ACTION_OPEN_DOCUMENT is preferred
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/*");
-        // You can add this if you want to include downloads specifically, but ACTION_OPEN_DOCUMENT usually handles it
-        // intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
         try {
             pickImageFromGalleryLauncher.launch(intent);
@@ -279,14 +267,12 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private void processCapturedPhoto() {
         if (currentPhotoPath != null) {
             try {
-                // Get the dimensions of the View (will be 0 if not yet laid out, so provide defaults)
                 int targetW = itemImageView.getWidth();
                 int targetH = itemImageView.getHeight();
 
-                if (targetW <= 0) targetW = 1024; // Default sensible size
+                if (targetW <= 0) targetW = 1024;
                 if (targetH <= 0) targetH = 1024;
 
-                // Decode bitmap from path, scaled
                 Bitmap bitmap = decodeSampledBitmapFromFile(currentPhotoPath, targetW, targetH);
                 if (bitmap != null) {
                     itemImageView.setImageBitmap(bitmap);
@@ -308,44 +294,39 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private Bitmap getBitmapFromUri(Uri uri) throws IOException {
-        // Get the dimensions of the View (will be 0 if not yet laid out, so provide defaults)
         int targetW = itemImageView.getWidth();
         int targetH = itemImageView.getHeight();
 
-        if (targetW <= 0) targetW = 1024; // Default sensible size
+        if (targetW <= 0) targetW = 1024;
         if (targetH <= 0) targetH = 1024;
 
         InputStream input = requireContext().getContentResolver().openInputStream(uri);
         if (input == null) throw new IOException("Unable to open input stream for URI: " + uri);
 
-        // Decode image size
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(input, null, options);
-        input.close(); // Close the first input stream
+        input.close();
 
-        // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, targetW, targetH);
 
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false; // Set to false to decode the actual bitmap
-        input = requireContext().getContentResolver().openInputStream(uri); // Re-open stream
+        options.inJustDecodeBounds = false;
+        input = requireContext().getContentResolver().openInputStream(uri);
         Bitmap bitmap = BitmapFactory.decodeStream(input, null, options);
         if (input != null) {
-            input.close(); // Close the second input stream
+            input.close();
         }
         return bitmap;
     }
 
-    // Helper method for efficient bitmap loading (reduces memory usage)
     private Bitmap decodeSampledBitmapFromFile(String path, int reqWidth, int reqHeight) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true; // First decode with inJustDecodeBounds=true to check dimensions
+        options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(path, options);
 
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight); // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
-        options.inJustDecodeBounds = false; // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
         return BitmapFactory.decodeFile(path, options);
     }
 
@@ -358,8 +339,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             final int halfHeight = height / 2;
             final int halfWidth = width / 2;
 
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
             while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
                 inSampleSize *= 2;
             }
@@ -367,30 +346,89 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         return inSampleSize;
     }
 
+    public void itemFromString(String itemString) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            currentItem = objectMapper.readValue(itemString, TrashItem.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    // --- Item Analysis and UI Updates ---
 
     private void analyzeImage(Bitmap bitmap) {
-        // In a real app, this would use ML to identify the item
-        // For now, we'll simulate this with a delay and random item
+        if (!isAdded()) return;
 
-        // It's better to use a Handler associated with the main looper directly
-        new android.os.Handler(getContext().getMainLooper()).postDelayed(() -> {
-            // Get a random item (for demo purposes)
-            currentItem = itemController.getRandomItem();
+        progressBar.setVisibility(View.VISIBLE);
+        itemNameTextView.setText("Analyzing image...");
+        infoContentTextView.setText("Please wait while AI analyzes the item.");
 
-            // Update UI with the item
-            itemNameTextView.setText(currentItem.getName());
+        Content prompt = new Content.Builder()
+                .addImage(bitmap) // Add your Bitmap here
+                .addText("What is this item? Provide a brief description and suggest if it is recyclable, reusable, or if its consumption can be reduced.")
+                .build();
+        Schema schema = Schema.obj(
+            Map.of("name", Schema.str(),
+                    "isRecyclable", Schema.enumeration(List.of("true", "false")),
+                    "isReusable", Schema.enumeration(List.of("true", "false")),
+                    "isReducible", Schema.enumeration(List.of("true", "false")),
+                    "recycleInfo", Schema.str(),
+                    "reuseInfo", Schema.str(),
+                    "reduceInfo", Schema.str()
+            )
+        );;
 
-            // Reset buttons
-            resetButtons();
+        // Call the Gemini model asynchronously
+        ListenableFuture<GenerateContentResponse> response = new GeminiClient(schema).generateResult(prompt);
+        Futures.addCallback(
+                response,
+                new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(GenerateContentResponse result) {
+                        itemFromString(result.getText());
+                        requireActivity().runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            String textResponse = result.getText();
+                            if (textResponse != null && !textResponse.isEmpty()) {
+                                Log.d(TAG, "Gemini Response: " + textResponse);
+                                updateUIWithGeminiResponse();
+                            } else {
+                                Toast.makeText(requireContext(), "Gemini returned an empty response.", Toast.LENGTH_SHORT).show();
+                                displayPlaceholderState();
+                            }
+                        });
+                    }
 
-            // Set default content to Recycle
+                    @Override
+                    public void onFailure(Throwable t) {
+                        requireActivity().runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            Log.e(TAG, "Gemini API call failed", t);
+                            Toast.makeText(requireContext(), "Gemini analysis failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                            displayPlaceholderState();
+                        });
+                    }
+                },
+                geminiExecutor
+        );
+    }
+
+    private void updateUIWithGeminiResponse() {
+
+        itemNameTextView.setText(currentItem.getName());
+
+        if (currentItem.isRecyclable()) {
             setSelectedButton(recycleButton);
             showRecycleInfo();
-
-            progressBar.setVisibility(View.GONE);
-        }, 1500); // Simulate processing delay
+        } else if (currentItem.isReusable()) {
+            setSelectedButton(reuseButton);
+            showReuseInfo();
+        } else if (currentItem.isReducible()) {
+            setSelectedButton(reduceButton);
+            showReduceInfo();
+        } else {
+            setSelectedButton(recycleButton);
+        }
     }
 
     @Override
@@ -400,10 +438,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             return;
         }
 
-        // Reset all buttons
         resetButtons();
 
-        // Set selected button and show appropriate info
         if (v.getId() == R.id.recycle_button) {
             setSelectedButton(recycleButton);
             showRecycleInfo();
@@ -417,7 +453,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void resetButtons() {
-        recycleButton.setBackgroundResource(R.drawable.button_normal); // Ensure button_normal exists
+        recycleButton.setBackgroundResource(R.drawable.button_normal);
         reuseButton.setBackgroundResource(R.drawable.button_normal);
         reduceButton.setBackgroundResource(R.drawable.button_normal);
 
@@ -428,8 +464,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private void setSelectedButton(Button button) {
         if (button == recycleButton) {
-            button.setBackgroundResource(R.drawable.button_selected_recycle); // Ensure these drawables exist
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle)); // Ensure colors exist
+            button.setBackgroundResource(R.drawable.button_selected_recycle);
+            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
         } else if (button == reuseButton) {
             button.setBackgroundResource(R.drawable.button_selected_reuse);
             infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));

@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.ai.type.Content;
 import com.google.firebase.ai.type.GenerateContentResponse;
 import com.google.firebase.ai.type.Schema;
 import com.google.firebase.auth.FirebaseAuth;
@@ -292,7 +293,9 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private void generateNewQuote() {
         if (!isAdded()) return;
 
-        String prompt = "Give me a motivational witty quote about recycling, reusing or reducing";
+        Content prompt = new Content.Builder()
+                .addText("Give me a motivational witty quote about recycling, reusing or reducing")
+                .build();
         Schema schema = Schema.str();
 
         ListenableFuture<GenerateContentResponse> response = new GeminiClient(schema).generateResult(prompt);

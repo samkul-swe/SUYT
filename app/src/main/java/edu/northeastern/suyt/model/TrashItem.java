@@ -1,9 +1,12 @@
 package edu.northeastern.suyt.model;
 
-public class RecyclableItem {
-    private int id;
+import com.google.firebase.ai.type.Schema;
+
+import java.util.List;
+import java.util.Map;
+
+public class TrashItem {
     private String name;
-    private String imageUrl;
     private boolean isRecyclable;
     private boolean isReusable;
     private boolean isReducible;
@@ -11,12 +14,13 @@ public class RecyclableItem {
     private String reuseInfo;
     private String reduceInfo;
 
-    public RecyclableItem(int id, String name, String imageUrl, boolean isRecyclable,
+    public TrashItem() {
+    }
+
+    public TrashItem(String name, boolean isRecyclable,
                           boolean isReusable, boolean isReducible, String recycleInfo,
                           String reuseInfo, String reduceInfo) {
-        this.id = id;
         this.name = name;
-        this.imageUrl = imageUrl;
         this.isRecyclable = isRecyclable;
         this.isReusable = isReusable;
         this.isReducible = isReducible;
@@ -26,14 +30,6 @@ public class RecyclableItem {
     }
 
     // Getters and Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -42,36 +38,28 @@ public class RecyclableItem {
         this.name = name;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
     public boolean isRecyclable() {
         return isRecyclable;
     }
 
-    public void setRecyclable(boolean recyclable) {
-        isRecyclable = recyclable;
+    public void setIsRecyclable(String recyclable) {
+        isRecyclable = Boolean.valueOf(recyclable);
     }
 
     public boolean isReusable() {
         return isReusable;
     }
 
-    public void setReusable(boolean reusable) {
-        isReusable = reusable;
+    public void setIsReusable(String reusable) {
+        isReusable = Boolean.valueOf(reusable);
     }
 
     public boolean isReducible() {
         return isReducible;
     }
 
-    public void setReducible(boolean reducible) {
-        isReducible = reducible;
+    public void setIsReducible(String reducible) {
+        isReducible = Boolean.valueOf(reducible);
     }
 
     public String getRecycleInfo() {
@@ -96,5 +84,18 @@ public class RecyclableItem {
 
     public void setReduceInfo(String reduceInfo) {
         this.reduceInfo = reduceInfo;
+    }
+
+    public Schema getSchema() {
+        return Schema.obj(
+            Map.of("name", Schema.str(),
+                    "isRecyclable", Schema.enumeration(List.of("true", "false")),
+                    "isReusable", Schema.enumeration(List.of("true", "false")),
+                    "isReducible", Schema.enumeration(List.of("true", "false")),
+                    "recycleInfo", Schema.str(),
+                    "reuseInfo", Schema.str(),
+                    "reduceInfo", Schema.str()
+            )
+        );
     }
 }

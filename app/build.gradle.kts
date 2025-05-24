@@ -65,5 +65,6 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
     implementation (libs.glide)
+    implementation(libs.jackson.databind)
 }
 

@@ -30,12 +30,7 @@ public class GeminiClient {
         return GenerativeModelFutures.from(gm);
     }
 
-    public ListenableFuture<GenerateContentResponse> generateResult(String prompt) {
-
-        Content content = new Content.Builder()
-            .addText(prompt)
-            .build();
-
-        return this.model.generateContent(content);
+    public ListenableFuture<GenerateContentResponse> generateResult(Content prompt) {
+        return this.model.generateContent(prompt);
     }
 }
