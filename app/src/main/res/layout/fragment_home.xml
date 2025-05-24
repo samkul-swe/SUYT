@@ -3,19 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@drawable/app_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- User Stats Card -->
+        <!-- User Stats Card with improved design -->
         <androidx.cardview.widget.CardView
             android:id="@+id/user_stats_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
+            app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
             android:layout_marginBottom="16dp"
             app:layout_constraintTop_toTopOf="parent">
@@ -26,18 +27,19 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Header Row -->
+                <!-- Header Row with improved spacing -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:paddingBottom="8dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Your Impact"
-                        android:textSize="18sp"
+                        android:text="@string/your_impact"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/colorPrimary" />
 
@@ -50,8 +52,8 @@
                         android:id="@+id/user_rank_text_view"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rank: Eco Warrior"
                         android:textStyle="bold"
+                        android:textSize="16sp"
                         android:textColor="@color/colorAccent" />
 
                 </LinearLayout>
@@ -61,98 +63,177 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#E0E0E0"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="16dp" />
 
-                <!-- Stats Row 1 -->
+                <!-- Three Points Categories in 3R Format -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="20dp"
+                    android:baselineAligned="false">
 
-                    <!-- Total Points -->
-                    <LinearLayout
+                    <!-- Reduce Points (Red) -->
+                    <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="#FFEBEE"
+                        app:cardElevation="2dp">
 
-                        <TextView
-                            android:id="@+id/total_points_text_view"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="420"
-                            android:textSize="24sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimary" />
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Points"
-                            android:textSize="14sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/reduce_points_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#D32F2F" />
 
-                    <!-- CO2 Saved -->
-                    <LinearLayout
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/reduce"
+                                android:textSize="14sp"
+                                android:textColor="#D32F2F" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Reuse Points (Yellow) -->
+                    <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="#FFF8E1"
+                        app:cardElevation="2dp">
 
-                        <TextView
-                            android:id="@+id/co2_saved_text_view"
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="42.5 kg"
-                            android:textSize="24sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimary" />
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:id="@+id/reuse_points_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFA000" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/reuse"
+                                android:textSize="14sp"
+                                android:textColor="#FFA000" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Recycle Points (Blue) -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="#E3F2FD"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="CO2 Saved"
-                            android:textSize="14sp" />
-                    </LinearLayout>
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:id="@+id/recycle_points_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#1976D2" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/recycle"
+                                android:textSize="14sp"
+                                android:textColor="#1976D2" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
                 </LinearLayout>
 
-                <!-- User Comparison -->
+                <!-- Quote for User with improved styling -->
                 <TextView
-                    android:id="@+id/ahead_of_users_text_view"
+                    android:id="@+id/quote_for_user_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="You're ahead of 78% of users"
                     android:textSize="16sp"
                     android:textStyle="italic"
                     android:textColor="@color/colorAccent"
-                    android:gravity="center" />
+                    android:gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:padding="8dp"
+                    android:background="@drawable/quote_background" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Community Posts Section -->
-        <TextView
-            android:id="@+id/community_title"
+        <!-- Community Posts Section with improved styling -->
+        <LinearLayout
+            android:id="@+id/community_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Community Projects"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintTop_toBottomOf="@id/user_stats_card" />
+            android:layout_marginBottom="12dp"
+            app:layout_constraintTop_toBottomOf="@id/user_stats_card">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/community_projects"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            app:layout_constraintTop_toBottomOf="@id/community_title" />
+            app:layout_constraintTop_toBottomOf="@id/community_header">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

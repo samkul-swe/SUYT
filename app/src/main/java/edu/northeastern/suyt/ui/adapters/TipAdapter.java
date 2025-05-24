@@ -11,13 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.model.RecyclingTip;
+import edu.northeastern.suyt.model.TrashTip;
 
 public class TipAdapter extends RecyclerView.Adapter<TipAdapter.TipViewHolder>  {
 
-    private final List<RecyclingTip> tips;
+    private final List<TrashTip> tips;
 
-    public TipAdapter(List<RecyclingTip> tips) {
+    public TipAdapter(List<TrashTip> tips) {
         this.tips = tips;
     }
 
@@ -30,7 +30,7 @@ public class TipAdapter extends RecyclerView.Adapter<TipAdapter.TipViewHolder>  
 
     @Override
     public void onBindViewHolder(@NonNull TipViewHolder holder, int position) {
-        RecyclingTip tip = tips.get(position);
+        TrashTip tip = tips.get(position);
 
         holder.titleTextView.setText(tip.getTitle());
         holder.descriptionTextView.setText(tip.getDescription());

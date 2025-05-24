@@ -1,24 +1,23 @@
-package edu.northeastern.suyt.ui.activities;
+package edu.northeastern.suyt.ui.fragments;
 
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,7 +32,8 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Achievement;
 
-public class AchievementsActivity extends AppCompatActivity {
+public class AchievementsFragment extends Fragment {
+
     private GridLayout gridShelf;
     private List<Achievement> achievementList;
     private TextView tvAchievementStats;
@@ -50,19 +50,33 @@ public class AchievementsActivity extends AppCompatActivity {
     private static final int GRID_ROWS = 5;
     private static final int MAX_ACHIEVEMENTS = GRID_COLUMNS * GRID_ROWS;
 
+    private View rootView;
+
+    public AchievementsFragment() {
+        // Required empty public constructor
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_achievements);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        rootView = inflater.inflate(R.layout.fragment_achievement, container, false);
 
         // Initialize Firebase
         db = FirebaseFirestore.getInstance();
         userController = new UserController();
 
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         // Initialize UI components
         initUI();
 
-        // Set up toolbar
+        // Setup toolbar
         setupToolbar();
 
         // Initialize achievement list
@@ -74,25 +88,29 @@ public class AchievementsActivity extends AppCompatActivity {
         // Set up FAB click listener
         fabRefresh.setOnClickListener(v -> {
             loadAchievements();
-            Toast.makeText(this, "Refreshing achievements...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Refreshing achievements...", Toast.LENGTH_SHORT).show();
         });
     }
 
     private void initUI() {
-        gridShelf = findViewById(R.id.gridShelf);
-        tvAchievementStats = findViewById(R.id.tvAchievementStats);
-        tvSelectedAchievementTitle = findViewById(R.id.tvSelectedAchievementTitle);
-        tvSelectedAchievementDescription = findViewById(R.id.tvSelectedAchievementDescription);
-        progressAchievement = findViewById(R.id.progressAchievement);
-        fabRefresh = findViewById(R.id.fabRefresh);
+        gridShelf = rootView.findViewById(R.id.gridShelf);
+        tvAchievementStats = rootView.findViewById(R.id.tvAchievementStats);
+        tvSelectedAchievementTitle = rootView.findViewById(R.id.tvSelectedAchievementTitle);
+        tvSelectedAchievementDescription = rootView.findViewById(R.id.tvSelectedAchievementDescription);
+        progressAchievement = rootView.findViewById(R.id.progressAchievement);
+        fabRefresh = rootView.findViewById(R.id.fabRefresh);
     }
 
     private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Achievement Garden");
+        Toolbar toolbar = rootView.findViewById(R.id.toolbar);
+        if (getActivity() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            activity.setSupportActionBar(toolbar);
+            if (activity.getSupportActionBar() != null) {
+                activity.getSupportActionBar().setTitle("Achievement Garden");
+                // Don't show the back button in the fragment
+                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            }
         }
     }
 
@@ -103,7 +121,7 @@ public class AchievementsActivity extends AppCompatActivity {
         // Get the current user ID
         String userId = userController.getCurrentUserId();
         if (userId == null) {
-            Toast.makeText(this, "No user logged in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "No user logged in", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -112,6 +130,10 @@ public class AchievementsActivity extends AppCompatActivity {
                 .collection("achievements")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (getActivity() == null || !isAdded()) {
+                        return; // Fragment not attached to activity
+                    }
+
                     List<Achievement> loadedAchievements = new ArrayList<>();
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -132,7 +154,11 @@ public class AchievementsActivity extends AppCompatActivity {
                     updateAchievementStats();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load achievements: " + e.getMessage(),
+                    if (getActivity() == null || !isAdded()) {
+                        return; // Fragment not attached to activity
+                    }
+
+                    Toast.makeText(getContext(), "Failed to load achievements: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
                 });
     }
@@ -173,19 +199,19 @@ public class AchievementsActivity extends AppCompatActivity {
 
         // Add more achievements to fill the grid if needed
         achievementList.add(Achievement.createLocked("zero_waste_day", "Zero Waste Day",
-                "Go an entire day without producing any waste.", R.drawable.flower_iris, 1, 0));
+                "Go an entire day without producing any waste.", R.drawable.flower_iris, 1, 10));
 
         achievementList.add(Achievement.createLocked("carbon_reducer", "Carbon Reducer",
-                "Reduce your carbon footprint by using public transportation or biking.", R.drawable.flower_lily_of_the_valley, 5, 1));
+                "Reduce your carbon footprint by using public transportation or biking.", R.drawable.flower_lily_of_the_valley, 5, 11));
 
         achievementList.add(Achievement.createLocked("waste_auditor", "Waste Auditor",
-                "Complete a full audit of your household waste.", R.drawable.flower_hyacinth, 1, 2));
+                "Complete a full audit of your household waste.", R.drawable.flower_hyacinth, 1, 12));
 
         achievementList.add(Achievement.createLocked("eco_shopper", "Eco Shopper",
-                "Shop using only reusable bags 10 times.", R.drawable.flower_buttercup, 10, 3));
+                "Shop using only reusable bags 10 times.", R.drawable.flower_buttercup, 10, 13));
 
         achievementList.add(Achievement.createLocked("composting_champion", "Composting Champion",
-                "Start and maintain a compost bin for one month.", R.drawable.flower_violet, 30, 4));
+                "Start and maintain a compost bin for one month.", R.drawable.flower_violet, 30, 14));
 
         // For demonstration, make some achievements unlocked
         achievementList.get(0).setUnlocked(true);
@@ -247,7 +273,7 @@ public class AchievementsActivity extends AppCompatActivity {
 
     private View createAchievementView(Achievement achievement) {
         // Inflate the achievement item layout
-        View view = LayoutInflater.from(this).inflate(R.layout.item_achievement_flower, null);
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.item_achievement_flower, null);
 
         // Get references to the views
         View lockOverlay = view.findViewById(R.id.ivLockOverlay);
@@ -326,11 +352,9 @@ public class AchievementsActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void onResume() {
+        super.onResume();
+        // Refresh achievements when returning to the fragment
+        loadAchievements();
     }
 }

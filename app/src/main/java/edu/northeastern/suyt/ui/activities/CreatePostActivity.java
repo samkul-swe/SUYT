@@ -14,13 +14,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +25,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.RecyclingPostController;
 
 public class CreatePostActivity extends AppCompatActivity {
 
@@ -44,7 +39,6 @@ public class CreatePostActivity extends AppCompatActivity {
     private Button choosePhotoButton;
     private Button createPostButton;
 
-    private RecyclingPostController postController;
     private String currentPhotoPath;
     private boolean hasImage = false;
 
@@ -60,9 +54,6 @@ public class CreatePostActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Create Post");
         }
-
-        // Initialize controller
-        postController = new RecyclingPostController();
 
         // Initialize views
         postImageView = findViewById(R.id.post_image_view);

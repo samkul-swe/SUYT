@@ -13,9 +13,7 @@ public class User {
     private String userId;
     private String username;
     private String email;
-   // private String password;
-    private @ServerTimestamp Timestamp createdAt;
-
+    private UserStats userStats;
 
     public User() {}
 
@@ -23,7 +21,6 @@ public class User {
         this.userId = userId;
         this.username = username;
         this.email = email;
-       // this.password = password;
     }
 
     // Getters and Setters
@@ -51,21 +48,13 @@ public class User {
         this.email = email;
     }
 
-    /*public String getPassword() {
-        return password;
-    }*/
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public UserStats getUserStats() {
+        return userStats;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
+    public void setUserStats(UserStats userStats) {
+        this.userStats = userStats;
     }
-
-    /*public void setPassword(String password) {
-        this.password = password;
-    }*/
 
     @Exclude
     public Map<String, Object> toMap() {

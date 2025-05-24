@@ -4,103 +4,119 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <!-- Category indicator -->
+        <!-- Category indicator with improved width -->
         <View
             android:id="@+id/category_indicator"
-            android:layout_width="8dp"
+            android:layout_width="6dp"
             android:layout_height="match_parent"
-            android:background="@color/colorReuse" />
+            android:background="@color/colorPrimary" />
 
+        <!-- Main content area -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:padding="12dp">
 
-            <!-- User info and date -->
+            <!-- Left side - Image (smaller) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="12dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <ImageView
+                    android:id="@+id/post_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Post image"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_rrr" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Right side - Content -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="8dp">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/username_text_view"
-                    android:layout_width="0dp"
+                <!-- User info and date row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Username"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
 
+                    <TextView
+                        android:id="@+id/username_text_view"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:textColor="@color/colorAccent"
+                        android:ellipsize="end"
+                        android:maxLines="1" />
+
+                    <TextView
+                        android:id="@+id/date_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="10sp"
+                        android:textColor="@android:color/darker_gray" />
+                </LinearLayout>
+
+                <!-- Post title (emphasized) -->
                 <TextView
-                    android:id="@+id/date_text_view"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/post_title_text_view"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="2 hours ago"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="2dp"
+                    android:layout_marginBottom="8dp" />
 
-            <!-- Post title -->
-            <TextView
-                android:id="@+id/post_title_text_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="Plastic Bottle Planters"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- Post image -->
-            <ImageView
-                android:id="@+id/post_image_view"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="8dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_rrr"
-                android:contentDescription="Post image" />
-
-            <!-- Post description -->
-            <TextView
-                android:id="@+id/description_text_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:text="Description of the recycling project goes here. This shows how the user transformed waste into something useful."
-                android:textSize="14sp" />
-
-            <!-- Like section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="8dp"
-                android:gravity="end">
-
-                <TextView
-                    android:id="@+id/likes_text_view"
-                    android:layout_width="wrap_content"
+                <!-- Like section (compact) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="42"
-                    android:layout_marginEnd="4dp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="end|center_vertical">
 
-                <ImageButton
-                    android:id="@+id/like_button"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@null"
-                    android:src="@drawable/ic_rrr"
-                    android:contentDescription="Like button" />
+                    <TextView
+                        android:id="@+id/likes_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:textColor="@color/colorPrimary" />
+
+                    <ImageButton
+                        android:id="@+id/like_button"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Like Button"
+                        android:src="@drawable/ic_favorite_border"
+                        android:scaleType="centerInside" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

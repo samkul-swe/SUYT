@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.ui.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,10 +8,10 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.ui.fragments.AchievementsFragment;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 import edu.northeastern.suyt.ui.fragments.ProfileFragment;
 import edu.northeastern.suyt.ui.fragments.RRRFragment;
-import edu.northeastern.suyt.ui.fragments.TipsFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,14 +31,10 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new RRRFragment();
             } else if (id == R.id.nav_home) {
                 fragment = new HomeFragment();
-            } else if (id == R.id.nav_tips) {
-                fragment = new TipsFragment();
             } else if (id == R.id.nav_profile) {
                 fragment = new ProfileFragment();
             } else if (id == R.id.nav_achievements) {
-                // Navigate to achievements screen
-                startActivity(new Intent(this, AchievementsActivity.class));
-                return true;
+                fragment = new AchievementsFragment();
             }
 
             return loadFragment(fragment);

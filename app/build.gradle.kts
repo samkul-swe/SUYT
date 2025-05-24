@@ -30,10 +30,22 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    packaging {
+        resources.excludes.addAll(
+            listOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/INDEX.LIST",
+                "META-INF/DEPENDENCIES"
+            )
+        )
+    }
 }
 
 dependencies {
 
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -42,11 +54,16 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-firestore:24.9.1")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.google.firebase.auth)
+    implementation(libs.swiperefreshlayout)
+    implementation(libs.circleimageview)
+    implementation(libs.firebase.ai)
+    implementation(libs.guava)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.database)
+    implementation (libs.glide)
 }
 

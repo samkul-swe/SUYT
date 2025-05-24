@@ -20,7 +20,7 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
-import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
+//import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
 import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
 
@@ -127,8 +127,8 @@ public class ProfileFragment extends Fragment {
 
     private void openSavedPosts() {
         // In a real app, open the saved posts screen
-        Intent intent = new Intent(requireContext(), SavedPostsActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(requireContext(), SavedPostsActivity.class);
+//        startActivity(intent);
     }
 
     private void openCreatePost() {

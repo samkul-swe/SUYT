@@ -19,8 +19,8 @@ public class AchievementController {
     private static final String USERS_COLLECTION = "users";
     private static final String ACHIEVEMENTS_COLLECTION = "achievements";
 
-    private FirebaseFirestore db;
-    private UserController userController;
+    private final FirebaseFirestore db;
+    private final UserController userController;
 
     public AchievementController() {
         db = FirebaseFirestore.getInstance();

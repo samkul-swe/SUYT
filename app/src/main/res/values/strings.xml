@@ -26,6 +26,11 @@
     <string name="home_subtitle">Featured tips for reducing waste</string>
     <string name="view_stats_button">View My RRR Stats</string>
 
+    <!-- Shared Strings -->
+    <string name="reduce">Reduce</string>
+    <string name="reuse">Reuse</string>
+    <string name="recycle">Recycle</string>
+
     <!-- Stats Screen -->
     <string name="stats_title">My Recycling Stats</string>
     <string name="total_points">Total Points</string>
@@ -46,4 +51,6 @@
     <string name="menu_achievements">Achievements</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="your_impact">Your Impact</string>
+    <string name="community_projects">Community Projects</string>
 </resources>

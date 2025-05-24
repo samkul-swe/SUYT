@@ -12,10 +12,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.RecyclingPostController;
-import edu.northeastern.suyt.model.RecyclingPost;
+import edu.northeastern.suyt.model.Post;
 
 public class PostDetailActivity extends AppCompatActivity {
 
@@ -28,9 +30,7 @@ public class PostDetailActivity extends AppCompatActivity {
     private TextView categoryTextView;
     private View categoryIndicator;
 
-    private RecyclingPostController postController;
-    private RecyclingPost post;
-    private Toolbar toolbar;
+    private Post post;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,9 +45,6 @@ public class PostDetailActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Community Post");
         }
 
-        // Initialize controller
-        postController = new RecyclingPostController();
-
         // Initialize views
         postImageView = findViewById(R.id.post_image_view);
         titleTextView = findViewById(R.id.title_text_view);
@@ -60,13 +57,21 @@ public class PostDetailActivity extends AppCompatActivity {
         Button shareButton = findViewById(R.id.share_button);
         categoryIndicator = findViewById(R.id.category_indicator);
 
-        // Get post ID from intent
-        int postId = getIntent().getIntExtra("POST_ID", -1);
-        if (postId != -1) {
-            loadPost(postId);
+        // Get post object from intent (using Parcelable)
+        if (getIntent() != null && getIntent().hasExtra("POST")) {
+            post = getIntent().getParcelableExtra("POST");
+
+            if (post != null) {
+                // Load the post data into the UI
+                loadPostData();
+            } else {
+                // Handle error - post is null
+                Toast.makeText(this, "Error loading post data", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         } else {
-            // Handle error - no post ID
-            Toast.makeText(this, "Error loading post", Toast.LENGTH_SHORT).show();
+            // Handle error - no post data in intent
+            Toast.makeText(this, "No post data found", Toast.LENGTH_SHORT).show();
             finish();
         }
 
@@ -77,59 +82,130 @@ public class PostDetailActivity extends AppCompatActivity {
                 post.setLikes(post.getLikes() + 1);
                 likesTextView.setText(String.valueOf(post.getLikes()));
                 Toast.makeText(this, "You liked this post!", Toast.LENGTH_SHORT).show();
+
+                // TODO: Update likes in Firebase/database here if needed
+                // updateLikesInDatabase(post.getId(), post.getLikes());
             }
         });
 
         shareButton.setOnClickListener(v -> {
             if (post != null) {
-                // Create share intent
-                String shareText = "Check out this recycling project: " + post.getTitle() +
-                        " by " + post.getUsername() + " on SUYT app!";
-
-                android.content.Intent shareIntent = new android.content.Intent();
-                shareIntent.setAction(android.content.Intent.ACTION_SEND);
-                shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
-                shareIntent.setType("text/plain");
-
-                startActivity(android.content.Intent.createChooser(shareIntent, "Share via"));
+                sharePost();
             }
         });
     }
 
-    private void loadPost(int postId) {
-        // Get post by ID
-        post = postController.getPostById(postId);
+    /**
+     * Load post data into the UI components
+     */
+    private void loadPostData() {
+        if (post == null) return;
 
-        if (post != null) {
-            // Set post data to views
-            titleTextView.setText(post.getTitle());
-            usernameTextView.setText(post.getUsername());
-            dateTextView.setText(post.getDate());
-            descriptionTextView.setText(post.getDescription());
-            likesTextView.setText(String.valueOf(post.getLikes()));
-            categoryTextView.setText(post.getCategory());
+        // Set basic post information
+        titleTextView.setText(post.getTitle());
+        usernameTextView.setText(post.getUsername());
+        dateTextView.setText(post.getDate());
+        descriptionTextView.setText(post.getDescription());
+        likesTextView.setText(String.valueOf(post.getLikes()));
+        categoryTextView.setText(post.getCategory());
 
-            // Set category indicator color
-            if (post.getCategory().equals("Reuse")) {
-                categoryIndicator.setBackgroundResource(R.color.colorReuse);
-            } else if (post.getCategory().equals("Recycle")) {
-                categoryIndicator.setBackgroundResource(R.color.colorRecycle);
-            } else {
-                categoryIndicator.setBackgroundResource(R.color.colorReduce);
-            }
+        // Set toolbar title to post title
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(post.getTitle());
+        }
 
-            // Set image based on category (placeholder)
-            if (post.getCategory().equals("Reuse")) {
-                postImageView.setImageResource(R.drawable.placeholder_reuse);
-            } else if (post.getCategory().equals("Recycle")) {
-                postImageView.setImageResource(R.drawable.placeholder_recycle);
-            } else {
-                postImageView.setImageResource(R.drawable.placeholder_reduce);
-            }
+        // Set category indicator color based on category
+        setCategoryIndicatorColor(post.getCategory());
+
+        // Load image - replace with your image loading logic
+        loadPostImage(post.getImageUrl());
+    }
+
+    /**
+     * Set the category indicator color based on the post category
+     */
+    private void setCategoryIndicatorColor(String category) {
+        if (categoryIndicator == null || category == null) return;
+
+        int colorResource;
+        switch (category.toLowerCase()) {
+            case "reuse":
+                colorResource = R.color.colorReuse;
+                break;
+            case "recycle":
+                colorResource = R.color.colorRecycle;
+                break;
+            case "reduce":
+                colorResource = R.color.colorReduce;
+                break;
+            default:
+                colorResource = R.color.colorPrimary;
+                break;
+        }
+
+        categoryIndicator.setBackgroundResource(colorResource);
+    }
+
+    /**
+     * Load the post image - implement your image loading logic here
+     */
+    private void loadPostImage(String imageUrl) {
+        if (postImageView == null) return;
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            // If you're using Glide or Picasso for image loading:
+             Glide.with(this)
+             .load(imageUrl)
+             .placeholder(R.drawable.placeholder_image)
+             .error(R.drawable.placeholder_image)
+             .into(postImageView);
         } else {
-            // Handle error - post not found
-            Toast.makeText(this, "Post not found", Toast.LENGTH_SHORT).show();
-            finish();
+            // No image URL, show placeholder
+            postImageView.setImageResource(R.drawable.placeholder_image);
+        }
+    }
+
+    /**
+     * Share the post content
+     */
+    private void sharePost() {
+        String shareText = "Check out this " + post.getCategory().toLowerCase() +
+                " project: \"" + post.getTitle() + "\" by " + post.getUsername() +
+                " on SUYT app!\n\n" + post.getDescription();
+
+        android.content.Intent shareIntent = new android.content.Intent();
+        shareIntent.setAction(android.content.Intent.ACTION_SEND);
+        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
+        shareIntent.setType("text/plain");
+
+        // Add subject for email sharing
+        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Recycling Project: " + post.getTitle());
+
+        startActivity(android.content.Intent.createChooser(shareIntent, "Share via"));
+    }
+
+    /**
+     * Handle saving instance state to preserve post data across configuration changes
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (post != null) {
+            outState.putParcelable("saved_post", post);
+        }
+    }
+
+    /**
+     * Handle restoring instance state
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.containsKey("saved_post")) {
+            post = savedInstanceState.getParcelable("saved_post");
+            if (post != null) {
+                loadPostData();
+            }
         }
     }
 
@@ -141,5 +217,11 @@ public class PostDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateLikesInDatabase(String postId, int newLikeCount) {
+         DatabaseReference postRef = FirebaseDatabase.getInstance()
+             .getReference("posts").child(postId).child("likes");
+         postRef.setValue(newLikeCount);
     }
 }
