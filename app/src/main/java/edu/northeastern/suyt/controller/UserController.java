@@ -5,7 +5,6 @@ import android.util.Log;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -91,6 +90,13 @@ public class UserController {
 
     public void signInUser(String email, String password, AuthCallback callback) {
         Log.d("Signup Activity", "Attempting sign in for: " + email);
+
+        try{
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {

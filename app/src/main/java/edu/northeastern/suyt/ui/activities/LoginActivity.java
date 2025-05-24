@@ -57,7 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        // Validate inputs
         if (email.isEmpty()) {
             emailEditText.setError("Email is required");
             emailEditText.requestFocus();
@@ -95,10 +94,23 @@ public class LoginActivity extends AppCompatActivity {
 
                     // Show error message
                     Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                    Log.e("TAG", "Login failed: " + errorMessage);
+                    showEmailVerificationDialog(errorMessage);
+                    Log.e("signup activity", "Login failed: " + errorMessage);
                 });
             }
         });
+    }
+
+    private void showEmailVerificationDialog(String errorMessage){
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Verify Your Email")
+                .setMessage(errorMessage +" Please verify your email before login. A verification email has been sent to " +
+                          ". Please check your inbox and verify your email before logging in.")
+                .setPositiveButton("OK", (dialog, which) -> {
+
+                })
+                .setCancelable(false)
+                .show();
     }
 
     private void navigateToSignUp() {

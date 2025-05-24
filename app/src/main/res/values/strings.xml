@@ -20,6 +20,10 @@
     <string name="password_uppercase">• Contain at least one uppercase letter</string>
     <string name="password_character">• Contain at least one special character</string>
     <string name="password_digit">• Contain at least one number</string>
+    <string name="forgot_pass_title">Forgot Password</string>
+    <string name="forgot_pass_description">Enter your email address and we\'ll send you a link to reset your password.</string>
+    <string name="send_forgot_pass_link">Send Reset Link</string>
+    <string name="back_to_login">Back to Login</string>
 
     <!-- Home Fragment -->
     <string name="welcome_message">Welcome to SUYT</string>

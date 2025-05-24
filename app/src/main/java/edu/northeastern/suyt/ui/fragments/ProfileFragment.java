@@ -98,7 +98,7 @@ public class ProfileFragment extends Fragment {
 
         // Logout Button
         logoutButton.setOnClickListener(v -> {
-            logout();
+            showLogoutConfirmatioBox();
         });
     }
 
@@ -125,6 +125,16 @@ public class ProfileFragment extends Fragment {
         dialog.show();
     }
 
+    private void showLogoutConfirmatioBox() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> logout())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+
     private void openSavedPosts() {
         // In a real app, open the saved posts screen
 //        Intent intent = new Intent(requireContext(), SavedPostsActivity.class);
@@ -132,22 +142,32 @@ public class ProfileFragment extends Fragment {
     }
 
     private void openCreatePost() {
-        // In a real app, open the create post screen
         Intent intent = new Intent(requireContext(), CreatePostActivity.class);
         startActivity(intent);
     }
 
     private void logout() {
-        // In a real app, log the user out and navigate to login screen
-        boolean success = true;
-//                userController.logoutUser();
-        if (success) {
-            // Navigate to login screen
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            getActivity().finish();
-        }
+        userController.logoutUser(new UserController.LogoutCallback() {
+            @Override
+            public void onSuccess() {
+                if(getActivity() == null || !isAdded()){
+                    return;
+                }
+
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                getActivity().finish();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                if(getActivity() == null || isAdded()){
+                    return;
+                }
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 }
