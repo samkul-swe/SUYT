@@ -6,6 +6,9 @@ public class Reduce {
     private String moneyExpected;
     private String otherSuggestions;
 
+    public Reduce() {
+    }
+
     public Reduce(String reduceInfo, String howManyShouldICollect, String moneyExpected, String otherSuggestions) {
         this.reduceInfo = reduceInfo;
         this.howManyShouldICollect = howManyShouldICollect;
@@ -43,5 +46,15 @@ public class Reduce {
 
     public void setOtherSuggestions(String otherSuggestions) {
         this.otherSuggestions = otherSuggestions;
+    }
+
+    @Override
+    public String toString() {
+        return "Reduce{" +
+                "reduceInfo='" + reduceInfo + '\'' +
+                ", howManyShouldICollect='" + howManyShouldICollect + '\'' +
+                ", moneyExpected='" + moneyExpected + '\'' +
+                ", otherSuggestions='" + otherSuggestions + '\'' +
+                '}';
     }
 }

@@ -1,10 +1,15 @@
 package edu.northeastern.suyt.model;
 
+import androidx.annotation.NonNull;
+
 public class Reuse {
     private String reuseInfo;
     private String craftsPossible;
     private String moneyNeededForCraft;
     private String timeNeededForCraft;
+
+    public Reuse() {
+    }
 
     public Reuse(String reuseInfo, String craftsPossible, String moneyNeededForCraft, String timeNeededForCraft) {
         this.reuseInfo = reuseInfo;
@@ -43,5 +48,16 @@ public class Reuse {
 
     public void setTimeNeededForCraft(String timeNeededForCraft) {
         this.timeNeededForCraft = timeNeededForCraft;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Reuse{" +
+                "reuseInfo='" + reuseInfo + '\'' +
+                ", craftsPossible='" + craftsPossible + '\'' +
+                ", moneyNeededForCraft='" + moneyNeededForCraft + '\'' +
+                ", timeNeededForCraft='" + timeNeededForCraft + '\'' +
+                '}';
     }
 }

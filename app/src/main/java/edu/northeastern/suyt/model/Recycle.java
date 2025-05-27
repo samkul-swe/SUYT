@@ -6,6 +6,9 @@ public class Recycle {
     private String recyclingHours;
     private String suggestedBin;
 
+    public Recycle() {
+    }
+
     public Recycle(String recycleInfo, String nearestRecyclingCenter, String recyclingHours, String suggestedBin) {
         this.recycleInfo = recycleInfo;
         this.nearestRecyclingCenter = nearestRecyclingCenter;
@@ -43,5 +46,15 @@ public class Recycle {
 
     public void setSuggestedBin(String suggestedBin) {
         this.suggestedBin = suggestedBin;
+    }
+
+    @Override
+    public String toString() {
+        return "Recycle{" +
+                "recycleInfo='" + recycleInfo + '\'' +
+                ", nearestRecyclingCenter='" + nearestRecyclingCenter + '\'' +
+                ", recyclingHours='" + recyclingHours + '\'' +
+                ", suggestedBin='" + suggestedBin + '\'' +
+                '}';
     }
 }

@@ -66,5 +66,6 @@ dependencies {
     implementation(libs.firebase.database)
     implementation (libs.glide)
     implementation(libs.jackson.databind)
+    implementation(libs.play.services.location)
 }
 

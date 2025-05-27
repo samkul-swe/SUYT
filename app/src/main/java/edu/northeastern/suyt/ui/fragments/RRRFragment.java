@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -18,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
@@ -32,6 +35,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -45,7 +54,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -73,20 +81,27 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private String currentPhotoPath;
     private ThreadPoolExecutor geminiExecutor;
 
+    // Location related variables
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+    private double currentLatitude = 0.0;
+    private double currentLongitude = 0.0;
+    private boolean locationObtained = false;
+    private Bitmap pendingBitmap;
+
     private ActivityResultLauncher<Uri> takePictureLauncher;
-
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
-
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
-
     private ActivityResultLauncher<String[]> requestStoragePermissionLauncher;
-
+    private ActivityResultLauncher<String[]> requestLocationPermissionLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setupActivityResultLaunchers();
+        setupLocationServices();
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
@@ -126,6 +141,118 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
         if (geminiExecutor != null && !geminiExecutor.isShutdown()) {
             geminiExecutor.shutdown();
+        }
+
+        stopLocationUpdates();
+    }
+
+    private void setupLocationServices() {
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        createLocationRequest();
+        createLocationCallback();
+    }
+
+    private void createLocationRequest() {
+        locationRequest = new LocationRequest.Builder(10000).build();
+    }
+
+    private void createLocationCallback() {
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    currentLatitude = location.getLatitude();
+                    currentLongitude = location.getLongitude();
+                    locationObtained = true;
+
+                    Log.d(TAG, "Location obtained: " + currentLatitude + ", " + currentLongitude);
+
+                    if (pendingBitmap != null) {
+                        processImageWithLocation(pendingBitmap);
+                        pendingBitmap = null;
+                    }
+
+                    stopLocationUpdates();
+                }
+            }
+
+            @Override
+            public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
+                super.onLocationAvailability(locationAvailability);
+
+                if (!locationAvailability.isLocationAvailable()) {
+                    Log.w(TAG, "Location not available");
+                    if (pendingBitmap != null) {
+                        processImageWithLocation(pendingBitmap);
+                        pendingBitmap = null;
+                    }
+                }
+            }
+        };
+    }
+
+    private boolean checkLocationPermissions() {
+        return ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(requireContext(),
+                        Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestLocationPermissions() {
+        requestLocationPermissionLauncher.launch(new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        });
+    }
+
+    private void getLastKnownLocation() {
+        if (!checkLocationPermissions()) {
+            return;
+        }
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissions();
+        }
+        fusedLocationProviderClient.getLastLocation()
+            .addOnSuccessListener(requireActivity(), location -> {
+                if (location != null) {
+                    currentLatitude = location.getLatitude();
+                    currentLongitude = location.getLongitude();
+                    locationObtained = true;
+
+                    Log.d(TAG, "Last known location: " + currentLatitude + ", " + currentLongitude);
+
+                    if (pendingBitmap != null) {
+                        processImageWithLocation(pendingBitmap);
+                        pendingBitmap = null;
+                    }
+                } else {
+                    requestNewLocationData();
+                }
+            });
+    }
+
+    private void requestNewLocationData() {
+        if (!checkLocationPermissions()) {
+            return;
+        }
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissions();
+        }
+        fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+        );
+    }
+
+    private void stopLocationUpdates() {
+        if (fusedLocationProviderClient != null && locationCallback != null) {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
     }
 
@@ -186,8 +313,26 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 Toast.makeText(requireContext(), "Storage permissions are required to select images from your device.", Toast.LENGTH_LONG).show();
             }
         });
-    }
 
+        requestLocationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            boolean locationGranted = false;
+            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                if (entry.getValue()) {
+                    locationGranted = true;
+                    break;
+                }
+            }
+            if (locationGranted) {
+                getLastKnownLocation();
+            } else {
+                Log.w(TAG, "Location permission denied, continuing without location");
+                if (pendingBitmap != null) {
+                    processImageWithLocation(pendingBitmap);
+                    pendingBitmap = null;
+                }
+            }
+        });
+    }
 
     @SuppressLint("SetTextI18n")
     private void displayPlaceholderState() {
@@ -355,7 +500,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-
     @SuppressLint("SetTextI18n")
     private void analyzeImage(Bitmap bitmap) {
         if (!isAdded()) return;
@@ -364,13 +508,48 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         itemNameTextView.setText("Analyzing image...");
         infoContentTextView.setText("Please wait while AI analyzes the item.");
 
-        Content prompt = new Content.Builder()
-                .addImage(bitmap) // Add your Bitmap here
-                .addText("What is this item? If it is recyclable, give me the nearest recycling center, what bin to use and more information about it. If it is reducible, give me more information on if I can collect it and sell to get money and how much money I can get. If it is reusable, give me more information as well find the best crafts I can do, with how much time it will take to complete the project and the money needed.")
-                .build();
-        Schema schema = currentItem.getSchema();
+        // Check if we have location permissions and get location
+        if (checkLocationPermissions()) {
+            if (!locationObtained) {
+                // Store the bitmap and wait for location
+                pendingBitmap = bitmap;
+                itemNameTextView.setText("Getting location and analyzing image...");
+                getLastKnownLocation();
+                return;
+            }
+        } else {
+            // Request location permissions and store bitmap
+            pendingBitmap = bitmap;
+            itemNameTextView.setText("Requesting location permission...");
+            requestLocationPermissions();
+            return;
+        }
 
-        // Call the Gemini model asynchronously
+        // If we reach here, either we have location or we're proceeding without it
+        processImageWithLocation(bitmap);
+    }
+
+    private void processImageWithLocation(Bitmap bitmap) {
+        if (!isAdded()) return;
+
+        // Build the prompt with location information if available
+        String locationText = "";
+        if (locationObtained && currentLatitude != 0.0 && currentLongitude != 0.0) {
+            locationText = String.format(Locale.US,
+                    " My current location is latitude %.6f and longitude %.6f. Please provide location-specific information such as nearby recycling centers, local regulations, and regional disposal options.",
+                    currentLatitude, currentLongitude);
+        }
+
+        String promptText = "What is this item? If it is recyclable, give me the nearest recycling center, what bin to use and more information about it. If it is reducible, give me more information on if I can collect it and sell to get money and how much money I can get. If it is reusable, give me more information as well find the best crafts I can do, with how much time it will take to complete the project and the money needed." + locationText;
+
+        Content prompt = new Content.Builder()
+                .addImage(bitmap)
+                .addText(promptText)
+                .build();
+
+        TrashItem trashItem = new TrashItem();
+        Schema schema = trashItem.getSchema();
+
         ListenableFuture<GenerateContentResponse> response = new GeminiClient(schema).generateResult(prompt);
         Futures.addCallback(
                 response,
@@ -406,7 +585,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void updateUIWithGeminiResponse() {
-
         itemNameTextView.setText(currentItem.getName());
 
         if (currentItem.isRecyclable()) {
