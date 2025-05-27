@@ -1,6 +1,7 @@
 package edu.northeastern.suyt.ui.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,8 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.JsonReader;
-import android.util.Log; // Added for logging
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -47,7 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map; // Added for ActivityResultContracts.RequestMultiplePermissions
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -74,7 +74,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private ThreadPoolExecutor geminiExecutor;
 
     private ActivityResultLauncher<Uri> takePictureLauncher;
-    private Uri cameraPhotoUri;
 
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
 
@@ -147,7 +146,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
                 if (selectedFileUri != null) {
                     try {
-                        Log.d(TAG, "Selected URI: " + selectedFileUri.toString());
+                        Log.d(TAG, "Selected URI: " + selectedFileUri);
                         Bitmap bitmap = getBitmapFromUri(selectedFileUri);
                         itemImageView.setImageBitmap(bitmap);
                         analyzeImage(bitmap);
@@ -190,6 +189,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
 
+    @SuppressLint("SetTextI18n")
     private void displayPlaceholderState() {
         itemImageView.setImageResource(R.drawable.ic_image_placeholder); // Ensure this drawable exists
         itemNameTextView.setText("Scan an item");
@@ -226,7 +226,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private void openCamera() {
         try {
             File photoFile = createImageFile();
-            cameraPhotoUri = FileProvider.getUriForFile(
+            Uri cameraPhotoUri = FileProvider.getUriForFile(
                     requireContext(),
                     requireContext().getPackageName() + ".fileprovider",
                     photoFile
@@ -356,6 +356,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
 
+    @SuppressLint("SetTextI18n")
     private void analyzeImage(Bitmap bitmap) {
         if (!isAdded()) return;
 
@@ -365,18 +366,9 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
         Content prompt = new Content.Builder()
                 .addImage(bitmap) // Add your Bitmap here
-                .addText("What is this item? Provide a brief description and suggest if it is recyclable, reusable, or if its consumption can be reduced.")
+                .addText("What is this item? If it is recyclable, give me the nearest recycling center, what bin to use and more information about it. If it is reducible, give me more information on if I can collect it and sell to get money and how much money I can get. If it is reusable, give me more information as well find the best crafts I can do, with how much time it will take to complete the project and the money needed.")
                 .build();
-        Schema schema = Schema.obj(
-            Map.of("name", Schema.str(),
-                    "isRecyclable", Schema.enumeration(List.of("true", "false")),
-                    "isReusable", Schema.enumeration(List.of("true", "false")),
-                    "isReducible", Schema.enumeration(List.of("true", "false")),
-                    "recycleInfo", Schema.str(),
-                    "reuseInfo", Schema.str(),
-                    "reduceInfo", Schema.str()
-            )
-        );;
+        Schema schema = currentItem.getSchema();
 
         // Call the Gemini model asynchronously
         ListenableFuture<GenerateContentResponse> response = new GeminiClient(schema).generateResult(prompt);
@@ -400,7 +392,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                     }
 
                     @Override
-                    public void onFailure(Throwable t) {
+                    public void onFailure(@NonNull Throwable t) {
                         requireActivity().runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
                             Log.e(TAG, "Gemini API call failed", t);
@@ -479,19 +471,19 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private void showRecycleInfo() {
         if (currentItem != null) {
-            infoContentTextView.setText(currentItem.getRecycleInfo());
+            infoContentTextView.setText(currentItem.getRecycleInfo().toString());
         }
     }
 
     private void showReuseInfo() {
         if (currentItem != null) {
-            infoContentTextView.setText(currentItem.getReuseInfo());
+            infoContentTextView.setText(currentItem.getReuseInfo().toString());
         }
     }
 
     private void showReduceInfo() {
         if (currentItem != null) {
-            infoContentTextView.setText(currentItem.getReduceInfo());
+            infoContentTextView.setText(currentItem.getReduceInfo().toString());
         }
     }
 }

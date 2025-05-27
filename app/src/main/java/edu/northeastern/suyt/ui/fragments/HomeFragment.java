@@ -214,8 +214,11 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
             if (dataSnapshot.child("stats").exists()) {
                 UserStats userStats = new UserStats();
 
+                //noinspection DataFlowIssue
                 userStats.setRecyclePoints(dataSnapshot.child("stats").child("recycle").getValue(Integer.class));
+                //noinspection DataFlowIssue
                 userStats.setReducePoints(dataSnapshot.child("stats").child("reduce").getValue(Integer.class));
+                //noinspection DataFlowIssue
                 userStats.setReusePoints(dataSnapshot.child("stats").child("reuse").getValue(Integer.class));
 
                 reducePoints = userStats.getReducePoints();
@@ -223,9 +226,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
                 recyclePoints = userStats.getRecyclePoints();
                 userRank = calculateUserRank(reducePoints + reusePoints + recyclePoints);
 
-                mainHandler.post(() -> {
-                    updateUserStatsUI();
-                });
+                mainHandler.post(this::updateUserStatsUI);
 
             }
         }).addOnFailureListener(exception -> {
@@ -320,7 +321,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
                     }
 
                     @Override
-                    public void onFailure(Throwable t) {
+                    public void onFailure(@NonNull Throwable t) {
                         t.printStackTrace();
                         if (isAdded()) {
                             mainHandler.post(() -> {

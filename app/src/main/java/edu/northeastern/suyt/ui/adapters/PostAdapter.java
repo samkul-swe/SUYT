@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,8 +14,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,51 +23,42 @@ import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 
+/** @noinspection ClassEscapesDefinedScope*/
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
     private List<Post> posts;
     private OnPostClickListener listener;
-    private Context context;
-    private ExecutorService executorService;
-    private Handler mainHandler;
-    private boolean enableLikeButton = false; // Default to disabled
+    private final ExecutorService executorService;
+    private final Handler mainHandler;
+    private boolean enableLikeButton;
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
     }
 
     public PostAdapter(Context context, boolean enableLikeButton) {
-        this.context = context;
         this.enableLikeButton = enableLikeButton;
         this.executorService = Executors.newFixedThreadPool(4);
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setLikeButtonEnabled(boolean enabled) {
         this.enableLikeButton = enabled;
-        notifyDataSetChanged(); // Refresh all items
+        notifyDataSetChanged();
     }
 
     public void setOnPostClickListener(HomeFragment homeFragment) {
         this.listener = homeFragment;
     }
 
-    public void setOnPostClickListener(OnPostClickListener listener) {
-        this.listener = listener;
-    }
-
+    @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
     public void updateData(List<Post> posts) {
         this.posts = posts;
-        //Prefetch images to cache
-        for (Post post : posts) {
-            Glide.with(context)
-                    .load(post.getImageUrl())
-                    .error(R.drawable.placeholder_image)
-                    .fallback(R.drawable.placeholder_image);
-        }
         notifyDataSetChanged();
     }
 
+    /** @noinspection ClassEscapesDefinedScope*/
     @NonNull
     @Override
     public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -76,20 +66,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         return new PostViewHolder(view);
     }
 
+    @SuppressLint("CheckResult")
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = posts.get(position);
 
         // Execute heavy work in background
         executorService.execute(() -> {
-            String imageUrl = String.valueOf(post.getImageUrl());
-
             // Update UI on the main thread
             mainHandler.post(() -> {
-                Glide.with(holder.postImageView.getContext())
-                        .load(imageUrl)
-                        .error(R.drawable.placeholder_image)
-                        .fallback(R.drawable.placeholder_image);
+
+                if (post.getCategory().equalsIgnoreCase("reuse")) {
+                    holder.postImageView.setImageResource(R.drawable.reuse);
+                } else if (post.getCategory().equalsIgnoreCase("recycle")) {
+                    holder.postImageView.setImageResource(R.drawable.recycle);
+                } else {
+                    holder.postImageView.setImageResource(R.drawable.reduce);
+                }
 
                 holder.postImageView.setTag(post.getImageUrl());
                 holder.titleTextView.setText(post.getTitle());

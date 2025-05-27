@@ -10,16 +10,16 @@ public class TrashItem {
     private boolean isRecyclable;
     private boolean isReusable;
     private boolean isReducible;
-    private String recycleInfo;
-    private String reuseInfo;
-    private String reduceInfo;
+    private Recycle recycleInfo;
+    private Reuse reuseInfo;
+    private Reduce reduceInfo;
 
     public TrashItem() {
     }
 
     public TrashItem(String name, boolean isRecyclable,
-                          boolean isReusable, boolean isReducible, String recycleInfo,
-                          String reuseInfo, String reduceInfo) {
+                          boolean isReusable, boolean isReducible, Recycle recycleInfo,
+                          Reuse reuseInfo, Reduce reduceInfo) {
         this.name = name;
         this.isRecyclable = isRecyclable;
         this.isReusable = isReusable;
@@ -62,27 +62,27 @@ public class TrashItem {
         isReducible = Boolean.valueOf(reducible);
     }
 
-    public String getRecycleInfo() {
+    public Recycle getRecycleInfo() {
         return recycleInfo;
     }
 
-    public void setRecycleInfo(String recycleInfo) {
+    public void setRecycleInfo(Recycle recycleInfo) {
         this.recycleInfo = recycleInfo;
     }
 
-    public String getReuseInfo() {
+    public Reuse getReuseInfo() {
         return reuseInfo;
     }
 
-    public void setReuseInfo(String reuseInfo) {
+    public void setReuseInfo(Reuse reuseInfo) {
         this.reuseInfo = reuseInfo;
     }
 
-    public String getReduceInfo() {
+    public Reduce getReduceInfo() {
         return reduceInfo;
     }
 
-    public void setReduceInfo(String reduceInfo) {
+    public void setReduceInfo(Reduce reduceInfo) {
         this.reduceInfo = reduceInfo;
     }
 
@@ -92,9 +92,27 @@ public class TrashItem {
                     "isRecyclable", Schema.enumeration(List.of("true", "false")),
                     "isReusable", Schema.enumeration(List.of("true", "false")),
                     "isReducible", Schema.enumeration(List.of("true", "false")),
-                    "recycleInfo", Schema.str(),
-                    "reuseInfo", Schema.str(),
-                    "reduceInfo", Schema.str()
+                    "recycleInfo", Schema.obj(
+                            Map.of("recycleInfo", Schema.str(),
+                                    "nearestRecyclingCenter", Schema.str(),
+                                    "recyclingHours", Schema.str(),
+                                    "suggestedBin", Schema.str()
+                            )
+                    ),
+                    "reuseInfo", Schema.obj(
+                            Map.of("reuseInfo", Schema.str(),
+                                    "craftsPossible", Schema.str(),
+                                    "moneyNeededForCraft", Schema.str(),
+                                    "timeNeededForCraft", Schema.str()
+                            )
+                    ),
+                    "reduceInfo", Schema.obj(
+                            Map.of("reduceInfo", Schema.str(),
+                                    "howManyShouldICollect", Schema.str(),
+                                    "moneyExpected", Schema.str(),
+                                    "otherSuggestions", Schema.str()
+                            )
+                    )
             )
         );
     }

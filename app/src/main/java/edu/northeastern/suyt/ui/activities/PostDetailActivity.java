@@ -1,22 +1,26 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
-import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 
 public class PostDetailActivity extends AppCompatActivity {
@@ -29,15 +33,22 @@ public class PostDetailActivity extends AppCompatActivity {
     private TextView likesTextView;
     private TextView categoryTextView;
     private View categoryIndicator;
+    private ImageButton saveToolbarButton;
+    private MaterialButton likeButton;
 
     private Post post;
+    private PostsRepository postsRepository;
+
+    private boolean isPostLikedByUser = false;
+    private boolean isPostSavedByUser = false;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_detail);
 
-        // Set up toolbar with back button
+        postsRepository = new PostsRepository();
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -45,7 +56,6 @@ public class PostDetailActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Community Post");
         }
 
-        // Initialize views
         postImageView = findViewById(R.id.post_image_view);
         titleTextView = findViewById(R.id.title_text_view);
         usernameTextView = findViewById(R.id.username_text_view);
@@ -53,38 +63,30 @@ public class PostDetailActivity extends AppCompatActivity {
         descriptionTextView = findViewById(R.id.description_text_view);
         likesTextView = findViewById(R.id.likes_count_text_view);
         categoryTextView = findViewById(R.id.category_text_view);
-        Button likeButton = findViewById(R.id.like_button);
-        Button shareButton = findViewById(R.id.share_button);
         categoryIndicator = findViewById(R.id.category_indicator);
 
-        // Get post object from intent (using Parcelable)
+        likeButton = findViewById(R.id.like_button);
+        Button shareButton = findViewById(R.id.share_button);
+        saveToolbarButton = findViewById(R.id.save_button_toolbar);
+
         if (getIntent() != null && getIntent().hasExtra("POST")) {
             post = getIntent().getParcelableExtra("POST");
 
             if (post != null) {
-                // Load the post data into the UI
                 loadPostData();
+                checkUserPostStatus(post.getId());
             } else {
-                // Handle error - post is null
-                Toast.makeText(this, "Error loading post data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error loading post data.", Toast.LENGTH_SHORT).show();
                 finish();
             }
         } else {
-            // Handle error - no post data in intent
-            Toast.makeText(this, "No post data found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No post data found. Closing activity.", Toast.LENGTH_SHORT).show();
             finish();
         }
 
-        // Set up button listeners
         likeButton.setOnClickListener(v -> {
             if (post != null) {
-                // Increment likes and update UI
-                post.setLikes(post.getLikes() + 1);
-                likesTextView.setText(String.valueOf(post.getLikes()));
-                Toast.makeText(this, "You liked this post!", Toast.LENGTH_SHORT).show();
-
-                // TODO: Update likes in Firebase/database here if needed
-                // updateLikesInDatabase(post.getId(), post.getLikes());
+                toggleLikeStatus();
             }
         });
 
@@ -93,15 +95,17 @@ public class PostDetailActivity extends AppCompatActivity {
                 sharePost();
             }
         });
+
+        saveToolbarButton.setOnClickListener(v -> {
+            if (post != null) {
+                toggleSaveStatus();
+            }
+        });
     }
 
-    /**
-     * Load post data into the UI components
-     */
     private void loadPostData() {
         if (post == null) return;
 
-        // Set basic post information
         titleTextView.setText(post.getTitle());
         usernameTextView.setText(post.getUsername());
         dateTextView.setText(post.getDate());
@@ -109,21 +113,18 @@ public class PostDetailActivity extends AppCompatActivity {
         likesTextView.setText(String.valueOf(post.getLikes()));
         categoryTextView.setText(post.getCategory());
 
-        // Set toolbar title to post title
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(post.getTitle());
         }
 
-        // Set category indicator color based on category
         setCategoryIndicatorColor(post.getCategory());
+        setPostImage(post.getCategory());
 
-        // Load image - replace with your image loading logic
-        loadPostImage(post.getImageUrl());
+        if (isPostLikedByUser) {
+            updateLikeButtonUI();
+        }
     }
 
-    /**
-     * Set the category indicator color based on the post category
-     */
     private void setCategoryIndicatorColor(String category) {
         if (categoryIndicator == null || category == null) return;
 
@@ -142,86 +143,149 @@ public class PostDetailActivity extends AppCompatActivity {
                 colorResource = R.color.colorPrimary;
                 break;
         }
-
-        categoryIndicator.setBackgroundResource(colorResource);
+        categoryIndicator.setBackgroundColor(ContextCompat.getColor(this, colorResource));
     }
 
-    /**
-     * Load the post image - implement your image loading logic here
-     */
-    private void loadPostImage(String imageUrl) {
-        if (postImageView == null) return;
+    private void setPostImage(String category) {
+        if (postImageView == null || category == null) return;
 
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            // If you're using Glide or Picasso for image loading:
-             Glide.with(this)
-             .load(imageUrl)
-             .placeholder(R.drawable.placeholder_image)
-             .error(R.drawable.placeholder_image)
-             .into(postImageView);
+        int imageResource;
+        switch (category.toLowerCase()) {
+            case "reuse":
+                imageResource = R.drawable.reuse; // Make sure these drawables exist
+                break;
+            case "recycle":
+                imageResource = R.drawable.recycle; // Make sure these drawables exist
+                break;
+            case "reduce":
+                imageResource = R.drawable.reduce; // Make sure these drawables exist
+                break;
+            default:
+                imageResource = R.drawable.ic_image_placeholder; // Fallback image
+                break;
+        }
+        postImageView.setImageResource(imageResource);
+    }
+
+    private void checkUserPostStatus(String postId) {
+        isPostLikedByUser = false;
+        isPostSavedByUser = false;
+
+        updateLikeButtonUI();
+        updateSaveButtonUI();
+    }
+
+
+    private void toggleLikeStatus() {
+        String currentUserId = "test_user_id"; // Placeholder
+
+        if (isPostLikedByUser) {
+            post.setLikes(post.getLikes() - 1);
+            updateLikesInDatabase(post.getId(), post.getLikes());
+            Snackbar.make(findViewById(android.R.id.content), "Post unliked.", Snackbar.LENGTH_SHORT).show();
         } else {
-            // No image URL, show placeholder
-            postImageView.setImageResource(R.drawable.placeholder_image);
+            post.setLikes(post.getLikes() + 1);
+            updateLikesInDatabase(post.getId(), post.getLikes()); // Increment in DB
+            Snackbar.make(findViewById(android.R.id.content), "Post liked!", Snackbar.LENGTH_SHORT).show();
+        }
+        isPostLikedByUser = !isPostLikedByUser; // Toggle local state
+        likesTextView.setText(String.valueOf(post.getLikes()));
+        updateLikeButtonUI(); // Update UI after toggling
+    }
+
+    private void updateLikeButtonUI() {
+        if (isPostLikedByUser) {;
+            likeButton.setIconResource(R.drawable.ic_favorite_filled);
+            likeButton.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.colorAccent));
+        } else {
+            likeButton.setIconResource(R.drawable.ic_favorite_border);
+            likeButton.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.colorAccent));
         }
     }
 
-    /**
-     * Share the post content
-     */
+    private void toggleSaveStatus() {
+        String currentUserId = "test_user_id";
+
+        if (isPostSavedByUser) {
+            Snackbar.make(findViewById(android.R.id.content), "Post unsaved.", Snackbar.LENGTH_SHORT).show();
+        } else {
+            Snackbar.make(findViewById(android.R.id.content), "Post saved!", Snackbar.LENGTH_SHORT).show();
+        }
+        isPostSavedByUser = !isPostSavedByUser;
+        updateSaveButtonUI();
+    }
+
+    private void updateSaveButtonUI() {
+        if (isPostSavedByUser) {
+            saveToolbarButton.setImageResource(R.drawable.ic_save_filled);
+            saveToolbarButton.setColorFilter(ContextCompat.getColor(this, R.color.colorAccent));
+        } else {
+            saveToolbarButton.setImageResource(R.drawable.ic_save_border);
+            saveToolbarButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white));
+        }
+    }
+
+
     private void sharePost() {
+        if (post == null) return;
+
         String shareText = "Check out this " + post.getCategory().toLowerCase() +
                 " project: \"" + post.getTitle() + "\" by " + post.getUsername() +
                 " on SUYT app!\n\n" + post.getDescription();
 
-        android.content.Intent shareIntent = new android.content.Intent();
-        shareIntent.setAction(android.content.Intent.ACTION_SEND);
-        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
         shareIntent.setType("text/plain");
 
-        // Add subject for email sharing
-        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Recycling Project: " + post.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Recycling Project: " + post.getTitle());
 
-        startActivity(android.content.Intent.createChooser(shareIntent, "Share via"));
-    }
-
-    /**
-     * Handle saving instance state to preserve post data across configuration changes
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (post != null) {
-            outState.putParcelable("saved_post", post);
-        }
-    }
-
-    /**
-     * Handle restoring instance state
-     */
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState.containsKey("saved_post")) {
-            post = savedInstanceState.getParcelable("saved_post");
-            if (post != null) {
-                loadPostData();
-            }
-        }
+        startActivity(Intent.createChooser(shareIntent, "Share via"));
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Handle back button click
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (post != null) {
+            outState.putParcelable("saved_post", post);
+        }
+        outState.putBoolean("is_post_liked", isPostLikedByUser);
+        outState.putBoolean("is_post_saved", isPostSavedByUser);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.containsKey("saved_post")) {
+            post = savedInstanceState.getParcelable("saved_post");
+            if (post != null) {
+                loadPostData();
+                isPostLikedByUser = savedInstanceState.getBoolean("is_post_liked", false);
+                isPostSavedByUser = savedInstanceState.getBoolean("is_post_saved", false);
+                updateLikeButtonUI();
+                updateSaveButtonUI();
+            }
+        }
+    }
+
     private void updateLikesInDatabase(String postId, int newLikeCount) {
-         DatabaseReference postRef = FirebaseDatabase.getInstance()
-             .getReference("posts").child(postId).child("likes");
-         postRef.setValue(newLikeCount);
+        if (postsRepository != null && postId != null) {
+            DatabaseReference postRef = postsRepository.getPostsRef().child(postId).child("likes");
+            postRef.setValue(newLikeCount)
+                .addOnSuccessListener(aVoid -> {
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to update likes in DB: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+        }
     }
 }
