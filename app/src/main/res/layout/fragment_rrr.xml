@@ -16,7 +16,6 @@
             android:layout_height="wrap_content"
             android:padding="20dp">
 
-            <!-- Header Section -->
             <TextView
                 android:id="@+id/header_title"
                 android:layout_width="match_parent"
@@ -40,7 +39,6 @@
                 android:paddingBottom="24dp"
                 app:layout_constraintTop_toBottomOf="@id/header_title" />
 
-            <!-- Main Image Card with Modern Design -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/item_image_card"
                 android:layout_width="match_parent"
@@ -55,7 +53,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <!-- Image Container with Gradient Overlay -->
                     <FrameLayout
                         android:id="@+id/image_container"
                         android:layout_width="match_parent"
@@ -71,14 +68,12 @@
                             android:contentDescription="@string/recyclable_item_image"
                             android:background="@drawable/rounded_image_placeholder" />
 
-                        <!-- Gradient Overlay for better text readability -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="80dp"
                             android:layout_gravity="bottom"
                             android:background="@drawable/gradient_overlay" />
 
-                        <!-- Progress Bar Overlay -->
                         <ProgressBar
                             android:id="@+id/progress_bar"
                             android:layout_width="80dp"
@@ -90,7 +85,6 @@
 
                     </FrameLayout>
 
-                    <!-- Item Name with Better Positioning -->
                     <TextView
                         android:id="@+id/item_name_text_view"
                         android:layout_width="match_parent"
@@ -108,7 +102,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Hint Text with Better Styling -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/hint_card"
                 android:layout_width="match_parent"
@@ -130,8 +123,8 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:src="@drawable/ic_info"
-                        android:layout_marginEnd="16dp"
-                        app:tint="@color/colorPrimary" />
+                        app:tint="@color/colorPrimary"
+                        android:layout_marginEnd="16dp" />
 
                     <TextView
                         android:id="@+id/initial_hint_text_view"
@@ -148,7 +141,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Modern Button Container -->
             <LinearLayout
                 android:id="@+id/buttons_container"
                 android:layout_width="match_parent"
@@ -218,19 +210,18 @@
 
             </LinearLayout>
 
-            <!-- Enhanced Info Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/info_card_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:layout_marginBottom="100dp"
+                android:layout_marginBottom="20dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="8dp"
                 app:cardBackgroundColor="@color/colorPrimary"
                 android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/buttons_container"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintBottom_toTopOf="@id/completion_section">
 
                 <LinearLayout
                     android:id="@+id/info_content_layout"
@@ -239,7 +230,6 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- General Info Text -->
                     <TextView
                         android:id="@+id/info_content_general_text_view"
                         android:layout_width="match_parent"
@@ -252,7 +242,6 @@
                         android:paddingVertical="12dp"
                         android:visibility="gone" />
 
-                    <!-- Recycle Info Section -->
                     <LinearLayout
                         android:id="@+id/recycle_info_layout"
                         android:layout_width="match_parent"
@@ -271,8 +260,8 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:src="@drawable/ic_recycle"
-                                android:layout_marginEnd="12dp"
-                                app:tint="@android:color/white" />
+                                app:tint="@android:color/white"
+                                android:layout_marginEnd="12dp" />
 
                             <TextView
                                 android:layout_width="0dp"
@@ -348,7 +337,6 @@
 
                     </LinearLayout>
 
-                    <!-- Reuse Info Section -->
                     <LinearLayout
                         android:id="@+id/reuse_info_layout"
                         android:layout_width="match_parent"
@@ -367,8 +355,8 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:src="@drawable/ic_reuse"
-                                android:layout_marginEnd="12dp"
-                                app:tint="@android:color/white" />
+                                app:tint="@android:color/white"
+                                android:layout_marginEnd="12dp" />
 
                             <TextView
                                 android:layout_width="0dp"
@@ -397,7 +385,6 @@
                             android:paddingBottom="12dp"
                             android:text="General reuse info." />
 
-                        <!-- Craft Ideas Section -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -418,7 +405,6 @@
                                 android:drawableTint="@android:color/white"
                                 android:paddingBottom="12dp" />
 
-                            <!-- Scrollable craft cards container -->
                             <ScrollView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -431,7 +417,6 @@
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical">
 
-                                    <!-- Individual craft cards will be added here programmatically -->
                                     <TextView
                                         android:id="@+id/reuse_crafts"
                                         android:layout_width="match_parent"
@@ -448,7 +433,6 @@
 
                         </LinearLayout>
 
-                        <!-- Time and Cost Info -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -503,7 +487,6 @@
 
                     </LinearLayout>
 
-                    <!-- Reduce Info Section -->
                     <LinearLayout
                         android:id="@+id/reduce_info_layout"
                         android:layout_width="match_parent"
@@ -522,8 +505,8 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:src="@drawable/ic_reduce"
-                                android:layout_marginEnd="12dp"
-                                app:tint="@android:color/white" />
+                                app:tint="@android:color/white"
+                                android:layout_marginEnd="12dp" />
 
                             <TextView
                                 android:layout_width="0dp"
@@ -603,11 +586,151 @@
 
             </androidx.cardview.widget.CardView>
 
+            <androidx.cardview.widget.CardView
+                android:id="@+id/completion_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="100dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/colorPrimary"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/info_card_view"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Did you complete this activity?"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:gravity="center"
+                        android:paddingBottom="20dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/completed_yes_button"
+                            style="@style/Widget.Material3.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:text="Yes, I did it!"
+                            android:textColor="@android:color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginEnd="8dp"
+                            app:cornerRadius="16dp"
+                            app:backgroundTint="@color/completionYesColor"
+                            app:icon="@drawable/ic_check_circle"
+                            app:iconTint="@android:color/white"
+                            app:iconGravity="textStart"
+                            app:iconSize="20dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/completed_no_button"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            android:text="Not yet"
+                            android:textColor="@android:color/white"
+                            android:textSize="16sp"
+                            android:layout_marginStart="8dp"
+                            app:cornerRadius="16dp"
+                            app:strokeColor="@android:color/white"
+                            app:strokeWidth="2dp"
+                            app:icon="@drawable/ic_close"
+                            app:iconTint="@android:color/white"
+                            app:iconGravity="textStart"
+                            app:iconSize="20dp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/share_option_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#33FFFFFF"
+                            android:layout_marginVertical="12dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Share your achievement!"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/white"
+                            android:gravity="center"
+                            android:paddingBottom="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/share_with_photo_button"
+                                style="@style/Widget.Material3.Button"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:text="Share with Photo"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:layout_marginEnd="6dp"
+                                app:cornerRadius="12dp"
+                                app:backgroundTint="@color/sharePhotoColor"
+                                app:icon="@drawable/ic_camera"
+                                app:iconTint="@android:color/white"
+                                app:iconSize="18dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/skip_sharing_button"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:text="Skip"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:layout_marginStart="6dp"
+                                app:cornerRadius="12dp"
+                                app:strokeColor="#66FFFFFF"
+                                app:strokeWidth="1dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
 
-    <!-- Floating Action Buttons -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/camera_fab"
         android:layout_width="wrap_content"

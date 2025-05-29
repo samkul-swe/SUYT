@@ -47,6 +47,7 @@ public class RRRViewModel extends AndroidViewModel {
     public final LiveData<String> errorMessage = _errorMessage;
 
     private final MutableLiveData<Location> _currentLocation = new MutableLiveData<>();
+    public final LiveData<Location> currentLocation = _currentLocation;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
     private ThreadPoolExecutor geminiExecutor;

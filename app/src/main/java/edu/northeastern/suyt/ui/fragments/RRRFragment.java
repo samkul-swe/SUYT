@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -14,18 +15,17 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +57,7 @@ import edu.northeastern.suyt.model.Recycle;
 import edu.northeastern.suyt.model.Reduce;
 import edu.northeastern.suyt.model.Reuse;
 import edu.northeastern.suyt.model.TrashItem;
+import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.viewmodel.RRRViewModel;
 
 public class RRRFragment extends Fragment implements View.OnClickListener {
@@ -71,7 +72,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private Button reuseButton;
     private Button reduceButton;
     private TextView infoContentGeneralTextView;
-    private CardView infoCardView;
+    private androidx.cardview.widget.CardView infoCardView;
     private ProgressBar progressBar;
     private LinearLayout buttonsContainer;
     private TextView initialHintTextView;
@@ -84,15 +85,22 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private LinearLayout reuseInfoLayout;
     private TextView reuseDescription;
+    private TextView reuseCrafts;
     private TextView reuseTime;
     private TextView reuseMoney;
-    private LinearLayout craftsContainer;
 
     private LinearLayout reduceInfoLayout;
     private TextView reduceDescription;
     private TextView reduceCollect;
     private TextView reduceMoneyExpected;
     private TextView reduceOtherSuggestions;
+
+    private androidx.cardview.widget.CardView completionSection;
+    private Button completedYesButton;
+    private Button completedNoButton;
+    private LinearLayout shareOptionLayout;
+    private Button shareWithPhotoButton;
+    private Button skipSharingButton;
 
     private String currentPhotoPath;
 
@@ -104,6 +112,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
     private ActivityResultLauncher<String[]> requestStoragePermissionLauncher;
+    private ActivityResultLauncher<String[]> requestLocationPermissionLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -154,6 +163,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
         reuseInfoLayout = view.findViewById(R.id.reuse_info_layout);
         reuseDescription = view.findViewById(R.id.reuse_description);
+        reuseCrafts = view.findViewById(R.id.reuse_crafts);
         reuseTime = view.findViewById(R.id.reuse_time);
         reuseMoney = view.findViewById(R.id.reuse_money);
 
@@ -163,7 +173,12 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceMoneyExpected = view.findViewById(R.id.reduce_money_expected);
         reduceOtherSuggestions = view.findViewById(R.id.reduce_other_suggestions);
 
-        craftsContainer = view.findViewById(R.id.crafts_container);
+        completionSection = view.findViewById(R.id.completion_section);
+        completedYesButton = view.findViewById(R.id.completed_yes_button);
+        completedNoButton = view.findViewById(R.id.completed_no_button);
+        shareOptionLayout = view.findViewById(R.id.share_option_layout);
+        shareWithPhotoButton = view.findViewById(R.id.share_with_photo_button);
+        skipSharingButton = view.findViewById(R.id.skip_sharing_button);
     }
 
     private void setupClickListeners(View view) {
@@ -176,6 +191,11 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
         cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
         downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
+
+        completedYesButton.setOnClickListener(v -> handleCompletionYes());
+        completedNoButton.setOnClickListener(v -> handleCompletionNo());
+        shareWithPhotoButton.setOnClickListener(v -> handleShareWithPhoto());
+        skipSharingButton.setOnClickListener(v -> handleSkipSharing());
     }
 
     private void observeViewModel() {
@@ -241,6 +261,10 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 showReduceInfo();
                 break;
         }
+
+        if (viewModel.uiState.getValue() == RRRViewModel.UIState.ANALYSIS_COMPLETE) {
+            showCompletionSection();
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -254,6 +278,11 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         buttonsContainer.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);
         initialHintTextView.setVisibility(View.VISIBLE);
+
+        View hintCard = getView() != null ? getView().findViewById(R.id.hint_card) : null;
+        if (hintCard != null) {
+            hintCard.setVisibility(View.VISIBLE);
+        }
 
         hideAllInfoLayouts();
         resetButtons();
@@ -275,6 +304,12 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         buttonsContainer.setVisibility(View.VISIBLE);
         infoCardView.setVisibility(View.VISIBLE);
         initialHintTextView.setVisibility(View.GONE);
+
+        View hintCard = getView() != null ? getView().findViewById(R.id.hint_card) : null;
+        if (hintCard != null) {
+            hintCard.setVisibility(View.GONE);
+        }
+
         infoContentGeneralTextView.setVisibility(View.GONE);
     }
 
@@ -282,6 +317,10 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         recycleInfoLayout.setVisibility(View.GONE);
         reuseInfoLayout.setVisibility(View.GONE);
         reduceInfoLayout.setVisibility(View.GONE);
+        completionSection.setVisibility(View.GONE);
+        if (shareOptionLayout != null) {
+            shareOptionLayout.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -354,23 +393,26 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
             reuseDescription.setText(formatField("Description", info.getReuseInfo()));
 
-            craftsContainer.removeAllViews();
+            LinearLayout craftsContainer = getView() != null ? getView().findViewById(R.id.crafts_container) : null;
+            if (craftsContainer != null) {
+                craftsContainer.removeAllViews();
 
-            String craftsText = info.getCraftsPossible();
-            if (craftsText != null && !craftsText.isEmpty()) {
-                String[] crafts = splitCrafts(craftsText);
+                String craftsText = info.getCraftsPossible();
+                if (craftsText != null && !craftsText.isEmpty()) {
+                    String[] crafts = splitCrafts(craftsText);
 
-                if (crafts.length > 1) {
-                    for (int i = 0; i < crafts.length; i++) {
-                        if (!crafts[i].trim().isEmpty()) {
-                            createCraftCard(craftsContainer, crafts[i].trim(), i + 1);
+                    if (crafts.length > 1) {
+                        for (int i = 0; i < crafts.length; i++) {
+                            if (!crafts[i].trim().isEmpty()) {
+                                createCraftCard(craftsContainer, crafts[i].trim(), i + 1);
+                            }
                         }
+                    } else {
+                        createSingleCraftView(craftsContainer, craftsText);
                     }
                 } else {
-                    createSingleCraftView(craftsContainer, craftsText);
+                    createNoCraftView(craftsContainer);
                 }
-            } else {
-                createNoCraftView(craftsContainer);
             }
 
             reuseTime.setText(formatField("Time", info.getTimeNeededForCraft()));
@@ -386,6 +428,42 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         } else {
             showNoInfoMessage("No specific reusing information available for this item.");
         }
+    }
+
+    private void showReduceInfo() {
+        hideAllInfoLayouts();
+
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        if (currentItem != null && currentItem.getReduceInfo() != null) {
+            reduceInfoLayout.setVisibility(View.VISIBLE);
+            Reduce info = currentItem.getReduceInfo();
+
+            reduceDescription.setText(formatField("Description", info.getReduceInfo()));
+            reduceCollect.setText(formatField("Collection Suggestion", info.getHowManyShouldICollect()));
+            reduceMoneyExpected.setText(formatField("Money Expected", info.getMoneyExpected()));
+            reduceOtherSuggestions.setText(formatField("Other Suggestions", info.getOtherSuggestions()));
+
+            reduceDescription.setVisibility(info.getReduceInfo() != null && !info.getReduceInfo().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceCollect.setVisibility(info.getHowManyShouldICollect() != null && !info.getHowManyShouldICollect().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceMoneyExpected.setVisibility(info.getMoneyExpected() != null && !info.getMoneyExpected().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceOtherSuggestions.setVisibility(info.getOtherSuggestions() != null && !info.getOtherSuggestions().isEmpty() ? View.VISIBLE : View.GONE);
+
+            if (!viewModel.hasValidDataForSelectedTab()) {
+                showNoInfoMessage("No specific reducing information available for this item.");
+            }
+        } else {
+            showNoInfoMessage("No specific reducing information available for this item.");
+        }
+    }
+
+    private void showNoInfoMessage(String message) {
+        infoContentGeneralTextView.setText(message);
+        infoContentGeneralTextView.setVisibility(View.VISIBLE);
+        hideAllInfoLayouts();
+    }
+
+    private String formatField(String label, String value) {
+        return (value != null && !value.isEmpty()) ? (label + ": " + value) : "";
     }
 
     private String[] splitCrafts(String craftsText) {
@@ -417,7 +495,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        cardParams.setMargins(0, 0, 0, 12); // Bottom margin between cards
+        cardParams.setMargins(0, 0, 0, 12);
         craftCard.setLayoutParams(cardParams);
 
         craftCard.setCardBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.transparent));
@@ -434,6 +512,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         numberBadge.setText(String.valueOf(craftNumber));
         numberBadge.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
         numberBadge.setTextSize(12f);
+        numberBadge.setTypeface(numberBadge.getTypeface(), Typeface.BOLD);
         numberBadge.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.craft_number_badge));
         numberBadge.setGravity(Gravity.CENTER);
 
@@ -484,6 +563,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         noCraftView.setPadding(16, 12, 16, 12);
         noCraftView.setAlpha(0.7f);
         noCraftView.setGravity(Gravity.CENTER);
+        noCraftView.setTypeface(noCraftView.getTypeface(), Typeface.ITALIC);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -495,48 +575,147 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private String cleanCraftText(String text) {
-        // Remove number prefixes like "1.", "2.", etc.
         text = text.replaceFirst("^\\d+\\.\\s*", "");
-        // Remove bullet points
         text = text.replaceFirst("^[•-]\\s*", "");
-        // Trim whitespace
         return text.trim();
     }
 
-    private void showReduceInfo() {
-        hideAllInfoLayouts();
-
+    private void showCompletionSection() {
         TrashItem currentItem = viewModel.currentItem.getValue();
-        if (currentItem != null && currentItem.getReduceInfo() != null) {
-            reduceInfoLayout.setVisibility(View.VISIBLE);
-            Reduce info = currentItem.getReduceInfo();
+        RRRViewModel.UIState currentState = viewModel.uiState.getValue();
 
-            reduceDescription.setText(formatField("Description", info.getReduceInfo()));
-            reduceCollect.setText(formatField("Collection Suggestion", info.getHowManyShouldICollect()));
-            reduceMoneyExpected.setText(formatField("Money Expected", info.getMoneyExpected()));
-            reduceOtherSuggestions.setText(formatField("Other Suggestions", info.getOtherSuggestions()));
+        if (currentItem != null && currentState == RRRViewModel.UIState.ANALYSIS_COMPLETE) {
+            completionSection.setVisibility(View.VISIBLE);
+            shareOptionLayout.setVisibility(View.GONE);
 
-            reduceDescription.setVisibility(info.getReduceInfo() != null && !info.getReduceInfo().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceCollect.setVisibility(info.getHowManyShouldICollect() != null && !info.getHowManyShouldICollect().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceMoneyExpected.setVisibility(info.getMoneyExpected() != null && !info.getMoneyExpected().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceOtherSuggestions.setVisibility(info.getOtherSuggestions() != null && !info.getOtherSuggestions().isEmpty() ? View.VISIBLE : View.GONE);
-
-            if (!viewModel.hasValidDataForSelectedTab()) {
-                showNoInfoMessage("No specific reducing information available for this item.");
-            }
+            completedYesButton.setAlpha(1.0f);
+            completedNoButton.setAlpha(1.0f);
         } else {
-            showNoInfoMessage("No specific reducing information available for this item.");
+            completionSection.setVisibility(View.GONE);
         }
     }
 
-    private void showNoInfoMessage(String message) {
-        infoContentGeneralTextView.setText(message);
-        infoContentGeneralTextView.setVisibility(View.VISIBLE);
-        hideAllInfoLayouts();
+    private void handleCompletionYes() {
+        logActivityCompletion(true);
+
+        shareOptionLayout.setVisibility(View.VISIBLE);
+
+        completedYesButton.setAlpha(0.7f);
+        completedNoButton.setAlpha(0.5f);
+
+        Toast.makeText(requireContext(), "Great job! 🎉 You're making a difference!", Toast.LENGTH_LONG).show();
     }
 
-    private String formatField(String label, String value) {
-        return (value != null && !value.isEmpty()) ? (label + ": " + value) : "";
+    private void handleCompletionNo() {
+        logActivityCompletion(false);
+
+        Toast.makeText(requireContext(), "That's okay! Every small step counts. Try again when you're ready!", Toast.LENGTH_LONG).show();
+
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            navigateToHome();
+        }, 2000);
+    }
+
+    private void handleShareWithPhoto() {
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        RRRViewModel.RRRTab selectedTab = viewModel.selectedTab.getValue();
+
+        if (currentItem != null && selectedTab != null) {
+            Bundle postData = new Bundle();
+            postData.putString("itemName", currentItem.getName());
+            postData.putString("activityType", getActivityTypeString(selectedTab));
+            postData.putString("activityDetails", getActivityDetails(currentItem, selectedTab));
+
+            navigateToCreatePost(postData);
+        } else {
+            Toast.makeText(requireContext(), "Error preparing post data", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleSkipSharing() {
+        Toast.makeText(requireContext(), "Thanks for completing the activity! 🌱", Toast.LENGTH_SHORT).show();
+
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            navigateToHome();
+        }, 1500);
+    }
+
+    private void logActivityCompletion(boolean completed) {
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        RRRViewModel.RRRTab selectedTab = viewModel.selectedTab.getValue();
+
+        if (currentItem != null && selectedTab != null) {
+            String activityType = getActivityTypeString(selectedTab);
+            String itemName = currentItem.getName();
+
+            Log.d(TAG, "Activity completion logged: " + activityType + " for " + itemName + " - Completed: " + completed);
+
+            // TODO: Add to analytics service
+            // AnalyticsService.logActivityCompletion(activityType, itemName, completed);
+
+            // TODO: Add to user's activity history
+            // UserActivityService.recordActivity(activityType, itemName, completed);
+        }
+    }
+
+    private String getActivityTypeString(RRRViewModel.RRRTab tab) {
+        switch (tab) {
+            case RECYCLE: return "Recycle";
+            case REUSE: return "Reuse";
+            case REDUCE: return "Reduce";
+            default: return "Unknown";
+        }
+    }
+
+    private String getActivityDetails(TrashItem item, RRRViewModel.RRRTab tab) {
+        switch (tab) {
+            case RECYCLE:
+                if (item.getRecycleInfo() != null) {
+                    return item.getRecycleInfo().getRecycleInfo();
+                }
+                break;
+            case REUSE:
+                if (item.getReuseInfo() != null) {
+                    return item.getReuseInfo().getReuseInfo();
+                }
+                break;
+            case REDUCE:
+                if (item.getReduceInfo() != null) {
+                    return item.getReduceInfo().getReduceInfo();
+                }
+                break;
+        }
+        return "";
+    }
+
+    private void navigateToCreatePost(Bundle postData) {
+        try {
+            Intent intent = new Intent(requireContext(), CreatePostActivity.class);
+            intent.putExtras(postData);
+            startActivity(intent);
+
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to CreatePostActivity", e);
+            Toast.makeText(requireContext(), "Error opening post creation", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void navigateToHome() {
+        try {
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
+
+            // Alternative: If using Navigation Component
+            // NavController navController = Navigation.findNavController(requireView());
+            // navController.navigate(R.id.action_rrrFragment_to_homeFragment);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to home", e);
+        }
     }
 
     private void setupLocationServices() {
@@ -654,7 +833,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        ActivityResultLauncher<String[]> requestLocationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+        requestLocationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
             boolean locationGranted = false;
             for (Map.Entry<String, Boolean> entry : result.entrySet()) {
                 if (entry.getValue()) {

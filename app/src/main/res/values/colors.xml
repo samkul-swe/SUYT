@@ -4,7 +4,6 @@
     <color name="colorPrimaryDark">#388E3C</color>
     <color name="colorAccent">#2196F3</color>
 
-    <!-- Category colors -->
     <color name="colorReduce">#F44336</color>
     <color name="colorReuse">#FFC107</color>
     <color name="colorRecycle">#2196F3</color>
@@ -25,5 +24,8 @@
     <color name="colorRecycleDark">#1976D2</color>
 
     <color name="hintCardBackground">#F8FAFB</color>
+
+    <color name="completionYesColor">#4CAF50</color>
+    <color name="sharePhotoColor">#FF9800</color>
 
 </resources>
