@@ -51,7 +51,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         );
         swipeRefreshLayout.setOnRefreshListener(this::loadSavedPosts);
 
-        // Load saved posts
         loadSavedPosts();
     }
 
