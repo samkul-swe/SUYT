@@ -23,6 +23,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:text="My Garden of Achievements"
+        android:textColor="@android:color/white"
         android:textSize="22sp"
         android:textStyle="bold" />
 
@@ -34,6 +35,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:text="You've unlocked 3/10 flowers"
+        android:textColor="@android:color/white"
         android:textSize="16sp" />
 
     <!-- The shelf background image -->
@@ -52,22 +54,23 @@
         android:id="@+id/scrollViewShelf"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tvAchievementStats"
         android:layout_above="@id/cardAchievementInfo"
+        android:layout_below="@id/tvAchievementStats"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        tools:ignore="SpeakableTextPresentCheck">
 
         <!-- Grid layout for the flower shelf -->
         <GridLayout
             android:id="@+id/gridShelf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="3"
-            android:useDefaultMargins="true"
             android:alignmentMode="alignMargins"
+            android:columnCount="3"
+            android:padding="8dp"
             android:rowOrderPreserved="true"
-            android:padding="8dp">
+            android:useDefaultMargins="true">
 
             <!-- Grid cells will be populated programmatically -->
 

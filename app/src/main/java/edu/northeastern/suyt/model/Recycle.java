@@ -1,5 +1,7 @@
 package edu.northeastern.suyt.model;
 
+import androidx.annotation.NonNull;
+
 public class Recycle {
     private String recycleInfo;
     private String nearestRecyclingCenter;
@@ -48,6 +50,7 @@ public class Recycle {
         this.suggestedBin = suggestedBin;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Recycle{" +

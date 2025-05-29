@@ -31,7 +31,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_posts);
 
-        // Set up toolbar with back button
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -39,15 +38,12 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
             getSupportActionBar().setTitle("Saved Posts");
         }
 
-        // Initialize views
         recyclerView = findViewById(R.id.recycler_view);
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         emptyStateTextView = findViewById(R.id.empty_state_text_view);
 
-        // Set up RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Set up SwipeRefreshLayout
         swipeRefreshLayout.setColorSchemeResources(
                 R.color.colorPrimary,
                 R.color.colorAccent,
@@ -60,25 +56,19 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     }
 
     private void loadSavedPosts() {
-        // Get saved posts from database
         List<Post> savedPosts = null;
 
-        // Check if there are saved posts
         if (savedPosts.isEmpty()) {
-            // Show empty state
             recyclerView.setVisibility(View.GONE);
             emptyStateTextView.setVisibility(View.VISIBLE);
         } else {
-            // Show posts
             recyclerView.setVisibility(View.VISIBLE);
             emptyStateTextView.setVisibility(View.GONE);
 
-            // Set up adapter
             adapter = new PostAdapter(this,true);
             recyclerView.setAdapter(adapter);
         }
 
-        // Stop refresh animation if it's running
         if (swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
         }
@@ -86,7 +76,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
 
     @Override
     public void onPostClick(Post post) {
-        // Open post detail activity when a post is clicked
         Intent intent = new Intent(this, PostDetailActivity.class);
         intent.putExtra("POST_ID", post.getId());
         startActivity(intent);
@@ -95,7 +84,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Handle back button click
             onBackPressed();
             return true;
         }
@@ -105,7 +93,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh saved posts when returning to this activity
         loadSavedPosts();
     }
 }

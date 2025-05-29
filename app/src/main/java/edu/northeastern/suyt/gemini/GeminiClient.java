@@ -11,7 +11,7 @@ import com.google.firebase.ai.type.Schema;
 
 public class GeminiClient {
 
-    private GenerativeModelFutures model;
+    private final GenerativeModelFutures model;
 
     public GeminiClient(Schema schema) {
         model = getModel(schema);

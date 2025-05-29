@@ -23,7 +23,6 @@ import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 
-/** @noinspection ClassEscapesDefinedScope*/
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
     private List<Post> posts;
@@ -58,7 +57,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         notifyDataSetChanged();
     }
 
-    /** @noinspection ClassEscapesDefinedScope*/
     @NonNull
     @Override
     public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -71,9 +69,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = posts.get(position);
 
-        // Execute heavy work in background
         executorService.execute(() -> {
-            // Update UI on the main thread
             mainHandler.post(() -> {
 
                 if (post.getCategory().equalsIgnoreCase("reuse")) {
@@ -90,32 +86,24 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 holder.likesTextView.setText(String.valueOf(post.getLikes()));
                 holder.dateTextView.setText(post.getDate());
 
-                // Configure like button based on enableLikeButton setting
                 configureLikeButton(holder, post, enableLikeButton);
             });
         });
 
-        // Set up item click listener to open post details
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPostClick(post);
             }
         });
 
-        // Set up the category indicator color
         setCategoryIndicatorColor(holder, post.getCategory());
     }
 
-    /**
-     * Configure like button based on enabled state
-     */
     private void configureLikeButton(PostViewHolder holder, Post post, boolean enableLikeButton) {
         if (enableLikeButton) {
-            // Enable like button functionality
             holder.likeButton.setEnabled(true);
             holder.likeButton.setAlpha(1.0f);
             holder.likeButton.setOnClickListener(v -> {
-                // Increment likes and update UI
                 post.setLikes(post.getLikes() + 1);
                 holder.likesTextView.setText(String.valueOf(post.getLikes()));
 
@@ -123,8 +111,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             });
         } else {
             holder.likeButton.setEnabled(false);
-            holder.likeButton.setAlpha(0.5f); // Make it look disabled
-            holder.likeButton.setOnClickListener(null); // Remove click listener
+            holder.likeButton.setAlpha(0.5f);
+            holder.likeButton.setOnClickListener(null);
         }
     }
 
@@ -133,20 +121,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             return;
         }
 
-        // Using your existing PostsRepository pattern
         PostsRepository postsRepository = new PostsRepository();
 
-        // Update the likes field for this specific post
         postsRepository.getPostsRef()
             .child(postId)
             .child("likes")
             .setValue(newLikeCount)
             .addOnSuccessListener(aVoid -> {
-                // Success - like count updated in database
                 System.out.println("Successfully updated like count for post: " + postId);
             })
             .addOnFailureListener(exception -> {
-                // Handle error
                 System.err.println("Failed to update like count: " + exception.getMessage());
                 exception.printStackTrace();
             });

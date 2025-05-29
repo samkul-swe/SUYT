@@ -40,7 +40,7 @@ public class Post implements Parcelable {
     }
 
     // Parcelable Creator
-    public static final Creator<Post> CREATOR = new Creator<Post>() {
+    public static final Creator<Post> CREATOR = new Creator<>() {
         @Override
         public Post createFromParcel(Parcel in) {
             return new Post(in);

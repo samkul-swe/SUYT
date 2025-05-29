@@ -270,35 +270,35 @@ public class AchievementController {
         List<Achievement> achievements = new ArrayList<>();
 
         // Create achievements with grid positions (0-14 for a 5x3 grid)
-//        achievements.add(Achievement.createLocked("first_recycle", "First Recycle",
-//                "Recycle your first item and watch your garden begin to grow!", R.drawable.flower_tulip, 1, 0));
-//
-//        achievements.add(Achievement.createLocked("eco_warrior", "Eco Warrior",
-//                "Recycle 10 items and prove your commitment to the planet.", R.drawable.flower_rose, 10, 1));
-//
-//        achievements.add(Achievement.createLocked("planet_guardian", "Planet Guardian",
-//                "Reach 100 points by recycling consistently.", R.drawable.flower_sunflower, 100, 2));
-//
-//        achievements.add(Achievement.createLocked("water_saver", "Water Saver",
-//                "Log 5 water-saving activities to earn this beautiful blue flower.", R.drawable.flower_bluebell, 5, 3));
-//
-//        achievements.add(Achievement.createLocked("energy_efficient", "Energy Efficient",
-//                "Log 5 energy-saving activities to earn this bright yellow flower.", R.drawable.flower_daffodil, 5, 4));
-//
-//        achievements.add(Achievement.createLocked("community_hero", "Community Hero",
-//                "Participate in a community cleanup event.", R.drawable.flower_orchid, 1, 5));
-//
-//        achievements.add(Achievement.createLocked("plastic_reducer", "Plastic Reducer",
-//                "Avoid single-use plastic 20 times.", R.drawable.flower_lily, 20, 6));
-//
-//        achievements.add(Achievement.createLocked("green_thumb", "Green Thumb",
-//                "Plant a tree or start a garden of your own.", R.drawable.flower_daisy, 1, 7));
-//
-//        achievements.add(Achievement.createLocked("eco_teacher", "Eco Teacher",
-//                "Share eco-friendly tips with 3 friends through the app.", R.drawable.flower_poppy, 3, 8));
-//
-//        achievements.add(Achievement.createLocked("master_recycler", "Master Recycler",
-//                "Recycle 100 items and become a true master of recycling!", R.drawable.flower_lotus, 100, 9));
+        achievements.add(Achievement.createLocked("first_recycle", "First Recycle",
+                "Recycle your first item and watch your garden begin to grow!", R.drawable.flower_tulip, 1, 0));
+
+        achievements.add(Achievement.createLocked("eco_warrior", "Eco Warrior",
+                "Recycle 10 items and prove your commitment to the planet.", R.drawable.flower_rose, 10, 1));
+
+        achievements.add(Achievement.createLocked("planet_guardian", "Planet Guardian",
+                "Reach 100 points by recycling consistently.", R.drawable.flower_sunflower, 100, 2));
+
+        achievements.add(Achievement.createLocked("water_saver", "Water Saver",
+                "Log 5 water-saving activities to earn this beautiful blue flower.", R.drawable.flower_bluebell, 5, 3));
+
+        achievements.add(Achievement.createLocked("energy_efficient", "Energy Efficient",
+                "Log 5 energy-saving activities to earn this bright yellow flower.", R.drawable.flower_daffodil, 5, 4));
+
+        achievements.add(Achievement.createLocked("community_hero", "Community Hero",
+                "Participate in a community cleanup event.", R.drawable.flower_orchid, 1, 5));
+
+        achievements.add(Achievement.createLocked("plastic_reducer", "Plastic Reducer",
+                "Avoid single-use plastic 20 times.", R.drawable.flower_lily, 20, 6));
+
+        achievements.add(Achievement.createLocked("green_thumb", "Green Thumb",
+                "Plant a tree or start a garden of your own.", R.drawable.flower_daisy, 1, 7));
+
+        achievements.add(Achievement.createLocked("eco_teacher", "Eco Teacher",
+                "Share eco-friendly tips with 3 friends through the app.", R.drawable.flower_poppy, 3, 8));
+
+        achievements.add(Achievement.createLocked("master_recycler", "Master Recycler",
+                "Recycle 100 items and become a true master of recycling!", R.drawable.flower_lotus, 100, 9));
 
         // Add more achievements to fill the grid
         achievements.add(Achievement.createLocked("zero_waste_day", "Zero Waste Day",

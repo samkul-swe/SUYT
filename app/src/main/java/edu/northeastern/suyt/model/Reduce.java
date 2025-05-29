@@ -1,5 +1,7 @@
 package edu.northeastern.suyt.model;
 
+import androidx.annotation.NonNull;
+
 public class Reduce {
     private String reduceInfo;
     private String howManyShouldICollect;
@@ -48,6 +50,7 @@ public class Reduce {
         this.otherSuggestions = otherSuggestions;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Reduce{" +
