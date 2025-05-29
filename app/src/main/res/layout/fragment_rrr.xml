@@ -8,41 +8,89 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="20dp">
 
+            <!-- Header Section -->
+            <TextView
+                android:id="@+id/header_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AI Recycling Assistant"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimaryDark"
+                android:gravity="center"
+                android:paddingBottom="8dp"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/header_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Discover the best way to handle your items"
+                android:textSize="16sp"
+                android:textColor="@color/textColorSecondary"
+                android:gravity="center"
+                android:paddingBottom="24dp"
+                app:layout_constraintTop_toBottomOf="@id/header_title" />
+
+            <!-- Main Image Card with Modern Design -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/item_image_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                app:cardBackgroundColor="@color/cardBackground">
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
+                app:layout_constraintTop_toBottomOf="@id/header_subtitle"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@android:color/white">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:id="@+id/item_image_view"
+                    <!-- Image Container with Gradient Overlay -->
+                    <FrameLayout
+                        android:id="@+id/image_container"
                         android:layout_width="match_parent"
-                        android:layout_height="250dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/rounded_image_placeholder"
-                        android:background="@drawable/rounded_image_placeholder"
-                        android:contentDescription="@string/recyclable_item_image"
-                        android:adjustViewBounds="true"
-                        android:clipToOutline="true" />
+                        android:layout_height="280dp"
+                        app:layout_constraintTop_toTopOf="parent">
 
+                        <ImageView
+                            android:id="@+id/item_image_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/rounded_image_placeholder"
+                            android:contentDescription="@string/recyclable_item_image"
+                            android:background="@drawable/rounded_image_placeholder" />
+
+                        <!-- Gradient Overlay for better text readability -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="80dp"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/gradient_overlay" />
+
+                        <!-- Progress Bar Overlay -->
+                        <ProgressBar
+                            android:id="@+id/progress_bar"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            android:indeterminateTint="@color/colorPrimary"
+                            android:background="@drawable/progress_background" />
+
+                    </FrameLayout>
+
+                    <!-- Item Name with Better Positioning -->
                     <TextView
                         android:id="@+id/item_name_text_view"
                         android:layout_width="match_parent"
@@ -52,109 +100,135 @@
                         android:textStyle="bold"
                         android:textColor="@color/colorPrimaryDark"
                         android:gravity="center"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="12dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
+                        android:padding="20dp"
+                        android:background="@android:color/white"
+                        app:layout_constraintTop_toBottomOf="@id/image_container" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Hint Text with Better Styling -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/hint_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/hintCardBackground"
+                app:layout_constraintTop_toBottomOf="@id/item_image_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_info"
+                        android:layout_marginEnd="16dp"
+                        app:tint="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/initial_hint_text_view"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="start|center_vertical"
+                        android:textColor="@color/textColorPrimary"
+                        android:text="Tap the camera to capture an item or browse your gallery to select an existing photo"
+                        android:textSize="16sp"
+                        android:lineSpacingExtra="2dp" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <ProgressBar
-                android:id="@+id/progress_bar"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:visibility="gone"
-                android:indeterminateTint="@color/colorPrimary"
-                app:layout_constraintTop_toTopOf="@id/item_image_card"
-                app:layout_constraintBottom_toBottomOf="@id/item_image_card"
-                app:layout_constraintStart_toStartOf="@id/item_image_card"
-                app:layout_constraintEnd_toEndOf="@id/item_image_card" />
-
-            <TextView
-                android:id="@+id/initial_hint_text_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
-                android:gravity="center"
-                android:textColor="@color/textColorSecondary"
-                android:text="Tap the camera icon to take a picture or the gallery icon to select an image from your device."
-                android:textSize="16sp"
-                app:layout_constraintTop_toBottomOf="@id/item_image_card"
-                app:layout_constraintBottom_toTopOf="@id/buttons_container" />
-
+            <!-- Modern Button Container -->
             <LinearLayout
                 android:id="@+id/buttons_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="24dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/initial_hint_text_view"
-                app:layout_constraintBottom_toTopOf="@id/info_card_view">
+                app:layout_constraintTop_toBottomOf="@id/hint_card">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/recycle_button"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
                     android:text="@string/category_recycle"
                     android:textColor="@color/buttonTextNormal"
-                    android:background="@drawable/button_normal"
-                    android:layout_marginEnd="6dp"
-                    app:cornerRadius="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"/>
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="8dp"
+                    app:cornerRadius="16dp"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/colorRecycle"
+                    app:icon="@drawable/ic_recycle"
+                    app:iconGravity="top"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/colorRecycle" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/reuse_button"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
                     android:text="@string/category_reuse"
                     android:textColor="@color/buttonTextNormal"
-                    android:background="@drawable/button_normal"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
-                    app:cornerRadius="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"/>
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    app:cornerRadius="16dp"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/colorReuse"
+                    app:icon="@drawable/ic_reuse"
+                    app:iconGravity="top"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/colorReuse" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/reduce_button"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
                     android:text="@string/category_reduce"
                     android:textColor="@color/buttonTextNormal"
-                    android:background="@drawable/button_normal"
-                    android:layout_marginStart="6dp"
-                    app:cornerRadius="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"/>
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp"
+                    app:cornerRadius="16dp"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/colorReduce"
+                    app:icon="@drawable/ic_reduce"
+                    app:iconGravity="top"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/colorReduce" />
 
             </LinearLayout>
 
+            <!-- Enhanced Info Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/info_card_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="100dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
                 app:cardBackgroundColor="@color/colorPrimary"
                 android:visibility="gone"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
                 app:layout_constraintTop_toBottomOf="@id/buttons_container"
                 app:layout_constraintBottom_toBottomOf="parent">
 
@@ -163,16 +237,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"> <TextView
-                    android:id="@+id/info_content_general_text_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:text="Information will appear here."
-                    android:lineSpacingExtra="6dp"
-                    android:textSize="16sp" android:gravity="center" android:paddingVertical="12dp"
-                    android:visibility="gone"/>
+                    android:padding="24dp">
 
+                    <!-- General Info Text -->
+                    <TextView
+                        android:id="@+id/info_content_general_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text="Information will appear here."
+                        android:lineSpacingExtra="6dp"
+                        android:textSize="16sp"
+                        android:gravity="center"
+                        android:paddingVertical="12dp"
+                        android:visibility="gone" />
+
+                    <!-- Recycle Info Section -->
                     <LinearLayout
                         android:id="@+id/recycle_info_layout"
                         android:layout_width="match_parent"
@@ -180,55 +260,95 @@
                         android:orientation="vertical"
                         android:visibility="gone">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Recycle Information"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/white"
-                            android:paddingBottom="8dp"
-                            android:paddingTop="4dp"
-                            android:layout_marginBottom="8dp"
-                            android:background="#1AFFFFFF" /> <TextView
-                        android:id="@+id/recycle_description"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="@android:color/white"
-                        android:lineSpacingExtra="4dp"
-                        android:textSize="15sp"
-                        android:paddingBottom="8dp"
-                        android:text="General recycling info."/>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingBottom="16dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_recycle"
+                                android:layout_marginEnd="12dp"
+                                app:tint="@android:color/white" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Recycle Information"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/white" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#33FFFFFF"
+                            android:layout_marginBottom="16dp" />
 
                         <TextView
-                            android:id="@+id/recycle_center"
+                            android:id="@+id/recycle_description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:textStyle="italic"
-                            android:text="Nearest Center: "/>
-                        <TextView
-                            android:id="@+id/recycle_bin"
+                            android:lineSpacingExtra="4dp"
+                            android:textSize="16sp"
+                            android:paddingBottom="12dp"
+                            android:text="General recycling info." />
+
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:textStyle="italic"
-                            android:text="Suggested Bin: "/>
-                        <TextView
-                            android:id="@+id/recycle_hours"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:textStyle="italic"
-                            android:text="Hours: "/>
+                            android:orientation="vertical"
+                            android:background="@drawable/info_item_background"
+                            android:padding="16dp"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:id="@+id/recycle_center"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:paddingBottom="8dp"
+                                android:drawableStart="@drawable/ic_location"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Nearest Center: " />
+
+                            <TextView
+                                android:id="@+id/recycle_bin"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:paddingBottom="8dp"
+                                android:drawableStart="@drawable/ic_bin"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Suggested Bin: " />
+
+                            <TextView
+                                android:id="@+id/recycle_hours"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:drawableStart="@drawable/ic_time"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Hours: " />
+
+                        </LinearLayout>
+
                     </LinearLayout>
 
+                    <!-- Reuse Info Section -->
                     <LinearLayout
                         android:id="@+id/reuse_info_layout"
                         android:layout_width="match_parent"
@@ -236,17 +356,36 @@
                         android:orientation="vertical"
                         android:visibility="gone">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Reuse Information"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/white"
-                            android:paddingBottom="8dp"
-                            android:paddingTop="4dp"
-                            android:layout_marginBottom="8dp"
-                            android:background="#1AFFFFFF" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingBottom="16dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_reuse"
+                                android:layout_marginEnd="12dp"
+                                app:tint="@android:color/white" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Reuse Information"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/white" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#33FFFFFF"
+                            android:layout_marginBottom="16dp" />
 
                         <TextView
                             android:id="@+id/reuse_description"
@@ -254,35 +393,117 @@
                             android:layout_height="wrap_content"
                             android:textColor="@android:color/white"
                             android:lineSpacingExtra="4dp"
-                            android:textSize="15sp"
-                            android:paddingBottom="8dp"
-                            android:text="General reuse info."/>
-                        <TextView
-                            android:id="@+id/reuse_crafts"
+                            android:textSize="16sp"
+                            android:paddingBottom="12dp"
+                            android:text="General reuse info." />
+
+                        <!-- Craft Ideas Section -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Crafts Possible: "/>
-                        <TextView
-                            android:id="@+id/reuse_time"
+                            android:orientation="vertical"
+                            android:background="@drawable/info_item_background"
+                            android:padding="16dp"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Craft Ideas"
+                                android:textColor="@android:color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:drawableStart="@drawable/ic_craft"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:paddingBottom="12dp" />
+
+                            <!-- Scrollable craft cards container -->
+                            <ScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:scrollbars="none"
+                                android:nestedScrollingEnabled="false">
+
+                                <LinearLayout
+                                    android:id="@+id/crafts_container"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <!-- Individual craft cards will be added here programmatically -->
+                                    <TextView
+                                        android:id="@+id/reuse_crafts"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:textColor="@android:color/white"
+                                        android:textSize="14sp"
+                                        android:lineSpacingExtra="4dp"
+                                        android:text="Craft ideas will appear here"
+                                        android:visibility="gone" />
+
+                                </LinearLayout>
+
+                            </ScrollView>
+
+                        </LinearLayout>
+
+                        <!-- Time and Cost Info -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Estimated Time: "/>
-                        <TextView
-                            android:id="@+id/reuse_money"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Estimated Cost: "/>
+                            android:orientation="horizontal"
+                            android:layout_marginTop="12dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:background="@drawable/info_item_background"
+                                android:padding="12dp"
+                                android:layout_marginEnd="6dp">
+
+                                <TextView
+                                    android:id="@+id/reuse_time"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@android:color/white"
+                                    android:textSize="14sp"
+                                    android:drawableStart="@drawable/ic_time"
+                                    android:drawablePadding="8dp"
+                                    android:drawableTint="@android:color/white"
+                                    android:text="Estimated Time: " />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:background="@drawable/info_item_background"
+                                android:padding="12dp"
+                                android:layout_marginStart="6dp">
+
+                                <TextView
+                                    android:id="@+id/reuse_money"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@android:color/white"
+                                    android:textSize="14sp"
+                                    android:drawableStart="@drawable/ic_money"
+                                    android:drawablePadding="8dp"
+                                    android:drawableTint="@android:color/white"
+                                    android:text="Estimated Cost: " />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
                     </LinearLayout>
 
+                    <!-- Reduce Info Section -->
                     <LinearLayout
                         android:id="@+id/reduce_info_layout"
                         android:layout_width="match_parent"
@@ -290,17 +511,36 @@
                         android:orientation="vertical"
                         android:visibility="gone">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Reduce Information"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/white"
-                            android:paddingBottom="8dp"
-                            android:paddingTop="4dp"
-                            android:layout_marginBottom="8dp"
-                            android:background="#1AFFFFFF" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingBottom="16dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_reduce"
+                                android:layout_marginEnd="12dp"
+                                app:tint="@android:color/white" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Reduce Information"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/white" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#33FFFFFF"
+                            android:layout_marginBottom="16dp" />
 
                         <TextView
                             android:id="@+id/reduce_description"
@@ -308,33 +548,55 @@
                             android:layout_height="wrap_content"
                             android:textColor="@android:color/white"
                             android:lineSpacingExtra="4dp"
-                            android:textSize="15sp"
-                            android:paddingBottom="8dp"
-                            android:text="General reduce info."/>
-                        <TextView
-                            android:id="@+id/reduce_collect"
+                            android:textSize="16sp"
+                            android:paddingBottom="12dp"
+                            android:text="General reduce info." />
+
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Collection Suggestion: "/>
-                        <TextView
-                            android:id="@+id/reduce_money_expected"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Money Expected: "/>
-                        <TextView
-                            android:id="@+id/reduce_other_suggestions"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"
-                            android:text="Other Suggestions: "/>
+                            android:orientation="vertical"
+                            android:background="@drawable/info_item_background"
+                            android:padding="16dp"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:id="@+id/reduce_collect"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:paddingBottom="8dp"
+                                android:drawableStart="@drawable/ic_collect"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Collection Suggestion: " />
+
+                            <TextView
+                                android:id="@+id/reduce_money_expected"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:paddingBottom="8dp"
+                                android:drawableStart="@drawable/ic_money"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Money Expected: " />
+
+                            <TextView
+                                android:id="@+id/reduce_other_suggestions"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/white"
+                                android:textSize="14sp"
+                                android:drawableStart="@drawable/ic_bulb"
+                                android:drawablePadding="8dp"
+                                android:drawableTint="@android:color/white"
+                                android:text="Other Suggestions: " />
+
+                        </LinearLayout>
+
                     </LinearLayout>
 
                 </LinearLayout>
@@ -345,30 +607,33 @@
 
     </ScrollView>
 
+    <!-- Floating Action Buttons -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/camera_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:src="@drawable/ic_camera"
         android:contentDescription="Take photo"
-        app:fabSize="normal"
+        app:tint="@android:color/white"
         app:backgroundTint="@color/colorPrimary"
-        app:tint="@android:color/white" />
+        app:fabSize="normal"
+        app:elevation="8dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/gallery_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_marginStart="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
         android:src="@drawable/ic_gallery"
-        android:contentDescription="Select from Downloads"
-        app:fabSize="normal"
+        android:contentDescription="Select from Gallery"
+        app:tint="@android:color/white"
         app:backgroundTint="@color/colorAccent"
-        app:tint="@android:color/white" />
+        app:fabSize="normal"
+        app:elevation="8dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

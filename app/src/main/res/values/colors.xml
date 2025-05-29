@@ -24,5 +24,6 @@
     <color name="colorReuseDark">#FFA000</color>
     <color name="colorRecycleDark">#1976D2</color>
 
+    <color name="hintCardBackground">#F8FAFB</color>
 
 </resources>

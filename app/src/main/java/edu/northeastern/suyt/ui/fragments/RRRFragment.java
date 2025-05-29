@@ -23,7 +23,9 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +36,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
@@ -42,12 +43,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.firebase.ai.type.Content;
-import com.google.firebase.ai.type.GenerateContentResponse;
-import com.google.firebase.ai.type.Schema;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,32 +51,31 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.gemini.GeminiClient;
 import edu.northeastern.suyt.model.Recycle;
 import edu.northeastern.suyt.model.Reduce;
 import edu.northeastern.suyt.model.Reuse;
 import edu.northeastern.suyt.model.TrashItem;
+import edu.northeastern.suyt.ui.viewmodel.RRRViewModel;
 
 public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "RRRFragment";
+
+    private RRRViewModel viewModel;
 
     private ImageView itemImageView;
     private TextView itemNameTextView;
     private Button recycleButton;
     private Button reuseButton;
     private Button reduceButton;
-    private TextView infoContentGeneralTextView; // Replaced infoContentTextView
+    private TextView infoContentGeneralTextView;
     private CardView infoCardView;
     private ProgressBar progressBar;
     private LinearLayout buttonsContainer;
     private TextView initialHintTextView;
 
-    // New UI elements for detailed info
     private LinearLayout recycleInfoLayout;
     private TextView recycleDescription;
     private TextView recycleCenter;
@@ -90,9 +84,9 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private LinearLayout reuseInfoLayout;
     private TextView reuseDescription;
-    private TextView reuseCrafts;
     private TextView reuseTime;
     private TextView reuseMoney;
+    private LinearLayout craftsContainer;
 
     private LinearLayout reduceInfoLayout;
     private TextView reduceDescription;
@@ -100,35 +94,25 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private TextView reduceMoneyExpected;
     private TextView reduceOtherSuggestions;
 
-    private TrashItem currentItem;
     private String currentPhotoPath;
-    private ThreadPoolExecutor geminiExecutor;
 
-    // Location related variables
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
-    private double currentLatitude = 0.0;
-    private double currentLongitude = 0.0;
-    private boolean locationObtained = false;
-    private Bitmap pendingBitmap;
 
-    // ActivityResultLaunchers
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
     private ActivityResultLauncher<String[]> requestStoragePermissionLauncher;
-    private ActivityResultLauncher<String[]> requestLocationPermissionLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        viewModel = new ViewModelProvider(this).get(RRRViewModel.class);
+
         setupActivityResultLaunchers();
         setupLocationServices();
-
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
     }
 
     @Nullable
@@ -136,20 +120,30 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rrr, container, false);
 
-        // Initialize existing views
+        initializeViews(view);
+        setupClickListeners(view);
+        observeViewModel();
+
+        return view;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopLocationUpdates();
+    }
+
+    private void initializeViews(View view) {
         itemImageView = view.findViewById(R.id.item_image_view);
         itemNameTextView = view.findViewById(R.id.item_name_text_view);
         recycleButton = view.findViewById(R.id.recycle_button);
         reuseButton = view.findViewById(R.id.reuse_button);
         reduceButton = view.findViewById(R.id.reduce_button);
-        FloatingActionButton cameraFab = view.findViewById(R.id.camera_fab);
-        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab);
         infoCardView = view.findViewById(R.id.info_card_view);
         progressBar = view.findViewById(R.id.progress_bar);
         buttonsContainer = view.findViewById(R.id.buttons_container);
         initialHintTextView = view.findViewById(R.id.initial_hint_text_view);
 
-        // Initialize new views for detailed info
         infoContentGeneralTextView = view.findViewById(R.id.info_content_general_text_view);
 
         recycleInfoLayout = view.findViewById(R.id.recycle_info_layout);
@@ -160,7 +154,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
         reuseInfoLayout = view.findViewById(R.id.reuse_info_layout);
         reuseDescription = view.findViewById(R.id.reuse_description);
-        reuseCrafts = view.findViewById(R.id.reuse_crafts);
         reuseTime = view.findViewById(R.id.reuse_time);
         reuseMoney = view.findViewById(R.id.reuse_money);
 
@@ -170,189 +163,84 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceMoneyExpected = view.findViewById(R.id.reduce_money_expected);
         reduceOtherSuggestions = view.findViewById(R.id.reduce_other_suggestions);
 
+        craftsContainer = view.findViewById(R.id.crafts_container);
+    }
+
+    private void setupClickListeners(View view) {
+        FloatingActionButton cameraFab = view.findViewById(R.id.camera_fab);
+        FloatingActionButton downloadsFab = view.findViewById(R.id.gallery_fab);
+
         recycleButton.setOnClickListener(this);
         reuseButton.setOnClickListener(this);
         reduceButton.setOnClickListener(this);
 
         cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
         downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
-
-        displayPlaceholderState(); // Set initial UI state
-
-        return view;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    private void observeViewModel() {
+        viewModel.uiState.observe(getViewLifecycleOwner(), this::handleUIStateChange);
 
-        if (geminiExecutor != null && !geminiExecutor.isShutdown()) {
-            geminiExecutor.shutdown();
-        }
+        viewModel.currentItem.observe(getViewLifecycleOwner(), this::handleCurrentItemChange);
 
-        stopLocationUpdates();
-    }
+        viewModel.selectedTab.observe(getViewLifecycleOwner(), this::handleSelectedTabChange);
 
-    // --- Location Services Setup ---
-    private void setupLocationServices() {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
-        createLocationRequest();
-        createLocationCallback();
-    }
-
-    private void createLocationRequest() {
-        locationRequest = new LocationRequest.Builder(
-                10000
-        )
-        .setMinUpdateIntervalMillis(5000)
-        .build();
-    }
-
-    private void createLocationCallback() {
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-
-                Location location = locationResult.getLastLocation();
-                if (location != null) {
-                    currentLatitude = location.getLatitude();
-                    currentLongitude = location.getLongitude();
-                    locationObtained = true;
-                    Log.d(TAG, "Location obtained: " + currentLatitude + ", " + currentLongitude);
-
-                    if (pendingBitmap != null) {
-                        processImageWithLocation(pendingBitmap);
-                        pendingBitmap = null;
-                    }
-                    stopLocationUpdates();
-                }
+        viewModel.statusMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                itemNameTextView.setText(message);
             }
+        });
 
-            @Override
-            public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
-                super.onLocationAvailability(locationAvailability);
-                if (!locationAvailability.isLocationAvailable()) {
-                    Log.w(TAG, "Location not available.");
-                    if (pendingBitmap != null) {
-                        processImageWithLocation(pendingBitmap);
-                        pendingBitmap = null;
-                    }
-                }
+        viewModel.errorMessage.observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
             }
-        };
-    }
-
-    private boolean checkLocationPermissions() {
-        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestLocationPermissions() {
-        requestLocationPermissionLauncher.launch(new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
         });
     }
 
-    @SuppressLint("MissingPermission")
-    private void requestNewLocationData() {
-        if (!checkLocationPermissions()) {
-            return;
-        }
-        fusedLocationProviderClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-        );
-    }
-
-    private void stopLocationUpdates() {
-        if (fusedLocationProviderClient != null && locationCallback != null) {
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+    private void handleUIStateChange(RRRViewModel.UIState state) {
+        switch (state) {
+            case PLACEHOLDER:
+                displayPlaceholderState();
+                break;
+            case LOADING:
+                setLoadingState();
+                break;
+            case ANALYSIS_COMPLETE:
+                setAnalysisCompleteState();
+                break;
         }
     }
 
-    // --- Activity Result Launchers Setup ---
-    private void setupActivityResultLaunchers() {
-        takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
-            if (result) {
-                processCapturedPhoto();
-            } else {
-                Toast.makeText(requireContext(), "Photo capture cancelled.", Toast.LENGTH_SHORT).show();
-                displayPlaceholderState();
-            }
-        });
+    private void handleCurrentItemChange(TrashItem item) {
+        if (item != null) {
+            itemNameTextView.setText(item.getName());
+        } else {
+            itemNameTextView.setText(viewModel.getCurrentItemName());
+        }
+    }
 
-        pickImageFromGalleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                Uri selectedFileUri = result.getData().getData();
-                if (selectedFileUri != null) {
-                    try {
-                        Log.d(TAG, "Selected URI: " + selectedFileUri);
-                        Bitmap bitmap = getBitmapFromUri(selectedFileUri);
-                        itemImageView.setImageBitmap(bitmap);
-                        analyzeImage(bitmap);
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed to load selected image", e);
-                        Toast.makeText(requireContext(), "Failed to load selected image.", Toast.LENGTH_SHORT).show();
-                        displayPlaceholderState();
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "Error: No image was selected.", Toast.LENGTH_SHORT).show();
-                    displayPlaceholderState();
-                }
-            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
-                Toast.makeText(requireContext(), "Image selection cancelled.", Toast.LENGTH_SHORT).show();
-                displayPlaceholderState();
-            }
-        });
+    private void handleSelectedTabChange(RRRViewModel.RRRTab tab) {
+        if (tab == null) return;
 
-        requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-            if (isGranted) {
-                openCamera();
-            } else {
-                Toast.makeText(requireContext(), "Camera permission is needed to take photos.", Toast.LENGTH_SHORT).show();
-                displayPlaceholderState();
-            }
-        });
+        resetButtons();
+        hideAllInfoLayouts();
+        infoContentGeneralTextView.setVisibility(View.GONE);
 
-        requestStoragePermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-            boolean allGranted = true;
-            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
-                if (!entry.getValue()) {
-                    allGranted = false;
-                    break;
-                }
-            }
-            if (allGranted) {
-                openFilePicker();
-            } else {
-                Toast.makeText(requireContext(), "Storage permissions are required to select images from your device.", Toast.LENGTH_LONG).show();
-                displayPlaceholderState();
-            }
-        });
-
-        requestLocationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-            boolean locationGranted = false;
-            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
-                if (entry.getValue()) {
-                    locationGranted = true;
-                    break;
-                }
-            }
-            if (locationGranted) {
-                Log.d(TAG, "Location permission granted. Requesting new location data.");
-                requestNewLocationData();
-            } else {
-                Log.w(TAG, "Location permission denied. Proceeding without location.");
-                if (pendingBitmap != null) {
-                    processImageWithLocation(pendingBitmap);
-                    pendingBitmap = null;
-                } else {
-                    displayPlaceholderState();
-                }
-            }
-        });
+        switch (tab) {
+            case RECYCLE:
+                setSelectedButton(recycleButton);
+                showRecycleInfo();
+                break;
+            case REUSE:
+                setSelectedButton(reuseButton);
+                showReuseInfo();
+                break;
+            case REDUCE:
+                setSelectedButton(reduceButton);
+                showReduceInfo();
+                break;
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -396,6 +284,393 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceInfoLayout.setVisibility(View.GONE);
     }
 
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.recycle_button) {
+            viewModel.selectTab(RRRViewModel.RRRTab.RECYCLE);
+        } else if (v.getId() == R.id.reuse_button) {
+            viewModel.selectTab(RRRViewModel.RRRTab.REUSE);
+        } else if (v.getId() == R.id.reduce_button) {
+            viewModel.selectTab(RRRViewModel.RRRTab.REDUCE);
+        }
+    }
+
+    private void resetButtons() {
+        recycleButton.setBackgroundResource(R.drawable.button_normal);
+        reuseButton.setBackgroundResource(R.drawable.button_normal);
+        reduceButton.setBackgroundResource(R.drawable.button_normal);
+
+        recycleButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
+        reuseButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
+        reduceButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
+    }
+
+    private void setSelectedButton(Button button) {
+        if (button == recycleButton) {
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
+            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
+        } else if (button == reuseButton) {
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));
+            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));
+        } else if (button == reduceButton) {
+            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorReduce));
+            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReduce));
+        }
+    }
+
+    private void showRecycleInfo() {
+        hideAllInfoLayouts();
+
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        if (currentItem != null && currentItem.getRecycleInfo() != null) {
+            recycleInfoLayout.setVisibility(View.VISIBLE);
+            Recycle info = currentItem.getRecycleInfo();
+
+            recycleDescription.setText(formatField("Description", info.getRecycleInfo()));
+            recycleCenter.setText(formatField("Nearest Center", info.getNearestRecyclingCenter()));
+            recycleBin.setText(formatField("Suggested Bin", info.getSuggestedBin()));
+            recycleHours.setText(formatField("Hours", info.getRecyclingHours()));
+
+            recycleDescription.setVisibility(info.getRecycleInfo() != null && !info.getRecycleInfo().isEmpty() ? View.VISIBLE : View.GONE);
+            recycleCenter.setVisibility(info.getNearestRecyclingCenter() != null && !info.getNearestRecyclingCenter().isEmpty() ? View.VISIBLE : View.GONE);
+            recycleBin.setVisibility(info.getSuggestedBin() != null && !info.getSuggestedBin().isEmpty() ? View.VISIBLE : View.GONE);
+            recycleHours.setVisibility(info.getRecyclingHours() != null && !info.getRecyclingHours().isEmpty() ? View.VISIBLE : View.GONE);
+
+            if (!viewModel.hasValidDataForSelectedTab()) {
+                showNoInfoMessage("No specific recycling information available for this item.");
+            }
+        } else {
+            showNoInfoMessage("No specific recycling information available for this item.");
+        }
+    }
+
+    private void showReuseInfo() {
+        hideAllInfoLayouts();
+
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        if (currentItem != null && currentItem.getReuseInfo() != null) {
+            reuseInfoLayout.setVisibility(View.VISIBLE);
+            Reuse info = currentItem.getReuseInfo();
+
+            reuseDescription.setText(formatField("Description", info.getReuseInfo()));
+
+            craftsContainer.removeAllViews();
+
+            String craftsText = info.getCraftsPossible();
+            if (craftsText != null && !craftsText.isEmpty()) {
+                String[] crafts = splitCrafts(craftsText);
+
+                if (crafts.length > 1) {
+                    for (int i = 0; i < crafts.length; i++) {
+                        if (!crafts[i].trim().isEmpty()) {
+                            createCraftCard(craftsContainer, crafts[i].trim(), i + 1);
+                        }
+                    }
+                } else {
+                    createSingleCraftView(craftsContainer, craftsText);
+                }
+            } else {
+                createNoCraftView(craftsContainer);
+            }
+
+            reuseTime.setText(formatField("Time", info.getTimeNeededForCraft()));
+            reuseMoney.setText(formatField("Cost", info.getMoneyNeededForCraft()));
+
+            reuseDescription.setVisibility(info.getReuseInfo() != null && !info.getReuseInfo().isEmpty() ? View.VISIBLE : View.GONE);
+            reuseTime.setVisibility(info.getTimeNeededForCraft() != null && !info.getTimeNeededForCraft().isEmpty() ? View.VISIBLE : View.GONE);
+            reuseMoney.setVisibility(info.getMoneyNeededForCraft() != null && !info.getMoneyNeededForCraft().isEmpty() ? View.VISIBLE : View.GONE);
+
+            if (!viewModel.hasValidDataForSelectedTab()) {
+                showNoInfoMessage("No specific reusing information available for this item.");
+            }
+        } else {
+            showNoInfoMessage("No specific reusing information available for this item.");
+        }
+    }
+
+    private String[] splitCrafts(String craftsText) {
+        String[] crafts;
+
+        if (craftsText.matches(".*\\d+\\..*")) {
+            crafts = craftsText.split("(?=\\d+\\.)");
+        }
+        else if (craftsText.contains("\n")) {
+            crafts = craftsText.split("\n");
+        }
+        else if (craftsText.contains("•") || craftsText.contains("-")) {
+            crafts = craftsText.split("(?=[•-])");
+        }
+        else if (craftsText.length() > 100 && (craftsText.contains(";") || craftsText.contains(","))) {
+            crafts = craftsText.split("[;,]");
+        }
+        else {
+            crafts = new String[]{craftsText};
+        }
+
+        return crafts;
+    }
+
+    private void createCraftCard(LinearLayout container, String craftText, int craftNumber) {
+        androidx.cardview.widget.CardView craftCard = new androidx.cardview.widget.CardView(requireContext());
+
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        cardParams.setMargins(0, 0, 0, 12); // Bottom margin between cards
+        craftCard.setLayoutParams(cardParams);
+
+        craftCard.setCardBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.transparent));
+        craftCard.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.craft_card_background));
+        craftCard.setRadius(8f);
+        craftCard.setCardElevation(0f);
+
+        LinearLayout innerLayout = new LinearLayout(requireContext());
+        innerLayout.setOrientation(LinearLayout.HORIZONTAL);
+        innerLayout.setPadding(16, 12, 16, 12);
+        innerLayout.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView numberBadge = new TextView(requireContext());
+        numberBadge.setText(String.valueOf(craftNumber));
+        numberBadge.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+        numberBadge.setTextSize(12f);
+        numberBadge.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.craft_number_badge));
+        numberBadge.setGravity(Gravity.CENTER);
+
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(24, 24);
+        badgeParams.setMargins(0, 0, 12, 0);
+        numberBadge.setLayoutParams(badgeParams);
+
+        TextView craftTextView = new TextView(requireContext());
+        craftTextView.setText(cleanCraftText(craftText));
+        craftTextView.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+        craftTextView.setTextSize(14f);
+        craftTextView.setLineSpacing(4f, 1f);
+
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+        );
+        craftTextView.setLayoutParams(textParams);
+
+        innerLayout.addView(numberBadge);
+        innerLayout.addView(craftTextView);
+        craftCard.addView(innerLayout);
+        container.addView(craftCard);
+    }
+
+    private void createSingleCraftView(LinearLayout container, String craftText) {
+        TextView singleCraftView = new TextView(requireContext());
+        singleCraftView.setText(craftText);
+        singleCraftView.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+        singleCraftView.setTextSize(14f);
+        singleCraftView.setPadding(16, 12, 16, 12);
+        singleCraftView.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.craft_card_background));
+        singleCraftView.setLineSpacing(4f, 1f);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        singleCraftView.setLayoutParams(params);
+
+        container.addView(singleCraftView);
+    }
+
+    private void createNoCraftView(LinearLayout container) {
+        TextView noCraftView = new TextView(requireContext());
+        noCraftView.setText("No craft ideas available for this item");
+        noCraftView.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+        noCraftView.setTextSize(14f);
+        noCraftView.setPadding(16, 12, 16, 12);
+        noCraftView.setAlpha(0.7f);
+        noCraftView.setGravity(Gravity.CENTER);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        noCraftView.setLayoutParams(params);
+
+        container.addView(noCraftView);
+    }
+
+    private String cleanCraftText(String text) {
+        // Remove number prefixes like "1.", "2.", etc.
+        text = text.replaceFirst("^\\d+\\.\\s*", "");
+        // Remove bullet points
+        text = text.replaceFirst("^[•-]\\s*", "");
+        // Trim whitespace
+        return text.trim();
+    }
+
+    private void showReduceInfo() {
+        hideAllInfoLayouts();
+
+        TrashItem currentItem = viewModel.currentItem.getValue();
+        if (currentItem != null && currentItem.getReduceInfo() != null) {
+            reduceInfoLayout.setVisibility(View.VISIBLE);
+            Reduce info = currentItem.getReduceInfo();
+
+            reduceDescription.setText(formatField("Description", info.getReduceInfo()));
+            reduceCollect.setText(formatField("Collection Suggestion", info.getHowManyShouldICollect()));
+            reduceMoneyExpected.setText(formatField("Money Expected", info.getMoneyExpected()));
+            reduceOtherSuggestions.setText(formatField("Other Suggestions", info.getOtherSuggestions()));
+
+            reduceDescription.setVisibility(info.getReduceInfo() != null && !info.getReduceInfo().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceCollect.setVisibility(info.getHowManyShouldICollect() != null && !info.getHowManyShouldICollect().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceMoneyExpected.setVisibility(info.getMoneyExpected() != null && !info.getMoneyExpected().isEmpty() ? View.VISIBLE : View.GONE);
+            reduceOtherSuggestions.setVisibility(info.getOtherSuggestions() != null && !info.getOtherSuggestions().isEmpty() ? View.VISIBLE : View.GONE);
+
+            if (!viewModel.hasValidDataForSelectedTab()) {
+                showNoInfoMessage("No specific reducing information available for this item.");
+            }
+        } else {
+            showNoInfoMessage("No specific reducing information available for this item.");
+        }
+    }
+
+    private void showNoInfoMessage(String message) {
+        infoContentGeneralTextView.setText(message);
+        infoContentGeneralTextView.setVisibility(View.VISIBLE);
+        hideAllInfoLayouts();
+    }
+
+    private String formatField(String label, String value) {
+        return (value != null && !value.isEmpty()) ? (label + ": " + value) : "";
+    }
+
+    private void setupLocationServices() {
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        createLocationRequest();
+        createLocationCallback();
+    }
+
+    private void createLocationRequest() {
+        locationRequest = new LocationRequest.Builder(10000)
+                .setMinUpdateIntervalMillis(5000)
+                .build();
+    }
+
+    private void createLocationCallback() {
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    viewModel.updateLocation(location);
+                    stopLocationUpdates();
+                }
+            }
+
+            @Override
+            public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
+                super.onLocationAvailability(locationAvailability);
+                if (!locationAvailability.isLocationAvailable()) {
+                    Log.w(TAG, "Location not available.");
+                }
+            }
+        };
+    }
+
+    private boolean checkLocationPermissions() {
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @SuppressLint("MissingPermission")
+    private void requestNewLocationData() {
+        if (!checkLocationPermissions()) {
+            return;
+        }
+        fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+        );
+    }
+
+    private void stopLocationUpdates() {
+        if (fusedLocationProviderClient != null && locationCallback != null) {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    private void setupActivityResultLaunchers() {
+        takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
+            if (result) {
+                processCapturedPhoto();
+            } else {
+                Toast.makeText(requireContext(), "Photo capture cancelled.", Toast.LENGTH_SHORT).show();
+                viewModel.resetToPlaceholder();
+            }
+        });
+
+        pickImageFromGalleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                Uri selectedFileUri = result.getData().getData();
+                if (selectedFileUri != null) {
+                    try {
+                        Log.d(TAG, "Selected URI: " + selectedFileUri);
+                        Bitmap bitmap = getBitmapFromUri(selectedFileUri);
+                        itemImageView.setImageBitmap(bitmap);
+                        viewModel.analyzeImage(bitmap);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Failed to load selected image", e);
+                        Toast.makeText(requireContext(), "Failed to load selected image.", Toast.LENGTH_SHORT).show();
+                        viewModel.resetToPlaceholder();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Error: No image was selected.", Toast.LENGTH_SHORT).show();
+                    viewModel.resetToPlaceholder();
+                }
+            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                Toast.makeText(requireContext(), "Image selection cancelled.", Toast.LENGTH_SHORT).show();
+                viewModel.resetToPlaceholder();
+            }
+        });
+
+        requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if (isGranted) {
+                openCamera();
+            } else {
+                Toast.makeText(requireContext(), "Camera permission is needed to take photos.", Toast.LENGTH_SHORT).show();
+                viewModel.resetToPlaceholder();
+            }
+        });
+
+        requestStoragePermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            boolean allGranted = true;
+            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                if (!entry.getValue()) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                openFilePicker();
+            } else {
+                Toast.makeText(requireContext(), "Storage permissions are required to select images from your device.", Toast.LENGTH_LONG).show();
+                viewModel.resetToPlaceholder();
+            }
+        });
+
+        ActivityResultLauncher<String[]> requestLocationPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            boolean locationGranted = false;
+            for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                if (entry.getValue()) {
+                    locationGranted = true;
+                    break;
+                }
+            }
+            if (locationGranted) {
+                Log.d(TAG, "Location permission granted. Requesting new location data.");
+                requestNewLocationData();
+            } else {
+                Log.w(TAG, "Location permission denied. Proceeding without location.");
+            }
+        });
+    }
+
     private void checkAndRequestCameraPermission() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             openCamera();
@@ -432,7 +707,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         } catch (IOException ex) {
             Log.e(TAG, "Error creating image file for camera", ex);
             Toast.makeText(requireContext(), "Error creating image file.", Toast.LENGTH_SHORT).show();
-            displayPlaceholderState();
+            viewModel.resetToPlaceholder();
         }
     }
 
@@ -459,7 +734,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         } catch (Exception e) {
             Log.e(TAG, "Error opening file picker", e);
             Toast.makeText(requireContext(), "Error opening file picker: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            displayPlaceholderState();
+            viewModel.resetToPlaceholder();
         }
     }
 
@@ -472,19 +747,19 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 Bitmap bitmap = decodeSampledBitmapFromFile(currentPhotoPath, targetW, targetH);
                 if (bitmap != null) {
                     itemImageView.setImageBitmap(bitmap);
-                    analyzeImage(bitmap);
+                    viewModel.analyzeImage(bitmap);
                 } else {
                     Toast.makeText(requireContext(), "Failed to load captured image bitmap.", Toast.LENGTH_SHORT).show();
-                    displayPlaceholderState();
+                    viewModel.resetToPlaceholder();
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing captured photo", e);
                 Toast.makeText(requireContext(), "Error loading captured image.", Toast.LENGTH_SHORT).show();
-                displayPlaceholderState();
+                viewModel.resetToPlaceholder();
             }
         } else {
             Toast.makeText(requireContext(), "Error: No image path for captured photo.", Toast.LENGTH_SHORT).show();
-            displayPlaceholderState();
+            viewModel.resetToPlaceholder();
         }
     }
 
@@ -525,262 +800,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             }
         }
         return inSampleSize;
-    }
-
-    private void analyzeImage(Bitmap bitmap) {
-        if (!isAdded()) return;
-
-        setLoadingState();
-
-        locationObtained = false;
-        currentLatitude = 0.0;
-        currentLongitude = 0.0;
-
-        if (checkLocationPermissions()) {
-            Log.d(TAG, "Location permissions granted. Requesting current location.");
-            pendingBitmap = bitmap;
-            itemNameTextView.setText("Getting location data...");
-            requestNewLocationData();
-        } else {
-            Log.d(TAG, "Location permissions not granted. Requesting permissions.");
-            pendingBitmap = bitmap;
-            itemNameTextView.setText("Requesting location permissions...");
-            requestLocationPermissions();
-        }
-    }
-
-    private void processImageWithLocation(Bitmap bitmap) {
-        if (!isAdded()) return;
-
-        itemNameTextView.setText("Analyzing image...");
-
-        String locationContext = "";
-        if (locationObtained && currentLatitude != 0.0 && currentLongitude != 0.0) {
-            locationContext = String.format(Locale.US,
-                    " My current coordinates are latitude %.6f and longitude %.6f.",
-                    currentLatitude, currentLongitude);
-        }
-
-        String promptText = "Analyze this image and identify the item. " +
-                "For 'recycleInfo': If recyclable, provide a concise 'description'. Then, specify the 'nearestRecyclingCenter' (e.g., Mountain View Recycling Center), 'suggestedBin' (e.g., Blue bin for plastics), and 'recyclingHours' (e.g., Mon-Sat, 8 AM - 5 PM). Prioritize specific information relevant to " + locationContext + ".\n" +
-                "For 'reuseInfo': If reusable, provide a concise 'description'. Then, list 3-4 'craftsPossible' (e.g., '1. Bottle Cap Mosaic: ..., 2. Plastic Bottle Planter: ...'), an overall 'timeNeededForCraft' (e.g., '1-2 hours per craft'), and 'moneyNeededForCraft' (e.g., '$0-5 per craft'). Make them appealing and practical.\n" +
-                "For 'reduceInfo': If reducible, provide a concise 'description'. Then, include 'howManyShouldICollect' for selling (e.g., '500 bottles'), 'moneyExpected' (e.g., '$25 depending on rate'), and 'otherSuggestions' for reduction (e.g., 'Use a reusable water bottle'). Ensure all information is directly related to the item in the image.";
-
-
-        Content prompt = new Content.Builder()
-                .addImage(bitmap)
-                .addText(promptText)
-                .build();
-
-        TrashItem trashItem = new TrashItem();
-        Schema trashItemSchema = trashItem.getSchema();
-
-        ListenableFuture<GenerateContentResponse> response = new GeminiClient(trashItemSchema).generateResult(prompt);
-
-        Futures.addCallback(
-                response,
-                new FutureCallback<>() {
-                    @Override
-                    public void onSuccess(GenerateContentResponse result) {
-                        requireActivity().runOnUiThread(() -> {
-                            setAnalysisCompleteState();
-
-                            String jsonResponse = result.getText();
-                            Log.d(TAG, "Gemini Raw JSON Response: " + jsonResponse);
-
-                            if (jsonResponse != null && !jsonResponse.isEmpty()) {
-                                try {
-                                    ObjectMapper objectMapper = new ObjectMapper();
-                                    currentItem = objectMapper.readValue(jsonResponse, TrashItem.class);
-
-                                    if (currentItem != null) {
-                                        updateUIWithGeminiResponse();
-                                    } else {
-                                        Toast.makeText(requireContext(), "Failed to parse item data from Gemini.", Toast.LENGTH_LONG).show();
-                                        displayPlaceholderState();
-                                    }
-                                } catch (Exception e) {
-                                    Log.e(TAG, "Error parsing Gemini JSON response", e);
-                                    Toast.makeText(requireContext(), "Error parsing Gemini response: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                    displayPlaceholderState();
-                                }
-                            } else {
-                                Toast.makeText(requireContext(), "Gemini returned an empty response.", Toast.LENGTH_SHORT).show();
-                                displayPlaceholderState();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Throwable t) {
-                        requireActivity().runOnUiThread(() -> {
-                            setAnalysisCompleteState();
-                            Log.e(TAG, "Gemini API call failed", t);
-                            Toast.makeText(requireContext(), "Gemini analysis failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                            displayPlaceholderState();
-                        });
-                    }
-                },
-                geminiExecutor
-        );
-    }
-
-    private void updateUIWithGeminiResponse() {
-        itemNameTextView.setText(currentItem.getName());
-
-        if (currentItem.isRecyclable()) {
-            setSelectedButton(recycleButton);
-            showRecycleInfo();
-        } else if (currentItem.isReusable()) {
-            setSelectedButton(reuseButton);
-            showReuseInfo();
-        } else if (currentItem.isReducible()) {
-            setSelectedButton(reduceButton);
-            showReduceInfo();
-        } else {
-            setSelectedButton(recycleButton);
-            hideAllInfoLayouts();
-            infoContentGeneralTextView.setText("No specific RRR information available for this item. Please try another item.");
-            infoContentGeneralTextView.setVisibility(View.VISIBLE);
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.textColorSecondary));
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (currentItem == null) {
-            Toast.makeText(requireContext(), "Please scan an item first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        resetButtons();
-        hideAllInfoLayouts();
-        infoContentGeneralTextView.setVisibility(View.GONE);
-
-        if (v.getId() == R.id.recycle_button) {
-            setSelectedButton(recycleButton);
-            showRecycleInfo();
-        } else if (v.getId() == R.id.reuse_button) {
-            setSelectedButton(reuseButton);
-            showReuseInfo();
-        } else if (v.getId() == R.id.reduce_button) {
-            setSelectedButton(reduceButton);
-            showReduceInfo();
-        }
-    }
-
-    private void resetButtons() {
-        recycleButton.setBackgroundResource(R.drawable.button_normal);
-        reuseButton.setBackgroundResource(R.drawable.button_normal);
-        reduceButton.setBackgroundResource(R.drawable.button_normal);
-
-        recycleButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
-        reuseButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
-        reduceButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.buttonTextNormal));
-    }
-
-    private void setSelectedButton(Button button) {
-        if (button == recycleButton) {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorRecycle));
-        } else if (button == reuseButton) {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReuse));
-        } else if (button == reduceButton) {
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorReduce));
-            infoCardView.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorReduce));
-        }
-    }
-
-    private void showRecycleInfo() {
-        hideAllInfoLayouts();
-        recycleInfoLayout.setVisibility(View.VISIBLE);
-
-        if (currentItem != null && currentItem.getRecycleInfo() != null) {
-            Recycle info = currentItem.getRecycleInfo();
-            recycleDescription.setText(formatField("Description", info.getRecycleInfo()));
-            recycleCenter.setText(formatField("Nearest Center", info.getNearestRecyclingCenter()));
-            recycleBin.setText(formatField("Suggested Bin", info.getSuggestedBin()));
-            recycleHours.setText(formatField("Hours", info.getRecyclingHours()));
-
-            recycleDescription.setVisibility(info.getRecycleInfo() != null && !info.getRecycleInfo().isEmpty() ? View.VISIBLE : View.GONE);
-            recycleCenter.setVisibility(info.getNearestRecyclingCenter() != null && !info.getNearestRecyclingCenter().isEmpty() ? View.VISIBLE : View.GONE);
-            recycleBin.setVisibility(info.getSuggestedBin() != null && !info.getSuggestedBin().isEmpty() ? View.VISIBLE : View.GONE);
-            recycleHours.setVisibility(info.getRecyclingHours() != null && !info.getRecyclingHours().isEmpty() ? View.VISIBLE : View.GONE);
-
-            if (info.getRecycleInfo().isEmpty() && info.getNearestRecyclingCenter().isEmpty() &&
-                    info.getSuggestedBin().isEmpty() && info.getRecyclingHours().isEmpty()) {
-                infoContentGeneralTextView.setText("No specific recycling information available for this item.");
-                infoContentGeneralTextView.setVisibility(View.VISIBLE);
-                recycleInfoLayout.setVisibility(View.GONE);
-            }
-        } else {
-            infoContentGeneralTextView.setText("No specific recycling information available for this item.");
-            infoContentGeneralTextView.setVisibility(View.VISIBLE);
-            recycleInfoLayout.setVisibility(View.GONE);
-        }
-    }
-
-    private void showReuseInfo() {
-        hideAllInfoLayouts();
-        reuseInfoLayout.setVisibility(View.VISIBLE);
-
-        if (currentItem != null && currentItem.getReuseInfo() != null) {
-            Reuse info = currentItem.getReuseInfo();
-            reuseDescription.setText(formatField("Description", info.getReuseInfo()));
-            reuseCrafts.setText(formatField("Crafts Possible", info.getCraftsPossible()));
-            reuseTime.setText(formatField("Estimated Time", info.getTimeNeededForCraft()));
-            reuseMoney.setText(formatField("Estimated Cost", info.getMoneyNeededForCraft()));
-
-            reuseDescription.setVisibility(info.getReuseInfo() != null && !info.getReuseInfo().isEmpty() ? View.VISIBLE : View.GONE);
-            reuseCrafts.setVisibility(info.getCraftsPossible() != null && !info.getCraftsPossible().isEmpty() ? View.VISIBLE : View.GONE);
-            reuseTime.setVisibility(info.getTimeNeededForCraft() != null && !info.getTimeNeededForCraft().isEmpty() ? View.VISIBLE : View.GONE);
-            reuseMoney.setVisibility(info.getMoneyNeededForCraft() != null && !info.getMoneyNeededForCraft().isEmpty() ? View.VISIBLE : View.GONE);
-
-            if (info.getReuseInfo().isEmpty() && info.getCraftsPossible().isEmpty() &&
-                    info.getTimeNeededForCraft().isEmpty() && info.getMoneyNeededForCraft().isEmpty()) {
-                infoContentGeneralTextView.setText("No specific reusing information available for this item.");
-                infoContentGeneralTextView.setVisibility(View.VISIBLE);
-                reuseInfoLayout.setVisibility(View.GONE);
-            }
-        } else {
-            infoContentGeneralTextView.setText("No specific reusing information available for this item.");
-            infoContentGeneralTextView.setVisibility(View.VISIBLE);
-            reuseInfoLayout.setVisibility(View.GONE);
-        }
-    }
-
-    private void showReduceInfo() {
-        hideAllInfoLayouts();
-        reduceInfoLayout.setVisibility(View.VISIBLE);
-
-        if (currentItem != null && currentItem.getReduceInfo() != null) {
-            Reduce info = currentItem.getReduceInfo();
-            reduceDescription.setText(formatField("Description", info.getReduceInfo()));
-            reduceCollect.setText(formatField("Collection Suggestion", info.getHowManyShouldICollect()));
-            reduceMoneyExpected.setText(formatField("Money Expected", info.getMoneyExpected()));
-            reduceOtherSuggestions.setText(formatField("Other Suggestions", info.getOtherSuggestions()));
-
-            reduceDescription.setVisibility(info.getReduceInfo() != null && !info.getReduceInfo().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceCollect.setVisibility(info.getHowManyShouldICollect() != null && !info.getHowManyShouldICollect().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceMoneyExpected.setVisibility(info.getMoneyExpected() != null && !info.getMoneyExpected().isEmpty() ? View.VISIBLE : View.GONE);
-            reduceOtherSuggestions.setVisibility(info.getOtherSuggestions() != null && !info.getOtherSuggestions().isEmpty() ? View.VISIBLE : View.GONE);
-
-            if (info.getReduceInfo().isEmpty() && info.getHowManyShouldICollect().isEmpty() &&
-                    info.getMoneyExpected().isEmpty() && info.getOtherSuggestions().isEmpty()) {
-                infoContentGeneralTextView.setText("No specific reducing information available for this item.");
-                infoContentGeneralTextView.setVisibility(View.VISIBLE);
-                reduceInfoLayout.setVisibility(View.GONE);
-            }
-        } else {
-            infoContentGeneralTextView.setText("No specific reducing information available for this item.");
-            infoContentGeneralTextView.setVisibility(View.VISIBLE);
-            reduceInfoLayout.setVisibility(View.GONE);
-        }
-    }
-
-    private String formatField(String label, String value) {
-        return (value != null && !value.isEmpty()) ? (label + ": " + value) : "";
     }
 
     private Bitmap decodeSampledBitmapFromFile(String path, int reqWidth, int reqHeight) {

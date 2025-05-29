@@ -1,4 +1,4 @@
-package edu.northeastern.suyt.viewmodel;
+package edu.northeastern.suyt.ui.viewmodel;
 
 import android.os.Parcelable;
 

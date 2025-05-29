@@ -127,12 +127,8 @@ public class AchievementController {
 
                             // Update in Firestore
                             documentSnapshot.getReference().set(achievement)
-                                    .addOnSuccessListener(aVoid -> {
-                                        callback.onSuccess(achievement, isNewlyUnlocked);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        callback.onFailure("Failed to update achievement: " + e.getMessage());
-                                    });
+                                    .addOnSuccessListener(aVoid -> callback.onSuccess(achievement, isNewlyUnlocked))
+                                    .addOnFailureListener(e -> callback.onFailure("Failed to update achievement: " + e.getMessage()));
                         } else {
                             callback.onFailure("Failed to parse achievement data");
                         }
@@ -140,9 +136,7 @@ public class AchievementController {
                         callback.onFailure("Achievement not found");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    callback.onFailure("Failed to get achievement: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> callback.onFailure("Failed to get achievement: " + e.getMessage()));
     }
 
     /**

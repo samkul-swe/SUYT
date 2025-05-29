@@ -41,7 +41,7 @@ import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
-import edu.northeastern.suyt.viewmodel.HomeViewModel;
+import edu.northeastern.suyt.ui.viewmodel.HomeViewModel;
 
 public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
