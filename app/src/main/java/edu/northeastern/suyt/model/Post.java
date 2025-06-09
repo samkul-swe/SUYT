@@ -27,7 +27,6 @@ public class Post implements Parcelable {
         this.date = date;
     }
 
-    // Constructor for Parcelable
     protected Post(Parcel in) {
         id = in.readString();
         username = in.readString();
@@ -39,7 +38,6 @@ public class Post implements Parcelable {
         date = in.readString();
     }
 
-    // Parcelable Creator
     public static final Creator<Post> CREATOR = new Creator<>() {
         @Override
         public Post createFromParcel(Parcel in) {
@@ -69,7 +67,6 @@ public class Post implements Parcelable {
         dest.writeString(date);
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

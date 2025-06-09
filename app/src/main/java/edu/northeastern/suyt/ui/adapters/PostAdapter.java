@@ -33,6 +33,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
+
+        void onPostSave(Post post);
+
+        void onPostShare(Post post);
     }
 
     public PostAdapter(Context context, boolean enableLikeButton) {

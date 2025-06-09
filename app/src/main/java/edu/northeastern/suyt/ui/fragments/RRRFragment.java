@@ -21,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
@@ -64,8 +65,10 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "RRRFragment";
 
+    // ViewModel
     private RRRViewModel viewModel;
 
+    // UI Elements
     private ImageView itemImageView;
     private TextView itemNameTextView;
     private Button recycleButton;
@@ -77,6 +80,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private LinearLayout buttonsContainer;
     private TextView initialHintTextView;
 
+    // Detailed info layouts
     private LinearLayout recycleInfoLayout;
     private TextView recycleDescription;
     private TextView recycleCenter;
@@ -95,6 +99,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private TextView reduceMoneyExpected;
     private TextView reduceOtherSuggestions;
 
+    // Completion section UI elements
     private androidx.cardview.widget.CardView completionSection;
     private Button completedYesButton;
     private Button completedNoButton;
@@ -102,12 +107,15 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private Button shareWithPhotoButton;
     private Button skipSharingButton;
 
+    // Camera and file handling
     private String currentPhotoPath;
 
+    // Location services
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
+    // ActivityResultLaunchers
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
@@ -143,6 +151,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void initializeViews(View view) {
+        // Initialize existing views
         itemImageView = view.findViewById(R.id.item_image_view);
         itemNameTextView = view.findViewById(R.id.item_name_text_view);
         recycleButton = view.findViewById(R.id.recycle_button);
@@ -153,6 +162,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         buttonsContainer = view.findViewById(R.id.buttons_container);
         initialHintTextView = view.findViewById(R.id.initial_hint_text_view);
 
+        // Initialize new views for detailed info
         infoContentGeneralTextView = view.findViewById(R.id.info_content_general_text_view);
 
         recycleInfoLayout = view.findViewById(R.id.recycle_info_layout);
@@ -173,6 +183,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceMoneyExpected = view.findViewById(R.id.reduce_money_expected);
         reduceOtherSuggestions = view.findViewById(R.id.reduce_other_suggestions);
 
+        // Initialize completion section views
         completionSection = view.findViewById(R.id.completion_section);
         completedYesButton = view.findViewById(R.id.completed_yes_button);
         completedNoButton = view.findViewById(R.id.completed_no_button);
@@ -192,6 +203,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
         downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
 
+        // Completion section click listeners
         completedYesButton.setOnClickListener(v -> handleCompletionYes());
         completedNoButton.setOnClickListener(v -> handleCompletionNo());
         shareWithPhotoButton.setOnClickListener(v -> handleShareWithPhoto());
@@ -199,18 +211,23 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void observeViewModel() {
+        // Observe UI state changes
         viewModel.uiState.observe(getViewLifecycleOwner(), this::handleUIStateChange);
 
+        // Observe current item changes
         viewModel.currentItem.observe(getViewLifecycleOwner(), this::handleCurrentItemChange);
 
+        // Observe selected tab changes
         viewModel.selectedTab.observe(getViewLifecycleOwner(), this::handleSelectedTabChange);
 
+        // Observe status messages
         viewModel.statusMessage.observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 itemNameTextView.setText(message);
             }
         });
 
+        // Observe error messages
         viewModel.errorMessage.observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
@@ -262,6 +279,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
                 break;
         }
 
+        // Only show completion section if analysis is complete AND a tab is selected
         if (viewModel.uiState.getValue() == RRRViewModel.UIState.ANALYSIS_COMPLETE) {
             showCompletionSection();
         }
@@ -279,6 +297,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         progressBar.setVisibility(View.GONE);
         initialHintTextView.setVisibility(View.VISIBLE);
 
+        // Show hint card when in placeholder state
         View hintCard = getView() != null ? getView().findViewById(R.id.hint_card) : null;
         if (hintCard != null) {
             hintCard.setVisibility(View.VISIBLE);
@@ -305,12 +324,16 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         infoCardView.setVisibility(View.VISIBLE);
         initialHintTextView.setVisibility(View.GONE);
 
+        // Hide the hint card after analysis is complete
         View hintCard = getView() != null ? getView().findViewById(R.id.hint_card) : null;
         if (hintCard != null) {
             hintCard.setVisibility(View.GONE);
         }
 
         infoContentGeneralTextView.setVisibility(View.GONE);
+
+        // Don't show completion section here - only show it when user selects a tab
+        // The completion section will be shown in handleSelectedTabChange()
     }
 
     private void hideAllInfoLayouts() {
@@ -393,24 +416,29 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
             reuseDescription.setText(formatField("Description", info.getReuseInfo()));
 
+            // Handle multiple crafts
             LinearLayout craftsContainer = getView() != null ? getView().findViewById(R.id.crafts_container) : null;
             if (craftsContainer != null) {
-                craftsContainer.removeAllViews();
+                craftsContainer.removeAllViews(); // Clear existing craft cards
 
                 String craftsText = info.getCraftsPossible();
                 if (craftsText != null && !craftsText.isEmpty()) {
+                    // Split crafts by numbered list (1., 2., 3., etc.) or by line breaks
                     String[] crafts = splitCrafts(craftsText);
 
                     if (crafts.length > 1) {
+                        // Multiple crafts - create individual cards
                         for (int i = 0; i < crafts.length; i++) {
                             if (!crafts[i].trim().isEmpty()) {
                                 createCraftCard(craftsContainer, crafts[i].trim(), i + 1);
                             }
                         }
                     } else {
+                        // Single craft - use simple text view
                         createSingleCraftView(craftsContainer, craftsText);
                     }
                 } else {
+                    // No crafts available
                     createNoCraftView(craftsContainer);
                 }
             }
@@ -466,21 +494,28 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         return (value != null && !value.isEmpty()) ? (label + ": " + value) : "";
     }
 
+    // Craft handling methods
     private String[] splitCrafts(String craftsText) {
+        // Try different splitting patterns
         String[] crafts;
 
+        // Pattern 1: Split by numbered list (1., 2., 3., etc.)
         if (craftsText.matches(".*\\d+\\..*")) {
             crafts = craftsText.split("(?=\\d+\\.)");
         }
+        // Pattern 2: Split by line breaks
         else if (craftsText.contains("\n")) {
             crafts = craftsText.split("\n");
         }
+        // Pattern 3: Split by bullets or dashes
         else if (craftsText.contains("•") || craftsText.contains("-")) {
             crafts = craftsText.split("(?=[•-])");
         }
+        // Pattern 4: Split by semicolons or commas (if long)
         else if (craftsText.length() > 100 && (craftsText.contains(";") || craftsText.contains(","))) {
             crafts = craftsText.split("[;,]");
         }
+        // Default: Return as single craft
         else {
             crafts = new String[]{craftsText};
         }
@@ -489,13 +524,14 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void createCraftCard(LinearLayout container, String craftText, int craftNumber) {
+        // Create card view for individual craft
         androidx.cardview.widget.CardView craftCard = new androidx.cardview.widget.CardView(requireContext());
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        cardParams.setMargins(0, 0, 0, 12);
+        cardParams.setMargins(0, 0, 0, 12); // Bottom margin between cards
         craftCard.setLayoutParams(cardParams);
 
         craftCard.setCardBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.transparent));
@@ -503,11 +539,13 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         craftCard.setRadius(8f);
         craftCard.setCardElevation(0f);
 
+        // Create inner layout
         LinearLayout innerLayout = new LinearLayout(requireContext());
         innerLayout.setOrientation(LinearLayout.HORIZONTAL);
         innerLayout.setPadding(16, 12, 16, 12);
         innerLayout.setGravity(Gravity.CENTER_VERTICAL);
 
+        // Create craft number badge
         TextView numberBadge = new TextView(requireContext());
         numberBadge.setText(String.valueOf(craftNumber));
         numberBadge.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
@@ -520,6 +558,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         badgeParams.setMargins(0, 0, 12, 0);
         numberBadge.setLayoutParams(badgeParams);
 
+        // Create craft text
         TextView craftTextView = new TextView(requireContext());
         craftTextView.setText(cleanCraftText(craftText));
         craftTextView.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
@@ -531,6 +570,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         );
         craftTextView.setLayoutParams(textParams);
 
+        // Add views to layout
         innerLayout.addView(numberBadge);
         innerLayout.addView(craftTextView);
         craftCard.addView(innerLayout);
@@ -575,12 +615,17 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private String cleanCraftText(String text) {
+        // Remove number prefixes like "1.", "2.", etc.
         text = text.replaceFirst("^\\d+\\.\\s*", "");
+        // Remove bullet points
         text = text.replaceFirst("^[•-]\\s*", "");
+        // Trim whitespace
         return text.trim();
     }
 
+    // Completion section methods
     private void showCompletionSection() {
+        // Only show completion section if analysis is complete and we have a current item
         TrashItem currentItem = viewModel.currentItem.getValue();
         RRRViewModel.UIState currentState = viewModel.uiState.getValue();
 
@@ -588,6 +633,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
             completionSection.setVisibility(View.VISIBLE);
             shareOptionLayout.setVisibility(View.GONE);
 
+            // Reset button states
             completedYesButton.setAlpha(1.0f);
             completedNoButton.setAlpha(1.0f);
         } else {
@@ -596,36 +642,46 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void handleCompletionYes() {
+        // Log the completion (you can add analytics here)
         logActivityCompletion(true);
 
+        // Show sharing options
         shareOptionLayout.setVisibility(View.VISIBLE);
 
+        // Update button states
         completedYesButton.setAlpha(0.7f);
         completedNoButton.setAlpha(0.5f);
 
+        // Show congratulations message
         Toast.makeText(requireContext(), "Great job! 🎉 You're making a difference!", Toast.LENGTH_LONG).show();
     }
 
     private void handleCompletionNo() {
+        // Log the non-completion
         logActivityCompletion(false);
 
+        // Show encouragement message
         Toast.makeText(requireContext(), "That's okay! Every small step counts. Try again when you're ready!", Toast.LENGTH_LONG).show();
 
+        // Navigate to home screen after a brief delay
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             navigateToHome();
         }, 2000);
     }
 
     private void handleShareWithPhoto() {
+        // Get current activity details for the post
         TrashItem currentItem = viewModel.currentItem.getValue();
         RRRViewModel.RRRTab selectedTab = viewModel.selectedTab.getValue();
 
         if (currentItem != null && selectedTab != null) {
+            // Create data to pass to CreatePostActivity
             Bundle postData = new Bundle();
             postData.putString("itemName", currentItem.getName());
             postData.putString("activityType", getActivityTypeString(selectedTab));
             postData.putString("activityDetails", getActivityDetails(currentItem, selectedTab));
 
+            // Navigate to CreatePostActivity
             navigateToCreatePost(postData);
         } else {
             Toast.makeText(requireContext(), "Error preparing post data", Toast.LENGTH_SHORT).show();
@@ -635,6 +691,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private void handleSkipSharing() {
         Toast.makeText(requireContext(), "Thanks for completing the activity! 🌱", Toast.LENGTH_SHORT).show();
 
+        // Navigate to home screen
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             navigateToHome();
         }, 1500);
@@ -645,6 +702,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         RRRViewModel.RRRTab selectedTab = viewModel.selectedTab.getValue();
 
         if (currentItem != null && selectedTab != null) {
+            // You can implement analytics logging here
             String activityType = getActivityTypeString(selectedTab);
             String itemName = currentItem.getName();
 
@@ -690,10 +748,12 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private void navigateToCreatePost(Bundle postData) {
         try {
+            // Replace "CreatePostActivity" with your actual activity class
             Intent intent = new Intent(requireContext(), CreatePostActivity.class);
             intent.putExtras(postData);
             startActivity(intent);
 
+            // Finish current activity or fragment
             if (getActivity() != null) {
                 getActivity().finish();
             }
@@ -705,8 +765,9 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private void navigateToHome() {
         try {
+            // Navigate to home - adjust based on your navigation structure
             if (getActivity() != null) {
-                getActivity().finish();
+                getActivity().finish(); // Close current activity
             }
 
             // Alternative: If using Navigation Component
@@ -718,6 +779,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    // --- Location Services Setup ---
     private void setupLocationServices() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         createLocationRequest();
@@ -774,6 +836,7 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    // --- Activity Result Launchers Setup ---
     private void setupActivityResultLaunchers() {
         takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
             if (result) {

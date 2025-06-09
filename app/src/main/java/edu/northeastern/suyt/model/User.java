@@ -1,12 +1,12 @@
 package edu.northeastern.suyt.model;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
-import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.List;
 
 public class User {
     @DocumentId
@@ -14,16 +14,17 @@ public class User {
     private String username;
     private String email;
     private UserStats userStats;
+    private List<String> savedPosts;
 
-    public User() {}
+    public User() {
+    }
 
-    public User(String userId, String username, String email, String password) {
+    public User(String userId, String username, String email) {
         this.userId = userId;
         this.username = username;
         this.email = email;
     }
 
-    // Getters and Setters
     public String getUserId() {
         return userId;
     }
@@ -56,6 +57,27 @@ public class User {
         this.userStats = userStats;
     }
 
+    public List<String> getSavedPosts() {
+        return savedPosts;
+    }
+
+    public void setSavedPosts(List<String> savedPosts) {
+        this.savedPosts = savedPosts;
+    }
+
+    public void addSavedPost(String postId) {
+        if (savedPosts == null) {
+            savedPosts = new ArrayList<>();
+        }
+        savedPosts.add(postId);
+    }
+
+    public void removeSavedPost(String postId) {
+        if (savedPosts != null) {
+            savedPosts.remove(postId);
+        }
+    }
+
     @Exclude
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -67,7 +89,6 @@ public class User {
     @Exclude
     public static User fromFirebaseUser(com.google.firebase.auth.FirebaseUser firebaseUser, String username) {
         if (firebaseUser == null) return null;
-
         User user = new User();
         user.setUserId(firebaseUser.getUid());
         user.setEmail(firebaseUser.getEmail());

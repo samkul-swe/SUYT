@@ -9,10 +9,9 @@ public class Achievement {
     private int progress;
     private int maxProgress;
     private String unlockDate;
-    private int gridPosition; // Position in the grid (0-14 for a 5x3 grid)
+    private int gridPosition;
 
     public Achievement() {
-        // Required empty constructor for Firestore
     }
 
     public Achievement(String id, String title, String description, int flowerResourceId,
@@ -28,14 +27,12 @@ public class Achievement {
         this.gridPosition = gridPosition;
     }
 
-    // Static factory method to create locked achievement
     public static Achievement createLocked(String id, String title, String description,
                                            int flowerResourceId, int maxProgress, int gridPosition) {
         return new Achievement(id, title, description, flowerResourceId,
                 false, 0, maxProgress, null, gridPosition);
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }

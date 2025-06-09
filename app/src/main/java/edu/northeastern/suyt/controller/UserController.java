@@ -12,7 +12,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.List;
 import java.util.Map;
 
 import edu.northeastern.suyt.model.User;
@@ -20,6 +19,8 @@ import edu.northeastern.suyt.model.User;
 public class UserController {
     private static final String TAG = "UserController";
     private static final String USERS_COLLECTION = "users";
+    private static final String ANALYSIS_RESULTS_COLLECTION = "analysis_results";
+    private static final String SAVED_POSTS_COLLECTION = "saved_posts";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -100,28 +101,28 @@ public class UserController {
                             Log.d("signup activity", "Sign in successful");
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
-                            if (firebaseUser.isEmailVerified()) {
-                                db.collection(USERS_COLLECTION)
-                                        .document(firebaseUser.getUid())
-                                        .update("emailVerified", true)
-                                        .addOnCompleteListener(updateTask -> {
-                                            getUserData(firebaseUser.getUid(), callback);
-                                        });
+                                if (firebaseUser.isEmailVerified()) {
+                                    db.collection(USERS_COLLECTION)
+                                            .document(firebaseUser.getUid())
+                                            .update("emailVerified", true)
+                                            .addOnCompleteListener(updateTask -> {
+                                                getUserData(firebaseUser.getUid(), callback);
+                                            });
+                                } else {
+                                    firebaseUser.sendEmailVerification()
+                                            .addOnCompleteListener(emailTask -> {
+                                                if (emailTask.isSuccessful()) {
+                                                    Log.d("Signup Activity", "Verification sent from login");
+                                                } else {
+                                                    Log.e("SignUp Activity", "Failed to send verification email", emailTask.getException());
+                                                }
+                                            });
+                                    mAuth.signOut();
+                                    callback.onFailure("Verify Email " + email);
+                                }
                             } else {
-                                firebaseUser.sendEmailVerification()
-                                        .addOnCompleteListener(emailTask -> {
-                                            if (emailTask.isSuccessful()) {
-                                                Log.d("Signup Activity", "Verification sent from login");
-                                            } else {
-                                                Log.e("SignUp Activity", "Failed to send verification email", emailTask.getException());
-                                            }
-                                        });
-                                mAuth.signOut();
-                                callback.onFailure("Verify Email " + email);
+                                callback.onFailure("User_Null");
                             }
-                        } else {
-                            callback.onFailure("User_Null");
-                        }
                         } else {
                             Log.e("signup activity", "Sign in failed", task.getException());
                             Exception exception = task.getException();
@@ -168,8 +169,6 @@ public class UserController {
                 });
     }
 
-
-
     /**
      * Get current user data from Firestore
      */
@@ -180,6 +179,127 @@ public class UserController {
         } else {
             callback.onFailure("No user is signed in");
         }
+    }
+
+    /**
+     * Get current user basic info (NEW METHOD)
+     */
+    public void getCurrentUser(UserDataCallback callback) {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            callback.onFailure("No user is signed in");
+            return;
+        }
+
+        db.collection(USERS_COLLECTION)
+                .document(firebaseUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String username = documentSnapshot.getString("username");
+                        String email = documentSnapshot.getString("email");
+                        String rank = documentSnapshot.getString("rank");
+
+                        // Provide default values if fields are missing
+                        username = username != null ? username : firebaseUser.getDisplayName();
+                        email = email != null ? email : firebaseUser.getEmail();
+                        rank = rank != null ? rank : "Eco Warrior"; // Default rank
+
+                        callback.onSuccess(username, email, rank);
+                    } else {
+                        // Document doesn't exist, use Firebase Auth data
+                        callback.onSuccess(firebaseUser.getDisplayName(), firebaseUser.getEmail(), "Eco Warrior");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to get user data", e);
+                    callback.onFailure("Failed to get user data: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Get user statistics (NEW METHOD)
+     */
+    public void getUserStats(UserStatsCallback callback) {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            callback.onFailure("No user is signed in");
+            return;
+        }
+
+        String userId = firebaseUser.getUid();
+
+        // Get posts count (analysis results count)
+        db.collection(ANALYSIS_RESULTS_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int postsCount = querySnapshot.size();
+
+                    // Get saved posts count
+                    db.collection(SAVED_POSTS_COLLECTION)
+                            .whereEqualTo("userId", userId)
+                            .get()
+                            .addOnSuccessListener(savedSnapshot -> {
+                                int savedCount = savedSnapshot.size();
+
+                                // Get user's impact score from user document
+                                db.collection(USERS_COLLECTION)
+                                        .document(userId)
+                                        .get()
+                                        .addOnSuccessListener(userSnapshot -> {
+                                            int impactScore = 0;
+                                            if (userSnapshot.exists()) {
+                                                Long points = userSnapshot.getLong("points");
+                                                Long recycleCount = userSnapshot.getLong("recycleCount");
+
+                                                // Calculate impact score based on points and recycle count
+                                                int userPoints = points != null ? points.intValue() : 0;
+                                                int userRecycles = recycleCount != null ? recycleCount.intValue() : 0;
+
+                                                impactScore = userPoints + (userRecycles * 10) + (postsCount * 5);
+                                            }
+
+                                            callback.onSuccess(postsCount, impactScore, savedCount);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Failed to get user impact data", e);
+                                            // Still return other stats even if impact calculation fails
+                                            callback.onSuccess(postsCount, postsCount * 5, savedCount);
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to get saved posts count", e);
+                                callback.onFailure("Failed to get user statistics: " + e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to get posts count", e);
+                    callback.onFailure("Failed to get user statistics: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Update user email (NEW METHOD)
+     */
+    public void updateUserEmail(String newEmail, UpdateCallback callback) {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            callback.onFailure("No user is signed in");
+            return;
+        }
+
+        // Update in Firebase Auth
+        firebaseUser.updateEmail(newEmail)
+                .addOnSuccessListener(aVoid -> {
+                    // Update in Firestore
+                    db.collection(USERS_COLLECTION)
+                            .document(firebaseUser.getUid())
+                            .update("email", newEmail)
+                            .addOnSuccessListener(aVoid2 -> callback.onSuccess())
+                            .addOnFailureListener(e -> callback.onFailure("Failed to update email in database: " + e.getMessage()));
+                })
+                .addOnFailureListener(e -> callback.onFailure("Failed to update email: " + e.getMessage()));
     }
 
     /**
@@ -434,6 +554,7 @@ public class UserController {
         }
     }
 
+    // CALLBACK INTERFACES
     public interface RegisterCallback {
         void onSuccess();
         void onFailure(String errorMessage);
@@ -461,6 +582,16 @@ public class UserController {
 
     public interface PasswordResetCallback {
         void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface UserDataCallback {
+        void onSuccess(String username, String email, String rank);
+        void onFailure(String errorMessage);
+    }
+
+    public interface UserStatsCallback {
+        void onSuccess(int postsCount, int impactScore, int savedCount);
         void onFailure(String errorMessage);
     }
 }

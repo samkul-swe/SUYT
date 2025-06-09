@@ -376,4 +376,14 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
             startActivity(intent);
         }
     }
+
+    @Override
+    public void onPostSave(Post post) {
+
+    }
+
+    @Override
+    public void onPostShare(Post post) {
+
+    }
 }

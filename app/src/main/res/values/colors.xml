@@ -23,7 +23,23 @@
     <color name="colorReuseDark">#FFA000</color>
     <color name="colorRecycleDark">#1976D2</color>
 
+    <color name="rank_color">#FF8F00</color>
+
+    <color name="white_70">#B3FFFFFF</color>
+
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="success_color">#4CAF50</color>
+    <color name="error_color">#F44336</color>
+
     <color name="hintCardBackground">#F8FAFB</color>
+
+    <color name="icon_tint">#616161</color>
+    <color name="icon_tint_light">#9E9E9E</color>
+
+    <color name="divider_color">#E0E0E0</color>
+    <color name="info_color">#2196F3</color>
+    <color name="warning_color">#FF9800</color>
 
     <color name="completionYesColor">#4CAF50</color>
     <color name="sharePhotoColor">#FF9800</color>

@@ -1,8 +1,11 @@
 package edu.northeastern.suyt.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 
-public class Reuse {
+public class Reuse implements Parcelable {
     private String reuseInfo;
     private String craftsPossible;
     private String moneyNeededForCraft;
@@ -59,5 +62,37 @@ public class Reuse {
                 ", moneyNeededForCraft='" + moneyNeededForCraft + '\'' +
                 ", timeNeededForCraft='" + timeNeededForCraft + '\'' +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int flags) {
+        parcel.writeString(reuseInfo);
+        parcel.writeString(craftsPossible);
+        parcel.writeString(timeNeededForCraft);
+        parcel.writeString(moneyNeededForCraft);
+    }
+
+    public static final Creator<Reuse> CREATOR = new Creator<Reuse>() {
+        @Override
+        public Reuse createFromParcel(Parcel in) {
+            return new Reuse(in);
+        }
+
+        @Override
+        public Reuse[] newArray(int size) {
+            return new Reuse[size];
+        }
+    };
+
+    protected Reuse(Parcel in) {
+        reuseInfo = in.readString();
+        craftsPossible = in.readString();
+        timeNeededForCraft = in.readString();
+        moneyNeededForCraft = in.readString();
     }
 }

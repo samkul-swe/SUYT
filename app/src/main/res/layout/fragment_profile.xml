@@ -9,177 +9,465 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
 
-        <!-- Profile Header Card -->
-        <androidx.cardview.widget.CardView
+        <!-- Profile Header Card with Gradient Background -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/profile_header_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="4dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:strokeWidth="0dp"
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:background="@drawable/profile_header_gradient"
+                android:padding="24dp">
 
-                <!-- Profile Image -->
+                <!-- Profile Image with Status Indicator -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="20dp">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/profile_image_view"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
                         android:src="@drawable/placeholder_profile"
-                        app:civ_border_width="2dp"
-                        app:civ_border_color="@color/colorPrimary"
+                        app:civ_border_width="3dp"
+                        app:civ_border_color="@android:color/white"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent" />
 
+                    <!-- Online Status Indicator -->
+                    <View
+                        android:id="@+id/status_indicator"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:background="@drawable/status_online"
+                        app:layout_constraintEnd_toEndOf="@id/profile_image_view"
+                        app:layout_constraintBottom_toBottomOf="@id/profile_image_view"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginBottom="4dp" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Username and Rank -->
-                <TextView
-                    android:id="@+id/username_text_view"
-                    android:layout_width="wrap_content"
+                <!-- User Info Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="EcoWarrior42"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black"
-                    android:layout_gravity="center_horizontal" />
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
 
-                <TextView
-                    android:id="@+id/rank_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Rank: Eco Warrior"
-                    android:textColor="@color/colorAccent"
-                    android:textStyle="italic"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="4dp" />
+                    <TextView
+                        android:id="@+id/username_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="EcoWarrior42"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white" />
 
-                <!-- Email -->
-                <TextView
-                    android:id="@+id/email_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="eco.warrior@example.com"
-                    android:textStyle="normal"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="8dp" />
+                    <!-- Rank Badge -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/rank_badge_background"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_rank_star"
+                            app:tint="@color/rank_color"
+                            android:layout_marginEnd="6dp" />
+
+                        <TextView
+                            android:id="@+id/rank_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Eco Warrior"
+                            android:textColor="@color/rank_color"
+                            android:textStyle="bold"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/email_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="eco.warrior@example.com"
+                        android:textColor="@color/white_70"
+                        android:textSize="14sp"
+                        android:layout_marginTop="12dp" />
+
+                </LinearLayout>
 
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Profile Actions Card -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/profile_actions_card"
+        <!-- Stats Row -->
+        <LinearLayout
+            android:id="@+id/stats_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="4dp"
+            android:weightSum="3"
             app:layout_constraintTop_toBottomOf="@id/profile_header_card">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/posts_count_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="47"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Posts"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="4dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/impact_count_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1.2k"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorAccent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Impact"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/saved_count_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="83"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/success_color" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Saved"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Quick Actions Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/quick_actions_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintTop_toBottomOf="@id/stats_row">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Actions"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Recent Analysis Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/recent_analysis_button"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="My Recent Analysis"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="@color/colorAccent"
+                    app:icon="@drawable/ic_analytics"
+                    app:iconGravity="start"
+                    app:iconTint="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Create Post Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/create_post_button"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Create New Post"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="@color/colorPrimary"
+                    app:icon="@drawable/ic_add_post"
+                    app:iconGravity="start"
+                    app:iconTint="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    android:layout_marginBottom="12dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Account Management Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/account_management_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintTop_toBottomOf="@id/quick_actions_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Account Management"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="@color/text_primary"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Change Email Button -->
-                <Button
-                    android:id="@+id/change_email_button"
+                <!-- Account Options List -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Change Email Address"
-                    android:textColor="@android:color/black"
-                    android:backgroundTint="#E0E0E0"
-                    android:drawableStart="@drawable/ic_email"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:padding="12dp"
-                    android:layout_marginBottom="8dp" />
+                    android:orientation="vertical">
 
-                <!-- Change Password Button -->
-                <Button
-                    android:id="@+id/change_password_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Change Password"
-                    android:textColor="@android:color/black"
-                    android:backgroundTint="#E0E0E0"
-                    android:drawableStart="@drawable/ic_lock"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:padding="12dp"
-                    android:layout_marginBottom="8dp" />
+                    <!-- View Saved Posts -->
+                    <LinearLayout
+                        android:id="@+id/saved_posts_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
 
-                <!-- Saved Posts Button -->
-                <Button
-                    android:id="@+id/saved_posts_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="View Saved Posts"
-                    android:textColor="@android:color/black"
-                    android:backgroundTint="#E0E0E0"
-                    android:drawableStart="@drawable/ic_bookmark"
-                    android:drawablePadding="8dp"
-                    android:gravity="start|center_vertical"
-                    android:padding="12dp"
-                    android:layout_marginBottom="8dp" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_bookmark"
+                            app:tint="@color/icon_tint"
+                            android:layout_marginEnd="16dp" />
 
-                <!-- Create Post Button -->
-                <Button
-                    android:id="@+id/create_post_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Create New Post"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="@color/colorPrimary"
-                    android:drawableStart="@drawable/ic_add_post"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@android:color/white"
-                    android:gravity="start|center_vertical"
-                    android:padding="12dp"
-                    android:layout_marginBottom="8dp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="View Saved Posts"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/icon_tint_light" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider_color"
+                        android:layout_marginHorizontal="16dp" />
+
+                    <!-- Change Email -->
+                    <LinearLayout
+                        android:id="@+id/change_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_email"
+                            app:tint="@color/icon_tint"
+                            android:layout_marginEnd="16dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Change Email Address"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/icon_tint_light" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider_color"
+                        android:layout_marginHorizontal="16dp" />
+
+                    <!-- Change Password -->
+                    <LinearLayout
+                        android:id="@+id/change_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_lock"
+                            app:tint="@color/icon_tint"
+                            android:layout_marginEnd="16dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Change Password"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/icon_tint_light" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Logout Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/logout_button"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Logout"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#F44336"
-            android:drawableStart="@drawable/ic_logout"
-            android:drawableTint="@android:color/white"
-            android:drawablePadding="8dp"
-            android:gravity="start|center_vertical"
-            android:padding="12dp"
-            app:layout_constraintTop_toBottomOf="@id/profile_actions_card" />
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="Sign Out"
+            android:textColor="@color/error_color"
+            app:strokeColor="@color/error_color"
+            app:icon="@drawable/ic_logout"
+            app:iconGravity="start"
+            app:iconTint="@color/error_color"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:layout_constraintTop_toBottomOf="@id/account_management_card" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

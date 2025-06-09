@@ -8,7 +8,6 @@ public class DatabaseConnector {
     private final FirebaseDatabase database;
 
     private DatabaseConnector() {
-        // Initialize the Firebase Realtime Database
         database = FirebaseDatabase.getInstance();
     }
 
@@ -25,5 +24,45 @@ public class DatabaseConnector {
 
     public DatabaseReference getPostsReference() {
         return database.getReference("Posts");
+    }
+
+    public DatabaseReference getPostReference(String postId) {
+        return database.getReference("Posts").child(postId);
+    }
+
+    public DatabaseReference getLikesReference(String userId) {
+        return getUsersReference(userId).child("likes");
+    }
+
+    public DatabaseReference getUserSavedPostsReference(String userId) {
+        return getUsersReference(userId).child("saved_posts");
+    }
+
+    public DatabaseReference getUserPostLikeReference(String userId, String postId) {
+        return getLikesReference(userId).child(postId);
+    }
+
+    public DatabaseReference getUserPostSaveReference(String userId, String postId) {
+        return getUserSavedPostsReference(userId).child(postId);
+    }
+
+    public DatabaseReference getAnalysisResultsReference() {
+        return database.getReference("AnalysisResults");
+    }
+
+    public DatabaseReference getAnalysisResultReference(String analysisId) {
+        return getAnalysisResultsReference().child(analysisId);
+    }
+
+    public DatabaseReference getUserAnalysisHistoryReference(String userId) {
+        return getUsersReference(userId).child("analysis_history");
+    }
+
+    public DatabaseReference getUserRecentAnalysisReference(String userId) {
+        return getUsersReference(userId).child("recent_analysis");
+    }
+
+    public DatabaseReference getUserSpecificAnalysisReference(String userId, String analysisId) {
+        return getUserAnalysisHistoryReference(userId).child(analysisId);
     }
 }

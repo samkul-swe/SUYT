@@ -1,8 +1,11 @@
 package edu.northeastern.suyt.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 
-public class Recycle {
+public class Recycle implements Parcelable {
     private String recycleInfo;
     private String nearestRecyclingCenter;
     private String recyclingHours;
@@ -59,5 +62,37 @@ public class Recycle {
                 ", recyclingHours='" + recyclingHours + '\'' +
                 ", suggestedBin='" + suggestedBin + '\'' +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int flags) {
+        parcel.writeString(recycleInfo);
+        parcel.writeString(nearestRecyclingCenter);
+        parcel.writeString(suggestedBin);
+        parcel.writeString(recyclingHours);
+    }
+
+    public static final Creator<Recycle> CREATOR = new Creator<Recycle>() {
+        @Override
+        public Recycle createFromParcel(Parcel in) {
+            return new Recycle(in);
+        }
+
+        @Override
+        public Recycle[] newArray(int size) {
+            return new Recycle[size];
+        }
+    };
+
+    protected Recycle(Parcel in) {
+        recycleInfo = in.readString();
+        nearestRecyclingCenter = in.readString();
+        suggestedBin = in.readString();
+        recyclingHours = in.readString();
     }
 }

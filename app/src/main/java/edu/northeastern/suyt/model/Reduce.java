@@ -1,8 +1,11 @@
 package edu.northeastern.suyt.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 
-public class Reduce {
+public class Reduce implements Parcelable {
     private String reduceInfo;
     private String howManyShouldICollect;
     private String moneyExpected;
@@ -59,5 +62,37 @@ public class Reduce {
                 ", moneyExpected='" + moneyExpected + '\'' +
                 ", otherSuggestions='" + otherSuggestions + '\'' +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int flags) {
+        parcel.writeString(reduceInfo);
+        parcel.writeString(howManyShouldICollect);
+        parcel.writeString(moneyExpected);
+        parcel.writeString(otherSuggestions);
+    }
+
+    public static final Creator<Reduce> CREATOR = new Parcelable.Creator<Reduce>() {
+        @Override
+        public Reduce createFromParcel(Parcel in) {
+            return new Reduce(in);
+        }
+
+        @Override
+        public Reduce[] newArray(int size) {
+            return new Reduce[size];
+        }
+    };
+
+    protected Reduce(Parcel in) {
+        reduceInfo = in.readString();
+        howManyShouldICollect = in.readString();
+        moneyExpected = in.readString();
+        otherSuggestions = in.readString();
     }
 }

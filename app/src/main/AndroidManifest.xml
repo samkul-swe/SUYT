@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -27,6 +28,9 @@
         android:theme="@style/Theme.SUYT"
         tools:targetApi="31">
         <activity
+            android:name=".ui.activities.RecentAnalysisActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.CreatePostActivity"
             android:exported="false" />
         <activity
@@ -47,17 +51,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.LoginActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden"
-            android:exported="true">
-        </activity>
-        <activity android:name=".ui.activities.SignUpActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden">
-        </activity>
-        <activity android:name=".ui.activities.MainActivity"
-            android:exported="false" >
-        </activity>
-
+        <activity
+            android:name=".ui.activities.LoginActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize|stateHidden"></activity>
+        <activity
+            android:name=".ui.activities.SignUpActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"></activity>
+        <activity
+            android:name=".ui.activities.MainActivity"
+            android:exported="false"></activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
