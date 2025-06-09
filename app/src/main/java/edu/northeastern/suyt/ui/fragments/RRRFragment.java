@@ -314,6 +314,10 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         infoContentGeneralTextView.setVisibility(View.VISIBLE);
         infoCardView.setVisibility(View.VISIBLE);
         buttonsContainer.setVisibility(View.GONE);
+        View hintCard = getView() != null ? getView().findViewById(R.id.hint_card) : null;
+        if (hintCard != null) {
+            hintCard.setVisibility(View.GONE);
+        }
         initialHintTextView.setVisibility(View.GONE);
         hideAllInfoLayouts();
     }
