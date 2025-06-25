@@ -34,7 +34,7 @@ public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
         super(context);
         this.currentEmail = currentEmail;
         this.listener = listener;
-        this.userController = new UserController();
+        this.userController = new UserController(getContext());
     }
 
     @Override

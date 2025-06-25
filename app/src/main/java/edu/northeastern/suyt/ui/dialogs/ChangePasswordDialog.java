@@ -31,7 +31,7 @@ public class ChangePasswordDialog extends Dialog implements View.OnClickListener
     public ChangePasswordDialog(@NonNull Context context, OnPasswordChangedListener listener) {
         super(context);
         this.listener = listener;
-        this.userController = new UserController();
+        this.userController = new UserController(getContext());
     }
 
     @Override

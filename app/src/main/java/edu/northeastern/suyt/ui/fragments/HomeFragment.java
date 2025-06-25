@@ -312,9 +312,9 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
                                     quoteForUserTextView.setText(currentQuote);
 
                                     preferences.edit()
-                                            .putString(KEY_QUOTE, currentQuote)
-                                            .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
-                                            .apply();
+                                    .putString(KEY_QUOTE, currentQuote)
+                                    .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
+                                    .apply();
                                 }
                             });
                         }

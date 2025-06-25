@@ -60,7 +60,7 @@ public class AchievementsFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_achievement, container, false);
 
         db = FirebaseFirestore.getInstance();
-        userController = new UserController();
+        userController = new UserController(getContext());
 
         return rootView;
     }

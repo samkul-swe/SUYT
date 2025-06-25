@@ -28,14 +28,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        userController = new UserController();
+        userController = new UserController(getApplicationContext());
 
         if (userController.isUserSignedIn()) {
             navigateToMain();
             return;
         }
 
-        // Initialize views
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         loginButton = findViewById(R.id.login_button);
@@ -48,7 +47,6 @@ public class LoginActivity extends AppCompatActivity {
         String forgotPassword = "<font color='#3344DD'>Forgot Password?</font>";
         forgotPasswordButton.setText(Html.fromHtml(forgotPassword, Html.FROM_HTML_MODE_LEGACY));
 
-        // Set click listeners
         loginButton.setOnClickListener(v -> attemptLogin());
         signupButton.setOnClickListener(v -> navigateToSignUp());
         forgotPasswordButton.setOnClickListener(v -> navigateToForgotPassword());
@@ -79,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
         setLoadingIndicatorVisibility(View.VISIBLE);
 
         try{
-            userController.signInUser(email, password, new UserController.AuthCallback() {
+            userController.logInUser(email, password, new UserController.AuthCallback() {
                 @Override
                 public void onSuccess(User user) {
                     runOnUiThread(() -> {
@@ -141,7 +139,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void navigateToMain() {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }

@@ -39,7 +39,7 @@ public class ForgotPassword extends AppCompatActivity {
             return insets;
         });
 
-        userController = new UserController();
+        userController = new UserController(getApplicationContext());
         initializeViews();
         setupClickListeners();
     }

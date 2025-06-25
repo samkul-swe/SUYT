@@ -24,7 +24,7 @@ public class AchievementController {
 
     public AchievementController() {
         db = FirebaseFirestore.getInstance();
-        userController = new UserController();
+        userController = new UserController(null);
     }
 
     /**

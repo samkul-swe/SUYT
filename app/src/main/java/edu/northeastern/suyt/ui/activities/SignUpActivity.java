@@ -1,6 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 
@@ -42,8 +43,7 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-
-        userController = new UserController();
+        userController = new UserController(getApplicationContext());
 
         usernameEditText = findViewById(R.id.username_edit_text);
         emailEditText = findViewById(R.id.email_edit_text);
@@ -64,10 +64,12 @@ public class SignUpActivity extends AppCompatActivity {
         passwordEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                //does nothing
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //does nothing
             }
 
             @Override
@@ -76,12 +78,7 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
 
-        signUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                attemptSignUp();
-            }
-        });
+        signUpButton.setOnClickListener(v -> attemptSignUp());
 
         loginTextView.setOnClickListener(v -> navigateToLogin());
     }
@@ -110,10 +107,8 @@ public class SignUpActivity extends AppCompatActivity {
         signUpButton.setEnabled(isPasswordValid);
     }
 
-
     private void attemptSignUp() {
-        if (usernameEditText == null || emailEditText == null ||
-                passwordEditText == null || confirmPasswordEditText == null) {
+        if (usernameEditText == null || emailEditText == null || passwordEditText == null || confirmPasswordEditText == null) {
             Log.e("SignUpActivity", "One or more EditText views are null");
             return;
         }
@@ -124,7 +119,6 @@ public class SignUpActivity extends AppCompatActivity {
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
         if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-
             Toast.makeText(SignUpActivity.this, "Incomplete form. Please fill in all the details.", Toast.LENGTH_LONG).show();
             return;
         }
@@ -148,9 +142,10 @@ public class SignUpActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess() {
                     new android.os.Handler(getMainLooper()).post(() -> {
+                        Log.d("SignUpActivity", "Registration successful");
                         loadingIndicator.setVisibility(View.GONE);
                         Toast.makeText(SignUpActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                        showEmailVerificationDialog(email);
+                        navigateToHome();
                     });
                 }
                 @Override
@@ -169,18 +164,11 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    private void showEmailVerificationDialog(String email){
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Verify Your Email")
-                .setMessage("Your account has been created successfully! A verification email has been sent to " +
-                        email + ". Please check your inbox and verify your email before logging in.")
-                .setPositiveButton("OK", (dialog, which) -> {
-                    navigateToLogin();
-                })
-                .setCancelable(false)
-                .show();
+    private void navigateToHome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
-
 
     private void navigateToLogin() {
         finish();

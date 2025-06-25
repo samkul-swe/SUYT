@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.ui.fragments;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -18,10 +17,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.controller.AnalysisController;
 import edu.northeastern.suyt.model.AnalysisResult;
+import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
@@ -57,7 +59,7 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         // Initialize controllers
-        userController = new UserController();
+        userController = new UserController(getContext());
         analysisController = new AnalysisController();
 
         // Initialize views
@@ -65,9 +67,6 @@ public class ProfileFragment extends Fragment {
 
         // Set profile data
         loadProfileData();
-
-        // Load user statistics
-        loadUserStats();
 
         // Set button click listeners
         setupButtonListeners();
@@ -82,11 +81,6 @@ public class ProfileFragment extends Fragment {
         emailTextView = view.findViewById(R.id.email_text_view);
         rankTextView = view.findViewById(R.id.rank_text_view);
 
-        // Stats views (new UI components)
-        postsCountTextView = view.findViewById(R.id.posts_count_text_view);
-        impactCountTextView = view.findViewById(R.id.impact_count_text_view);
-        savedCountTextView = view.findViewById(R.id.saved_count_text_view);
-
         // Button views
         recentAnalysisButton = view.findViewById(R.id.recent_analysis_button);
         changeEmailButton = view.findViewById(R.id.change_email);
@@ -100,16 +94,17 @@ public class ProfileFragment extends Fragment {
         // Get current user data from UserController
         userController.getCurrentUser(new UserController.UserDataCallback() {
             @Override
-            public void onSuccess(String username, String email, String rank) {
+            public void onSuccess(String username, String email, List<String> savedPosts, UserStats userStats, String rank) {
                 if (getActivity() == null || !isAdded()) {
                     return;
                 }
 
-                usernameTextView.setText(username != null ? username : "EcoWarrior42");
-                emailTextView.setText(email != null ? email : "eco.warrior@example.com");
-                rankTextView.setText(rank != null ? rank : "Eco Warrior");
+                usernameTextView.setText(username != null ? username : "Swarley");
+                emailTextView.setText(email != null ? email : "exampler@example.com");
+                rankTextView.setText(rank != null ? rank : "Plant Soldier");
 
-                // Set profile image (in a real app, load from user's stored image)
+
+                // Set profile image
                 profileImageView.setImageResource(R.drawable.placeholder_profile);
             }
 
@@ -123,39 +118,6 @@ public class ProfileFragment extends Fragment {
                 emailTextView.setText("eco.warrior@example.com");
                 rankTextView.setText("Eco Warrior");
                 profileImageView.setImageResource(R.drawable.placeholder_profile);
-            }
-        });
-    }
-
-    private void loadUserStats() {
-        // Load user statistics for the stats cards
-        userController.getUserStats(new UserController.UserStatsCallback() {
-            @Override
-            public void onSuccess(int postsCount, int impactScore, int savedCount) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                if (postsCountTextView != null) {
-                    postsCountTextView.setText(String.valueOf(postsCount));
-                }
-                if (impactCountTextView != null) {
-                    impactCountTextView.setText(formatCount(impactScore));
-                }
-                if (savedCountTextView != null) {
-                    savedCountTextView.setText(String.valueOf(savedCount));
-                }
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-                // Set default values if loading fails
-                if (postsCountTextView != null) postsCountTextView.setText("0");
-                if (impactCountTextView != null) impactCountTextView.setText("0");
-                if (savedCountTextView != null) savedCountTextView.setText("0");
             }
         });
     }
@@ -272,24 +234,24 @@ public class ProfileFragment extends Fragment {
                             }
                             Toast.makeText(requireContext(), "Failed to update email: " + errorMessage, Toast.LENGTH_LONG).show();
                         }
-                    });
+                    }.toString());
                 });
         dialog.show();
     }
 
     private void showChangePasswordDialog() {
         ChangePasswordDialog dialog = new ChangePasswordDialog(requireContext(),
-                success -> {
-                    if (getActivity() == null || !isAdded()) {
-                        return;
-                    }
+            success -> {
+                if (getActivity() == null || !isAdded()) {
+                    return;
+                }
 
-                    if (success) {
-                        Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(requireContext(), "Failed to update password", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if (success) {
+                    Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(requireContext(), "Failed to update password", Toast.LENGTH_SHORT).show();
+                }
+            });
         dialog.show();
     }
 
@@ -353,6 +315,5 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         // Refresh data when returning to this fragment
         loadProfileData();
-        loadUserStats();
     }
 }

@@ -1,29 +1,62 @@
 package edu.northeastern.suyt.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import com.google.firebase.firestore.DocumentId;
-import com.google.firebase.firestore.Exclude;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
-public class User {
+public class User implements Parcelable {
     @DocumentId
     private String userId;
     private String username;
     private String email;
+    private boolean emailVerified = false;
     private UserStats userStats;
+    private String rank;
     private List<String> savedPosts;
 
     public User() {
+        this.savedPosts = new ArrayList<>();
+        this.userStats = new UserStats(0,0,0);
+        this.rank = "Plant Soldier";
     }
 
-    public User(String userId, String username, String email) {
+    public User(String userId, String username, String email, boolean emailVerified, UserStats userStats, List<String> savedPosts, String rank) {
         this.userId = userId;
         this.username = username;
         this.email = email;
+        this.emailVerified = emailVerified;
+        this.savedPosts = new ArrayList<>();
+        this.userStats = new UserStats(0,0,0);
+        this.rank = rank;
     }
+
+    protected User(Parcel in) {
+        userId = in.readString();
+        username = in.readString();
+        email = in.readString();
+        emailVerified = in.readByte() != 0;
+        savedPosts = in.createStringArrayList();
+        userStats = in.readParcelable(UserStats.class.getClassLoader());
+        rank = in.readString();
+    }
+
+    public static final Creator<User> CREATOR = new Creator<>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     public String getUserId() {
         return userId;
@@ -47,6 +80,22 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getRank() {
+        return rank;
+    }
+
+    public void setRank(String rank) {
+        this.rank = rank;
     }
 
     public UserStats getUserStats() {
@@ -78,21 +127,19 @@ public class User {
         }
     }
 
-    @Exclude
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("username", username);
-        map.put("email", email);
-        return map;
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
-    @Exclude
-    public static User fromFirebaseUser(com.google.firebase.auth.FirebaseUser firebaseUser, String username) {
-        if (firebaseUser == null) return null;
-        User user = new User();
-        user.setUserId(firebaseUser.getUid());
-        user.setEmail(firebaseUser.getEmail());
-        user.setUsername(username);
-        return user;
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeString(userId);
+        parcel.writeString(username);
+        parcel.writeString(email);
+        parcel.writeByte((byte) (emailVerified ? 1 : 0));
+        parcel.writeStringList(savedPosts);
+        parcel.writeParcelable(userStats, i);
+        parcel.writeString(rank);
     }
 }
