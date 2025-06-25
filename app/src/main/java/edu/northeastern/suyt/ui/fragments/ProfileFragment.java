@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -17,13 +18,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.controller.AnalysisController;
 import edu.northeastern.suyt.model.AnalysisResult;
-import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
@@ -43,11 +41,6 @@ public class ProfileFragment extends Fragment {
     private LinearLayout savedPostsButton;
     private Button createPostButton;
     private Button logoutButton;
-
-    // Stats TextViews (for the new UI)
-    private TextView postsCountTextView;
-    private TextView impactCountTextView;
-    private TextView savedCountTextView;
 
     // Controllers
     private UserController userController;
@@ -94,7 +87,7 @@ public class ProfileFragment extends Fragment {
         // Get current user data from UserController
         userController.getCurrentUser(new UserController.UserDataCallback() {
             @Override
-            public void onSuccess(String username, String email, List<String> savedPosts, UserStats userStats, String rank) {
+            public void onSuccess(String username, String email, String rank) {
                 if (getActivity() == null || !isAdded()) {
                     return;
                 }
@@ -103,25 +96,25 @@ public class ProfileFragment extends Fragment {
                 emailTextView.setText(email != null ? email : "exampler@example.com");
                 rankTextView.setText(rank != null ? rank : "Plant Soldier");
 
-
                 // Set profile image
                 profileImageView.setImageResource(R.drawable.placeholder_profile);
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(String errorMessage) {
                 if (getActivity() == null || !isAdded()) {
                     return;
                 }
-                // Fallback to default values
-                usernameTextView.setText("EcoWarrior42");
-                emailTextView.setText("eco.warrior@example.com");
-                rankTextView.setText("Eco Warrior");
+                usernameTextView.setText("Swarley");
+                emailTextView.setText("exampler@example.com");
+                rankTextView.setText("Plant Soldier");
                 profileImageView.setImageResource(R.drawable.placeholder_profile);
             }
         });
     }
 
+    @SuppressLint("DefaultLocale")
     private String formatCount(int count) {
         // Format large numbers (e.g., 1200 -> 1.2k)
         if (count >= 1000000) {
@@ -165,6 +158,7 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    @SuppressLint("SetTextI18n")
     private void openRecentAnalysis() {
         // Show loading state
         recentAnalysisButton.setEnabled(false);
@@ -172,6 +166,7 @@ public class ProfileFragment extends Fragment {
 
         // Get user's recent analysis from database
         analysisController.getUserRecentAnalysis(new AnalysisController.RecentAnalysisCallback() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onSuccess(AnalysisResult recentAnalysis) {
                 if (getActivity() == null || !isAdded()) {
@@ -195,6 +190,7 @@ public class ProfileFragment extends Fragment {
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(String errorMessage) {
                 if (getActivity() == null || !isAdded()) {
@@ -275,6 +271,7 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
     }
 
+    @SuppressLint("SetTextI18n")
     private void logout() {
         // Show logout progress
         logoutButton.setEnabled(false);
@@ -295,6 +292,7 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getActivity(), "Signed out successfully", Toast.LENGTH_SHORT).show();
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(String errorMessage) {
                 if (getActivity() == null || !isAdded()) {

@@ -1,61 +1,270 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App Identity -->
     <string name="app_name">SUYT - Suit Up Your Trash</string>
+    <string name="app_tagline">Transform waste into wonder</string>
 
-    <!-- Login and Sign Up -->
-    <string name="login_title">SUYT</string>
-    <string name="sign_up_title">Create Account</string>
-    <string name="hint_username">Username</string>
-    <string name="hint_email">Email</string>
-    <string name="hint_password">Password</string>
-    <string name="hint_confirm_password">Confirm Password</string>
-    <string name="btn_login">Login</string>
-    <string name="btn_sign_up">Sign Up</string>
-    <string name="new_user_sign_up">Don\'t have an account? Sign up</string>
-    <string name="already_have_account">Already have an account? Login</string>
-    <string name="btn_logout">Logout</string>
-    <string name="forgot_password">Forgot Password? </string>
-    <string name="password_requirement">Password must:</string>
-    <string name="password_length">• Be at least 8 characters long</string>
-    <string name="password_uppercase">• Contain at least one uppercase letter</string>
-    <string name="password_character">• Contain at least one special character</string>
-    <string name="password_digit">• Contain at least one number</string>
-    <string name="forgot_pass_title">Forgot Password</string>
-    <string name="forgot_pass_description">Enter your email address and we\'ll send you a link to reset your password.</string>
+    <!-- Login and Authentication -->
+    <string name="login_title">Welcome Back to SUYT</string>
+    <string name="sign_up_title">Join the Green Revolution</string>
+    <string name="hint_username">Your eco-warrior name</string>
+    <string name="hint_email">Email address</string>
+    <string name="hint_password">Create a secure password</string>
+    <string name="hint_confirm_password">Confirm your password</string>
+    <string name="btn_login">Sign In</string>
+    <string name="btn_sign_up">Create Account</string>
+    <string name="new_user_sign_up">New to saving the planet? <b>Join us!</b></string>
+    <string name="already_have_account">Already an eco-warrior? <b>Sign in</b></string>
+    <string name="btn_logout">Sign Out</string>
+    <string name="forgot_password">Can\'t remember your password?</string>
+
+    <!-- Password Security -->
+    <string name="password_requirement">Keep your account secure:</string>
+    <string name="password_length">• At least 8 characters (longer is stronger!)</string>
+    <string name="password_uppercase">• One uppercase letter (A-Z)</string>
+    <string name="password_character">• One special character (!@#$%^&amp;*)</string>
+    <string name="password_digit">• At least one number (0-9)</string>
+
+    <!-- Password Reset -->
+    <string name="forgot_pass_title">Reset Your Password</string>
+    <string name="forgot_pass_description">No worries! Enter your email and we\'ll send you a secure link to create a new password.</string>
     <string name="send_forgot_pass_link">Send Reset Link</string>
-    <string name="back_to_login">Back to Login</string>
+    <string name="back_to_login">← Back to Sign In</string>
 
-    <!-- Home Fragment -->
-    <string name="welcome_message">Welcome to SUYT</string>
-    <string name="home_subtitle">Featured tips for reducing waste</string>
-    <string name="view_stats_button">View My RRR Stats</string>
+    <!-- Home Screen -->
+    <string name="welcome_message">Welcome back, eco-hero!</string>
+    <string name="welcome_message_new">Welcome to SUYT, %1$s!</string>
+    <string name="home_subtitle">Today\'s featured tips to make a difference</string>
+    <string name="view_stats_button">View My Impact Stats</string>
+    <string name="daily_challenge">Today\'s Challenge</string>
+    <string name="trending_tips">Trending Tips</string>
+    <string name="quick_actions">⚡ Quick Actions</string>
 
-    <!-- Shared Strings -->
+    <!-- Impact Categories -->
     <string name="reduce">Reduce</string>
+    <string name="reduce_description">Use less, waste less</string>
     <string name="reuse">Reuse</string>
+    <string name="reuse_description">Give items a second life</string>
     <string name="recycle">Recycle</string>
+    <string name="recycle_description">Turn waste into resources</string>
 
-    <!-- Stats Screen -->
-    <string name="stats_title">My Recycling Stats</string>
-    <string name="total_points">Total Points</string>
-    <string name="total_activities">Activities</string>
-    <string name="category_recycle">Recycle</string>
-    <string name="category_reuse">Reuse</string>
-    <string name="category_reduce">Reduce</string>
+    <!-- Stats and Achievements -->
+    <string name="stats_title">Your Environmental Impact</string>
+    <string name="total_points">Impact Points</string>
+    <string name="total_activities">Actions Completed</string>
+    <string name="category_recycle">Items Recycled</string>
+    <string name="category_reuse">Items Reused</string>
+    <string name="category_reduce">Waste Reduced</string>
+    <string name="points_earned">+%1$d points earned!</string>
+    <string name="level_up">Level Up! You\'re now Level %1$d</string>
+    <string name="weekly_goal">This Week\'s Goal</string>
+    <string name="monthly_summary">Monthly Impact Summary</string>
+    <string name="carbon_saved">CO₂ Saved: %1$s kg</string>
+    <string name="items_diverted">Items Diverted from Landfill: %1$d</string>
 
-    <!-- Tips Fragment -->
-    <string name="tips_title">Recycling Tips</string>
-    <string name="category_all">All</string>
+    <!-- Tips and Education -->
+    <string name="tips_title">Eco-Tips &amp; Guides</string>
+    <string name="category_all">All Categories</string>
+    <string name="tip_of_the_day">Tip of the Day</string>
+    <string name="beginner_tips">New to Recycling?</string>
+    <string name="advanced_tips">Pro Tips</string>
+    <string name="local_guidelines">Local Recycling Guide</string>
+    <string name="how_to_guides">Step-by-Step Guides</string>
+    <string name="myth_busters">Recycling Myths Busted</string>
 
-    <!-- Menu Items -->
+    <!-- Navigation Menu -->
     <string name="menu_home">Home</string>
     <string name="menu_tips">Tips</string>
     <string name="menu_profile">Profile</string>
-    <string name="menu_rrr">RRR</string>
+    <string name="menu_rrr">My RRR</string>
     <string name="menu_achievements">Achievements</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="your_impact">Your Impact</string>
+    <string name="menu_leaderboard">Leaderboard</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_help">Help</string>
+
+    <!-- Profile and Community -->
+    <string name="your_impact">Your Environmental Impact</string>
     <string name="community_projects">Community Projects</string>
-    <string name="recyclable_item_image">Recyclable item image</string>
+    <string name="join_project">Join Project</string>
+    <string name="create_project">Start New Project</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="posts_shared">Posts Shared</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="share_achievement">Share Achievement</string>
+
+    <!-- Activity Tracking -->
+    <string name="log_activity">Log New Activity</string>
+    <string name="activity_logged">Great job! Activity logged successfully</string>
+    <string name="what_did_you_do">What eco-action did you take today?</string>
+    <string name="activity_description">Tell us more about it</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="activity_location">Location (optional)</string>
+
+    <!-- Challenges and Gamification -->
+    <string name="daily_streak">Daily Streak: %1$d days</string>
+    <string name="weekly_challenge">This Week\'s Challenge</string>
+    <string name="challenge_completed">Challenge Completed!</string>
+    <string name="join_challenge">Accept Challenge</string>
+    <string name="challenge_progress">Progress: %1$d/%2$d</string>
+    <string name="unlock_badge">New Badge Unlocked!</string>
+
+    <!-- Social Features -->
+    <string name="share_tip">Share This Tip</string>
+    <string name="like_post">Like</string>
+    <string name="comment_on_post">Comment</string>
+    <string name="follow_user">Follow</string>
+    <string name="unfollow_user">Following</string>
+    <string name="report_content">Report</string>
+
+    <!-- Notifications -->
+    <string name="notification_daily_reminder">Time to make a difference today!</string>
+    <string name="notification_tip_shared">New tip: %1$s</string>
+    <string name="notification_achievement">Achievement unlocked: %1$s</string>
+    <string name="notification_challenge">New challenge available!</string>
+
+    <!-- Error Messages -->
+    <string name="error_network">Connection issue. Please check your internet</string>
+    <string name="error_login_failed">Login failed. Please check your credentials</string>
+    <string name="error_signup_failed">Account creation failed. Please try again</string>
+    <string name="error_passwords_not_match">Passwords don\'t match</string>
+    <string name="error_invalid_email">Please enter a valid email address</string>
+    <string name="error_weak_password">Password doesn\'t meet security requirements</string>
+    <string name="error_username_taken">Username already taken. Try another one</string>
+    <string name="error_generic">Oops! Something went wrong. Please try again</string>
+
+    <!-- Success Messages -->
+    <string name="success_account_created">Welcome to SUYT! Your eco-journey begins now</string>
+    <string name="success_login">Welcome back! Ready to make an impact?</string>
+    <string name="success_password_reset">Password reset link sent to your email</string>
+    <string name="success_activity_shared">Activity shared with the community!</string>
+
+    <!-- Accessibility -->
+    <string name="recyclable_item_image">Photo of recyclable item with recycling instructions</string>
+    <string name="profile_picture">User profile picture</string>
+    <string name="activity_photo">Photo showing completed eco-activity</string>
+    <string name="navigation_drawer">Open navigation menu</string>
+    <string name="close_menu">Close menu</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">Welcome to SUYT!</string>
+    <string name="onboarding_mission">Our Mission</string>
+    <string name="onboarding_mission_desc">Help you turn everyday trash into environmental treasure through the power of Reduce, Reuse, and Recycle</string>
+    <string name="onboarding_features">What You Can Do</string>
+    <string name="onboarding_track">Track your environmental impact</string>
+    <string name="onboarding_learn">Learn eco-friendly tips</string>
+    <string name="onboarding_connect">Connect with green community</string>
+    <string name="onboarding_get_started">Let\'s Get Started!</string>
+    <string name="skip_intro">Skip</string>
+
+    <!-- Settings -->
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_about">About SUYT</string>
+    <string name="settings_contact">Contact Us</string>
+    <string name="settings_rate_app">Rate Our App</string>
+    <string name="settings_share_app">Share SUYT</string>
+
+    <!-- Time and Date -->
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="this_week">This Week</string>
+    <string name="this_month">This Month</string>
+    <string name="days_ago">%1$d days ago</string>
+    <string name="hours_ago">%1$d hours ago</string>
+    <string name="minutes_ago">%1$d minutes ago</string>
+    <string name="just_now">Just now</string>
+
+    <!-- Units and Measurements -->
+    <string name="points_unit">pts</string>
+    <string name="kilograms_unit">kg</string>
+    <string name="pounds_unit">lbs</string>
+    <string name="items_unit">items</string>
+    <string name="percent_complete">%1$d%% complete</string>
+
+
+    <!-- Screen Titles -->
+    <string name="create_post_title">Create Post</string>
+    <string name="edit_post_title">Edit Post</string>
+
+    <!-- Button Labels -->
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_photo">Choose Photo</string>
+    <string name="create_post">Create Post</string>
+    <string name="save_post">Save Post</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+    <string name="edit">Edit</string>
+
+    <!-- Input Labels and Hints -->
+    <string name="post_title_hint">What\'s your eco-tip about?</string>
+    <string name="post_title_helper">Create a catchy title that grabs attention</string>
+    <string name="description_hint">Share your story or tip</string>
+    <string name="description_helper">Tell others how they can make a difference too</string>
+    <string name="category_label">Choose your impact category</string>
+
+    <!-- Content Descriptions -->
+    <string name="post_image_description">Preview of your post image. Tap the buttons below to add a photo.</string>
+    <string name="camera_icon_description">Camera icon</string>
+    <string name="gallery_icon_description">Gallery icon</string>
+    <string name="category_icon_description">Category icon</string>
+    <string name="publish_icon_description">Publish icon</string>
+
+    <!-- Loading and Status Messages -->
+    <string name="creating_post">Creating your eco-post…</string>
+    <string name="saving_post">Saving your changes…</string>
+    <string name="post_created_success">Your post is live! Thanks for sharing your eco-tip!</string>
+    <string name="post_saved_success">Changes saved successfully!</string>
+    <string name="loading">Loading…</string>
+
+    <!-- Error Messages -->
+    <string name="error_title_required">Please add a title for your post</string>
+    <string name="error_description_required">Your post needs a description to help others</string>
+    <string name="error_category_required">Please choose which category fits your eco-tip</string>
+    <string name="error_image_required">A photo makes your post more engaging! Please add one</string>
+    <string name="error_title_too_long">Title is too long (keep it under 50 characters)</string>
+    <string name="error_description_too_long">Description is too long (maximum 500 characters)</string>
+    <string name="error_permission_camera">Camera access needed to take photos for your posts</string>
+    <string name="error_permission_storage">Photo access needed to choose images from your gallery</string>
+
+    <!-- Confirmation Messages -->
+    <string name="confirm_delete_post">Are you sure you want to delete this post?</string>
+    <string name="confirm_discard_changes">Are you sure you want to discard your changes?</string>
+
+    <!-- Character Counters -->
+    <string name="character_count">%1$d / %2$d</string>
+    <string name="characters_remaining">%1$d characters remaining</string>
+
+    <!-- Accessibility -->
+    <string name="accessibility_back_button">Go back</string>
+    <string name="accessibility_menu_button">Open menu</string>
+    <string name="accessibility_close_button">Close</string>
+
+    <!-- Placeholder Text -->
+    <string name="placeholder_title">e.g., \"5 Ways to Reduce Food Waste at Home\"</string>
+    <string name="placeholder_description">Share your experience: What did you try? How did it work? What would you do differently? Include specific tips others can follow…</string>
+
+    <!-- Tips and Hints -->
+    <string name="tip_good_title">Pro tip: Start with action words like \"How to...\", \"5 Ways to...\", or \"Why I stopped...\"</string>
+    <string name="tip_detailed_description">Great posts include: what you tried, results you saw, and actionable steps for others</string>
+    <string name="tip_choose_category">Not sure which category? Think about the main action: throwing away less (Reduce), finding new uses (Reuse), or proper disposal (Recycle)</string>
+
+    <!-- Category Descriptions -->
+    <string name="category_recycle_description">Proper disposal and recycling techniques</string>
+    <string name="category_reuse_description">Creative ways to give items a second life</string>
+    <string name="category_reduce_description">Smart strategies to consume and waste less</string>
+
+    <!-- Permission Rationale -->
+    <string name="permission_camera_rationale">This app needs camera access to take photos for your posts</string>
+    <string name="permission_storage_rationale">This app needs storage access to select photos from your gallery</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_settings">Settings</string>
+
+
 </resources>

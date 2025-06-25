@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -11,7 +12,8 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -19,13 +21,16 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:title="Create Post"
+            app:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -34,144 +39,280 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Post Image Preview -->
+            <!-- Post Image Section -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/post_image_view"
+                    <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/placeholder_image"
-                        android:contentDescription="Post image preview" />
+                        android:layout_height="240dp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="8dp">
+                        <ImageView
+                            android:id="@+id/post_image_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/placeholder_image"
+                            android:contentDescription="@string/post_image_description"
+                            android:background="@color/colorSurface" />
 
-                        <Button
-                            android:id="@+id/take_photo_button"
-                            android:layout_width="0dp"
+                        <!-- Overlay for better button visibility -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:layout_alignParentBottom="true"
+                            android:background="@drawable/gradient_overlay" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Take Photo"
-                            android:textSize="12sp"
-                            android:textColor="@android:color/white"
-                            android:backgroundTint="@color/colorPrimary"
-                            android:layout_marginEnd="4dp" />
+                            android:layout_alignParentBottom="true"
+                            android:orientation="horizontal"
+                            android:padding="12dp"
+                            android:gravity="center">
 
-                        <Button
-                            android:id="@+id/choose_photo_button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Choose Photo"
-                            android:textSize="12sp"
-                            android:textColor="@android:color/white"
-                            android:backgroundTint="@color/colorPrimary"
-                            android:layout_marginStart="4dp" />
+                            <Button
+                                android:id="@+id/take_photo_button"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/take_photo"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/white"
+                                android:backgroundTint="@color/colorPrimary"
+                                android:layout_marginEnd="8dp"
+                                android:minHeight="40dp"
+                                android:drawableStart="@drawable/ic_camera"
+                                android:drawablePadding="8dp"
+                                android:padding="8dp" />
 
-                    </LinearLayout>
+                            <Button
+                                android:id="@+id/choose_photo_button"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/choose_photo"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/white"
+                                android:backgroundTint="@color/colorPrimary"
+                                android:layout_marginStart="8dp"
+                                android:minHeight="40dp"
+                                android:drawableStart="@drawable/ic_photo_library"
+                                android:drawablePadding="8dp"
+                                android:padding="8dp" />
+
+                        </LinearLayout>
+
+                    </RelativeLayout>
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Post Title -->
-            <com.google.android.material.textfield.TextInputLayout
+            <!-- Form Fields Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Title">
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <EditText
-                    android:id="@+id/title_edit_text"
+                <!-- Post Title -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/title_input_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1" />
+                    android:layout_marginBottom="16dp"
+                    android:hint="@string/post_title_hint"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="50"
+                    app:helperText="@string/post_title_helper"
+                    app:startIconDrawable="@drawable/ic_title"
+                    app:boxStrokeColor="@color/colorPrimary"
+                    app:hintTextColor="@color/colorPrimary">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/title_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences"
+                        android:maxLength="50"
+                        android:maxLines="1"
+                        android:singleLine="true" />
 
-            <!-- Post Description -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Description">
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/description_edit_text"
+                <!-- Post Description -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/description_input_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:minLines="3"
-                    android:gravity="top|start" />
+                    android:layout_marginBottom="24dp"
+                    android:hint="@string/description_hint"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="500"
+                    app:helperText="@string/description_helper"
+                    app:startIconDrawable="@drawable/ic_description"
+                    app:boxStrokeColor="@color/colorPrimary"
+                    app:hintTextColor="@color/colorPrimary">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/description_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:maxLength="500"
+                        android:minLines="4"
+                        android:maxLines="8"
+                        android:gravity="top|start"
+                        android:scrollbars="vertical" />
 
-            <!-- Category Selection -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Category"
-                android:textSize="16sp"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="8dp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <RadioGroup
-                android:id="@+id/category_radio_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp">
-
-                <RadioButton
-                    android:id="@+id/radio_recycle"
+                <!-- Category Selection -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Recycle"
-                    android:textColor="@color/colorRecycle" />
+                    android:layout_marginBottom="24dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp">
 
-                <RadioButton
-                    android:id="@+id/radio_reuse"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Reuse"
-                    android:textColor="@color/colorReuse" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                <RadioButton
-                    android:id="@+id/radio_reduce"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Reduce"
-                    android:textColor="@color/colorReduce" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
 
-            </RadioGroup>
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_category"
+                                android:layout_marginEnd="8dp"
+                                app:tint="@color/colorPrimary" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/category_label"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/textColorPrimary" />
+
+                        </LinearLayout>
+
+                        <RadioGroup
+                            android:id="@+id/category_radio_group"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <RadioButton
+                                android:id="@+id/radio_recycle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/category_recycle"
+                                android:textColor="@color/colorRecycle"
+                                android:textSize="16sp"
+                                android:padding="8dp"
+                                android:minHeight="48dp"
+                                android:gravity="center_vertical" />
+
+                            <RadioButton
+                                android:id="@+id/radio_reuse"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/category_reuse"
+                                android:textColor="@color/colorReuse"
+                                android:textSize="16sp"
+                                android:padding="8dp"
+                                android:minHeight="48dp"
+                                android:gravity="center_vertical" />
+
+                            <RadioButton
+                                android:id="@+id/radio_reduce"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/category_reduce"
+                                android:textColor="@color/colorReduce"
+                                android:textSize="16sp"
+                                android:padding="8dp"
+                                android:minHeight="48dp"
+                                android:gravity="center_vertical" />
+
+                        </RadioGroup>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
 
             <!-- Create Post Button -->
             <Button
                 android:id="@+id/create_post_button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Create Post"
+                android:layout_height="56dp"
+                android:text="@string/create_post"
+                android:textSize="16sp"
+                android:textStyle="bold"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/colorPrimary"
-                android:padding="12dp" />
+                android:drawableStart="@drawable/ic_publish"
+                android:drawablePadding="8dp"
+                android:layout_marginTop="8dp"
+                android:minHeight="56dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Loading Overlay (Initially Hidden) -->
+    <FrameLayout
+        android:id="@+id/loading_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorSurfaceVariant"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ProgressBar
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:indeterminateTint="@color/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/creating_post"
+                android:textSize="16sp"
+                android:textColor="@color/textColorPrimary"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

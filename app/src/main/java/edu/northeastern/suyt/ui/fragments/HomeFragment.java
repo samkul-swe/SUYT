@@ -35,9 +35,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.gemini.GeminiClient;
 import edu.northeastern.suyt.model.Post;
+import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
@@ -76,6 +78,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private int reducePoints;
     private int reusePoints;
     private int recyclePoints;
+    private UserController userController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,6 +91,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
+        userController = new UserController(requireContext());
 
         if (savedInstanceState != null) {
             restoreInstanceState(savedInstanceState);
@@ -200,40 +204,21 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     }
 
     private void loadUserStats() {
-        String currentUserId = getCurrentUserId();
+        String currentUserId = userController.getCurrentUserId();
 
         if (currentUserId == null || currentUserId.isEmpty()) {
             setDefaultUserStats();
-            return;
+        } else {
+            UserStats userStats = userController.getCurrentUserStats();
+            if (userStats == null) return;
+            userRank = calculateUserRank(userStats.getTotalPoints());
+            reducePoints = userStats.getReducePoints();
+            reusePoints = userStats.getReusePoints();
+            recyclePoints = userStats.getRecyclePoints();
         }
 
-        UsersRepository usersRepository = new UsersRepository(currentUserId);
-        Task<DataSnapshot> task = usersRepository.getUsersRef().get();
+        updateUserStatsUI();
 
-        task.addOnSuccessListener(dataSnapshot -> {
-            if (dataSnapshot.child("stats").exists()) {
-                UserStats userStats = new UserStats();
-
-                //noinspection DataFlowIssue
-                userStats.setRecyclePoints(dataSnapshot.child("stats").child("recycle").getValue(Integer.class));
-                //noinspection DataFlowIssue
-                userStats.setReducePoints(dataSnapshot.child("stats").child("reduce").getValue(Integer.class));
-                //noinspection DataFlowIssue
-                userStats.setReusePoints(dataSnapshot.child("stats").child("reuse").getValue(Integer.class));
-
-                reducePoints = userStats.getReducePoints();
-                reusePoints = userStats.getReusePoints();
-                recyclePoints = userStats.getRecyclePoints();
-                userRank = calculateUserRank(reducePoints + reusePoints + recyclePoints);
-
-                mainHandler.post(this::updateUserStatsUI);
-
-            }
-        }).addOnFailureListener(exception -> {
-            Log.e("HomeFragment", "Error loading user stats", exception);
-            setDefaultUserStats();
-            updateUserStatsUI();
-        });
     }
 
     private void updateUserStatsUI() {
@@ -269,11 +254,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         } else {
             return "Beginner";
         }
-    }
-
-    private String getCurrentUserId() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        return currentUser != null ? currentUser.getUid() : null;
     }
 
     private void loadQuote() {

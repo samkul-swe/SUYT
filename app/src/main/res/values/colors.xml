@@ -44,4 +44,9 @@
     <color name="completionYesColor">#4CAF50</color>
     <color name="sharePhotoColor">#FF9800</color>
 
+    <color name="colorOnSurface">#1C1B1F</color>
+    <color name="colorSurfaceVariant">#F5F5F5</color>
+    <color name="colorOutline">#79747E</color>
+    <color name="colorSurface">#FFFFFF</color>
+
 </resources>

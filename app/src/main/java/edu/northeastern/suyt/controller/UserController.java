@@ -25,13 +25,10 @@ import edu.northeastern.suyt.firebase.DatabaseConnector;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
-import edu.northeastern.suyt.ui.activities.SignUpActivity;
 import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UserController {
     private static final String TAG = "UserController";
-    private static final String USERS_COLLECTION = "Users";
-    private static final String SAVED_POSTS_COLLECTION = "saved_posts";
 
     private final FirebaseAuth mAuth;
     private final DatabaseConnector db;
@@ -87,12 +84,12 @@ public class UserController {
 
 
     public void logInUser(String email, String password, AuthCallback callback) {
-        Log.d("Login Activity", "Attempting log in for: " + email);
+        Log.d(TAG, "Attempting log in for: " + email);
         try {
             mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d("Login Activity", "Sign in successful");
+                        Log.d(TAG, "Sign in successful");
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
                             getUserData(firebaseUser.getUid(), callback);
@@ -100,14 +97,14 @@ public class UserController {
                             callback.onFailure("No User present");
                         }
                     } else {
-                        Log.e("Login activity", "Login failed", task.getException());
+                        Log.e(TAG, "Login failed", task.getException());
                         Exception exception = task.getException();
 
                         if (exception instanceof FirebaseAuthException) {
                             FirebaseAuthException authException = (FirebaseAuthException) exception;
                             String errorCode = authException.getErrorCode();
 
-                            Log.d("Login activity", "Error code: " + errorCode);
+                            Log.d(TAG, "Error code: " + errorCode);
 
                             if (errorCode.equals("ERROR_INVALID_CREDENTIAL")) {
                                 callback.onFailure("Invalid Credentials");
@@ -143,21 +140,21 @@ public class UserController {
                 user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
                 user.setUserId(userId);
 
-                Log.d("Login Activity", "User data retrieved: " + user);
+                Log.d(TAG, "User data retrieved: " + user);
                 utility.saveUser(appContext, user);
                 callback.onSuccess(user);
             } else {
                 callback.onFailure("User data not found");
             }
         }).addOnFailureListener(exception -> {
-            Log.e("Login Activity", "Error getting user data", exception);
+            Log.e(TAG, "Error getting user data", exception);
         });
     }
 
     public void getCurrentUser(UserDataCallback callback) {
         User user = utility.getUser(appContext);
         if (user != null) {
-            callback.onSuccess(user.getUsername(), user.getEmail(), user.getSavedPosts(), user.getUserStats(), user.getRank());
+            callback.onSuccess(user.getUsername(), user.getEmail(), user.getRank());
         } else {
             callback.onFailure("No user data found");
         }
@@ -171,6 +168,11 @@ public class UserController {
     public String getCurrentUserId() {
         User user = utility.getUser(appContext);
         return (user != null) ? user.getUserId() : null;
+    }
+
+    public UserStats getCurrentUserStats() {
+        User user = utility.getUser(appContext);
+        return (user != null) ? user.getUserStats() : null;
     }
 
     public Task<Void> updateUserEmail(String newEmail, String password) {
@@ -355,7 +357,7 @@ public class UserController {
     }
 
     public interface UserDataCallback {
-        void onSuccess(String username, String email, List<String> savedPosts, UserStats userStats, String rank);
+        void onSuccess(String username, String email, String rank);
         void onFailure(String errorMessage);
     }
 

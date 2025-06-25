@@ -17,6 +17,7 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
 
 public class LoginActivity extends AppCompatActivity {
+    private String TAG = "LoginActivity";
     private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton, signupButton, forgotPasswordButton;
@@ -104,12 +105,13 @@ public class LoginActivity extends AppCompatActivity {
                             title = "Check your email or password";
                             message = "Please verify your email and password. Use 'Sign Up' to register or 'Forgot Password' to reset your password.";
                         }else{
+                            Log.e(TAG, "Login failed: " + errorMessage);
                             title = "Login Failed";
                             message = "Error in processing request. Please try again later.";
                         }
 
                         showErrorDialog(message, title);
-                        Log.e("signup activity", "Login failed: " + errorMessage);
+                        Log.e(TAG, "Login failed: " + errorMessage);
                     });
                 }
             });
@@ -147,7 +149,7 @@ public class LoginActivity extends AppCompatActivity {
         if (loadingIndicator != null) {
             loadingIndicator.setVisibility(visible);
         } else {
-            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + visible);
+            Log.e(TAG, "loadingIndicator is null when trying to set visibility: " + visible);
         }
     }
 }
