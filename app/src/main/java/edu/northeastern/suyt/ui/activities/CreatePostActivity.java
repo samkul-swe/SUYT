@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,6 +13,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.Toolbar;
 
 import androidx.annotation.Nullable;
@@ -99,23 +103,34 @@ public class CreatePostActivity extends AppCompatActivity {
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
+        try {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+            String imageFileName = "JPEG_" + timeStamp + "_";
+            File storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
+            File image = File.createTempFile(
+                    imageFileName,  /* prefix */
+                    ".jpg",         /* suffix */
+                    storageDir      /* directory */
+            );
+            // Save a file: path for use with ACTION_VIEW intents
+            currentPhotoPath = image.getAbsolutePath();
+            return image;
+        } catch(IOException e) {
+            Log.e("CreatePostActivity", "Error creating image file", e);
+        }
+        return null;
     }
+
+    ActivityResultLauncher<String> mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
+            uri -> {
+                // Handle the returned Uri
+                postImageView.setImageURI(uri);
+                hasImage = true;
+            });
 
     private void choosePhotoFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, REQUEST_PICK_IMAGE);
+        mGetContent.launch("image/*");
     }
 
     @Override
