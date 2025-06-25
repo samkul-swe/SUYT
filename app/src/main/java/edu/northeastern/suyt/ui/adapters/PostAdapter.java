@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
@@ -30,6 +31,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final ExecutorService executorService;
     private final Handler mainHandler;
     private boolean enableLikeButton;
+    private Context context;
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
@@ -43,6 +45,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         this.enableLikeButton = enableLikeButton;
         this.executorService = Executors.newFixedThreadPool(4);
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.context = context;
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -83,10 +86,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 } else {
                     holder.postImageView.setImageResource(R.drawable.reduce);
                 }
+                UserController userController = new UserController(this.context);
+                userController.get
 
                 holder.postImageView.setTag(post.getImageUrl());
                 holder.titleTextView.setText(post.getTitle());
-                holder.usernameTextView.setText(post.getUsername());
+                holder.usernameTextView.setText(post.getUserId());
                 holder.likesTextView.setText(String.valueOf(post.getLikes()));
                 holder.dateTextView.setText(post.getDate());
 

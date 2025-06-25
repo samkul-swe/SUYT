@@ -7,8 +7,8 @@ import edu.northeastern.suyt.firebase.DatabaseConnector;
 public class UsersRepository {
     private final DatabaseReference usersRef;
 
-    public UsersRepository(String userId) {
-        usersRef = DatabaseConnector.getInstance().getUsersReference(userId);
+    public UsersRepository() {
+        usersRef = DatabaseConnector.getInstance().getUsersReference();
     }
 
     public DatabaseReference getUsersRef() {

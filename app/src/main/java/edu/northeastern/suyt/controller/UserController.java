@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import edu.northeastern.suyt.firebase.AuthConnector;
 import edu.northeastern.suyt.firebase.DatabaseConnector;
+import edu.northeastern.suyt.firebase.repository.database.UserRepository;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
@@ -31,13 +32,11 @@ public class UserController {
     private static final String TAG = "UserController";
 
     private final FirebaseAuth mAuth;
-    private final DatabaseConnector db;
     private final UtilityClass utility;
     private final Context appContext;
 
     public UserController(Context context) {
         mAuth = AuthConnector.getFirebaseAuth();
-        db = DatabaseConnector.getInstance();
         utility = new UtilityClass();
         appContext = context;
     }
@@ -60,10 +59,10 @@ public class UserController {
                             currentUser.setSavedPosts(new ArrayList<>());
                             currentUser.setEmail(email);
                             currentUser.setRank("Plant Soldier");
-                            UsersRepository userRepository = new UsersRepository(uid);
-                            DatabaseReference userRef = userRepository.getUsersRef();
+                            UsersRepository usersRepository = new UsersRepository();
+                            DatabaseReference usersRef = usersRepository.getUsersRef();
 
-                            userRef.setValue(currentUser);
+                            usersRef.child(uid).setValue(currentUser);
                             callback.onSuccess();
                         } else {
                             Log.e(TAG, "User is null after successful authentication");
@@ -122,8 +121,8 @@ public class UserController {
     }
 
     public void getUserData(String userId, AuthCallback callback) {
-        UsersRepository userRepository = new UsersRepository(userId);
-        DatabaseReference userRef = userRepository.getUsersRef();
+        UserRepository userRepository = new UserRepository(userId);
+        DatabaseReference userRef = userRepository.getUserRef();
 
         userRef.get().addOnSuccessListener(dataSnapshot -> {
             if (dataSnapshot.exists()) {
@@ -139,7 +138,6 @@ public class UserController {
                 }
                 user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
                 user.setUserId(userId);
-
                 Log.d(TAG, "User data retrieved: " + user);
                 utility.saveUser(appContext, user);
                 callback.onSuccess(user);
@@ -150,6 +148,8 @@ public class UserController {
             Log.e(TAG, "Error getting user data", exception);
         });
     }
+
+    public
 
     public void getCurrentUser(UserDataCallback callback) {
         User user = utility.getUser(appContext);

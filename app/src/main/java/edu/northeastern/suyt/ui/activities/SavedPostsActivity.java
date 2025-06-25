@@ -46,7 +46,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         setContentView(R.layout.activity_saved_posts);
 
         // Initialize controllers
-        postController = new PostController();
+        postController = new PostController(this);
         userController = new UserController(getApplicationContext());
         savedPostsList = new ArrayList<>();
 

@@ -140,7 +140,7 @@ public class PostDetailActivity extends AppCompatActivity {
         if (post == null) return;
 
         titleTextView.setText(post.getTitle());
-        usernameTextView.setText(post.getUsername());
+        usernameTextView.setText(post.getUserId());
         dateTextView.setText(post.getDate());
         descriptionTextView.setText(post.getDescription());
         likesTextView.setText(String.valueOf(post.getLikes()));
@@ -402,7 +402,7 @@ public class PostDetailActivity extends AppCompatActivity {
         if (post == null) return;
 
         String shareText = "Check out this " + post.getCategory().toLowerCase() +
-                " project: \"" + post.getTitle() + "\" by " + post.getUsername() +
+                " project: \"" + post.getTitle() + "\" by " + post.getUserId() +
                 " on SUYT app!\n\n" + post.getDescription();
 
         Intent shareIntent = new Intent();

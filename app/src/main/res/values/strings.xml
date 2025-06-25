@@ -52,9 +52,9 @@
     <string name="stats_title">Your Environmental Impact</string>
     <string name="total_points">Impact Points</string>
     <string name="total_activities">Actions Completed</string>
-    <string name="category_recycle">Items Recycled</string>
-    <string name="category_reuse">Items Reused</string>
-    <string name="category_reduce">Waste Reduced</string>
+    <string name="category_recycle">Recycle</string>
+    <string name="category_reuse">Reuse</string>
+    <string name="category_reduce">Reduce</string>
     <string name="points_earned">+%1$d points earned!</string>
     <string name="level_up">Level Up! You\'re now Level %1$d</string>
     <string name="weekly_goal">This Week\'s Goal</string>

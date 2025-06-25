@@ -71,7 +71,7 @@ public class HomeViewModel extends ViewModel {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Post post = new Post();
                     post.setId(postSnapshot.getKey());
-                    post.setUsername(postSnapshot.child("username").getValue(String.class));
+                    post.setUserId(postSnapshot.child("userId").getValue(String.class));
                     post.setTitle(postSnapshot.child("title").getValue(String.class));
                     post.setDescription(postSnapshot.child("description").getValue(String.class));
                     post.setImageUrl(postSnapshot.child("imageUrl").getValue(String.class));

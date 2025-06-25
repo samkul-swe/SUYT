@@ -1,12 +1,12 @@
 package edu.northeastern.suyt.controller;
 
+import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -16,38 +16,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.northeastern.suyt.firebase.AuthConnector;
+import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
+import edu.northeastern.suyt.utils.UtilityClass;
 
+// for particular post
 public class PostController {
 
     private static final String TAG = "PostController";
     private static final String POSTS_COLLECTION = "posts";
     private static final String SAVED_POSTS_COLLECTION = "saved_posts";
-    private static final String USERS_COLLECTION = "users";
 
-    private FirebaseFirestore db;
-    private FirebaseAuth firebaseAuth;
+    private final FirebaseAuth firebaseAuth;
+    private final UtilityClass utility;
+    private final Context appContext;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public PostController() {
-        db = FirebaseFirestore.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
+    public PostController(Context context) {
+        firebaseAuth = AuthConnector.getFirebaseAuth();
+        utility = new UtilityClass();
+        appContext = context;
     }
 
-    // Callback interfaces
-    public interface SavedPostsCallback {
-        void onSuccess(List<Post> savedPosts);
-        void onFailure(String errorMessage);
-    }
 
-    public interface SavePostCallback {
-        void onSuccess();
-        void onFailure(String errorMessage);
-    }
-
-    public interface PostsCallback {
-        void onSuccess(List<Post> posts);
-        void onFailure(String errorMessage);
-    }
 
     /**
      * Get all posts saved by the current user
@@ -284,9 +276,21 @@ public class PostController {
                 });
     }
 
-    // Additional callback interfaces
-    public interface PostSavedCallback {
-        void onResult(boolean isSaved);
+
+    // Callback interfaces
+    public interface SavedPostsCallback {
+        void onSuccess(List<Post> savedPosts);
+        void onFailure(String errorMessage);
+    }
+
+    public interface SavePostCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface PostsCallback {
+        void onSuccess(List<Post> posts);
+        void onFailure(String errorMessage);
     }
 
     public interface SavedPostsCountCallback {

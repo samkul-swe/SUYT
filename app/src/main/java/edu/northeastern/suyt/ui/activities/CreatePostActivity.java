@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,10 +26,18 @@ import androidx.core.content.FileProvider;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.controller.PostController;
+import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.model.Post;
+import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.ui.fragments.HomeFragment;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class CreatePostActivity extends AppCompatActivity {
 
@@ -171,7 +180,6 @@ public class CreatePostActivity extends AppCompatActivity {
             return;
         }
 
-        // Get selected category
         int selectedRadioButtonId = categoryRadioGroup.getCheckedRadioButtonId();
         if (selectedRadioButtonId == -1) {
             Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
@@ -181,18 +189,27 @@ public class CreatePostActivity extends AppCompatActivity {
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
         String category = selectedRadioButton.getText().toString();
 
-        // In a real app, create the post in the database
-        // For now, just simulate success
-        boolean success = true;
+        UserController userController = new UserController(this);
+        String userId = userController.getCurrentUserId();
 
-        if (success) {
-            Toast.makeText(this, "Post created successfully!", Toast.LENGTH_SHORT).show();
-
-            // Return to previous screen
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to create post. Please try again.", Toast.LENGTH_SHORT).show();
+        Post post = new Post(UUID.randomUUID().toString(), userId, title, description,
+                "image", category, 0, String.valueOf(LocalDate.now()));
+        PostController postController = new PostController(this);
+        try {
+            postController.addPost(post, isSaved -> new android.os.Handler(getMainLooper()).post(() -> {
+                Log.d("SignUpActivity", "Registration successful");
+                Toast.makeText(this, "Post created successfully!", Toast.LENGTH_SHORT).show();
+                navigateToHome();
+            }));
+        } catch (Exception e) {
+            Toast.makeText(CreatePostActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void navigateToHome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override

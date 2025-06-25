@@ -4,38 +4,38 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Post implements Parcelable {
-    private String id;
-    private String username;
-    private String title;
-    private String description;
-    private String imageUrl;
-    private String category; // e.g., "Recycle", "Reuse", "Reduce" etc.
-    private int likes;
-    private String date;
+    private String postID;
+    private String postedBy;
+    private String postTitle;
+    private String postDescription;
+    private String postImage;
+    private String postCategory; // e.g., "Recycle", "Reuse", "Reduce" etc.
+    private int numberOfLikes;
+    private String postedOn;
 
     public Post() {}
 
-    public Post(String id, String username, String title, String description,
-                String imageUrl, String category, int likes, String date) {
-        this.id = id;
-        this.username = username;
-        this.title = title;
-        this.description = description;
-        this.imageUrl = imageUrl;
-        this.category = category;
-        this.likes = likes;
-        this.date = date;
+    public Post(String postID, String postedBy, String postTitle, String postDescription,
+                String postImage, String postCategory, int numberOfLikes, String postedOn) {
+        this.postID = postID;
+        this.postedBy = postedBy;
+        this.postTitle = postTitle;
+        this.postDescription = postDescription;
+        this.postImage = postImage;
+        this.postCategory = postCategory;
+        this.numberOfLikes = numberOfLikes;
+        this.postedOn = postedOn;
     }
 
     protected Post(Parcel in) {
-        id = in.readString();
-        username = in.readString();
-        title = in.readString();
-        description = in.readString();
-        imageUrl = in.readString();
-        category = in.readString();
-        likes = in.readInt();
-        date = in.readString();
+        postID = in.readString();
+        postedBy = in.readString();
+        postTitle = in.readString();
+        postDescription = in.readString();
+        postImage = in.readString();
+        postCategory = in.readString();
+        numberOfLikes = in.readInt();
+        postedOn = in.readString();
     }
 
     public static final Creator<Post> CREATOR = new Creator<>() {
@@ -57,77 +57,77 @@ public class Post implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(username);
-        dest.writeString(title);
-        dest.writeString(description);
-        dest.writeString(imageUrl);
-        dest.writeString(category);
-        dest.writeInt(likes);
-        dest.writeString(date);
+        dest.writeString(postID);
+        dest.writeString(postedBy);
+        dest.writeString(postTitle);
+        dest.writeString(postDescription);
+        dest.writeString(postImage);
+        dest.writeString(postCategory);
+        dest.writeInt(numberOfLikes);
+        dest.writeString(postedOn);
     }
 
-    public String getId() {
-        return id;
+    public String getPostID() {
+        return postID;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setPostID(String postID) {
+        this.postID = postID;
     }
 
-    public String getUsername() {
-        return username;
+    public String getPostedBy() {
+        return postedBy;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setPostedBy(String postedBy) {
+        this.postedBy = postedBy;
     }
 
-    public String getTitle() {
-        return title;
+    public String getPostTitle() {
+        return postTitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setPostTitle(String postTitle) {
+        this.postTitle = postTitle;
     }
 
-    public String getDescription() {
-        return description;
+    public String getPostDescription() {
+        return postDescription;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setPostDescription(String postDescription) {
+        this.postDescription = postDescription;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getPostImage() {
+        return postImage;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setPostImage(String postImage) {
+        this.postImage = postImage;
     }
 
-    public String getCategory() {
-        return category;
+    public String getPostCategory() {
+        return postCategory;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setPostCategory(String postCategory) {
+        this.postCategory = postCategory;
     }
 
-    public int getLikes() {
-        return likes;
+    public int getNumberOfLikes() {
+        return numberOfLikes;
     }
 
-    public void setLikes(int likes) {
-        this.likes = likes;
+    public void setNumberOfLikes(int numberOfLikes) {
+        this.numberOfLikes = numberOfLikes;
     }
 
-    public String getDate() {
-        return date;
+    public String getPostedOn() {
+        return postedOn;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setPostedOn(String postedOn) {
+        this.postedOn = postedOn;
     }
 }
