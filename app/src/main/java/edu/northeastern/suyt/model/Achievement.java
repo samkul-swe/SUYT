@@ -6,31 +6,27 @@ public class Achievement {
     private String description;
     private int flowerResourceId;
     private boolean unlocked;
-    private int progress;
-    private int maxProgress;
+    private int pointsToUnlock;
     private String unlockDate;
-    private int gridPosition;
 
     public Achievement() {
     }
 
     public Achievement(String id, String title, String description, int flowerResourceId,
-                       boolean unlocked, int progress, int maxProgress, String unlockDate, int gridPosition) {
+                       boolean unlocked, int pointsToUnlock, String unlockDate) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.flowerResourceId = flowerResourceId;
         this.unlocked = unlocked;
-        this.progress = progress;
-        this.maxProgress = maxProgress;
+        this.pointsToUnlock = pointsToUnlock;
         this.unlockDate = unlockDate;
-        this.gridPosition = gridPosition;
     }
 
     public static Achievement createLocked(String id, String title, String description,
-                                           int flowerResourceId, int maxProgress, int gridPosition) {
+                                           int flowerResourceId, int pointsToUnlock) {
         return new Achievement(id, title, description, flowerResourceId,
-                false, 0, maxProgress, null, gridPosition);
+                false, pointsToUnlock, null);
     }
 
     public String getId() {
@@ -73,23 +69,15 @@ public class Achievement {
         this.unlocked = unlocked;
     }
 
-    public int getProgress() {
-        return progress;
+    public int getPointsToUnlock() {
+        return pointsToUnlock;
     }
 
-    public void setProgress(int progress) {
-        this.progress = progress;
-        if (this.progress >= this.maxProgress) {
+    public void setPointsToUnlock(int pointsToUnlock) {
+        this.pointsToUnlock = pointsToUnlock;
+        if (this.pointsToUnlock >= this.pointsToUnlock) {
             this.unlocked = true;
         }
-    }
-
-    public int getMaxProgress() {
-        return maxProgress;
-    }
-
-    public void setMaxProgress(int maxProgress) {
-        this.maxProgress = maxProgress;
     }
 
     public String getUnlockDate() {
@@ -98,20 +86,5 @@ public class Achievement {
 
     public void setUnlockDate(String unlockDate) {
         this.unlockDate = unlockDate;
-    }
-
-    public int getGridPosition() {
-        return gridPosition;
-    }
-
-    public void setGridPosition(int gridPosition) {
-        this.gridPosition = gridPosition;
-    }
-
-    public float getProgressPercentage() {
-        if (maxProgress <= 0) {
-            return unlocked ? 100f : 0f;
-        }
-        return ((float) progress / maxProgress) * 100f;
     }
 }

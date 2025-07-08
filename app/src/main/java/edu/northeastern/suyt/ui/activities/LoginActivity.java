@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class LoginActivity extends AppCompatActivity {
     private String TAG = "LoginActivity";
@@ -23,18 +24,22 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton, signupButton, forgotPasswordButton;
     private ProgressBar loadingIndicator;
     private UserController userController;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        userController = new UserController(getApplicationContext());
+        sessionManager = new SessionManager(this);
 
-        if (userController.isUserSignedIn()) {
+        // Check if already logged in
+        if (sessionManager.isLoggedIn()) {
             navigateToMain();
             return;
         }
+
+        userController = new UserController(this);
 
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);

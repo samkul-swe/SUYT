@@ -33,4 +33,9 @@ public class DatabaseConnector {
     public DatabaseReference getPostReference(String postId) {
         return database.getReference("Posts").child(postId);
     }
+
+    public DatabaseReference getAchievementsReference() {
+        return database.getReference("Achievements");
+    }
+
 }

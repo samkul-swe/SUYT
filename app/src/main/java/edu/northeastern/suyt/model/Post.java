@@ -12,6 +12,7 @@ public class Post implements Parcelable {
     private String postCategory; // e.g., "Recycle", "Reuse", "Reduce" etc.
     private int numberOfLikes;
     private String postedOn;
+    private String updatedOn;
 
     public Post() {}
 

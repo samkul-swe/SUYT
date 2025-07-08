@@ -44,6 +44,7 @@ import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
 import edu.northeastern.suyt.ui.viewmodel.HomeViewModel;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
@@ -53,6 +54,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView recyclePointsTextView;
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
+    private UtilityClass utility;
 
     private HomeViewModel viewModel;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -204,12 +206,13 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     }
 
     private void loadUserStats() {
-        String currentUserId = userController.getCurrentUserId();
+        User currentUser = utility.getUser(getContext());
+        String currentUserId = currentUser.getUserId();
 
         if (currentUserId == null || currentUserId.isEmpty()) {
             setDefaultUserStats();
         } else {
-            UserStats userStats = userController.getCurrentUserStats();
+            UserStats userStats = currentUser.getUserStats();
             if (userStats == null) return;
             userRank = calculateUserRank(userStats.getTotalPoints());
             reducePoints = userStats.getReducePoints();

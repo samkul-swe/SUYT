@@ -105,7 +105,7 @@ public class PostDetailActivity extends AppCompatActivity {
 
             if (post != null) {
                 loadPostData();
-                checkUserPostStatus(post.getId());
+                checkUserPostStatus(post.getPostID());
             } else {
                 Toast.makeText(this, "Error loading post data.", Toast.LENGTH_SHORT).show();
                 finish();
@@ -139,19 +139,19 @@ public class PostDetailActivity extends AppCompatActivity {
     private void loadPostData() {
         if (post == null) return;
 
-        titleTextView.setText(post.getTitle());
-        usernameTextView.setText(post.getUserId());
-        dateTextView.setText(post.getDate());
-        descriptionTextView.setText(post.getDescription());
-        likesTextView.setText(String.valueOf(post.getLikes()));
-        categoryTextView.setText(post.getCategory());
+        titleTextView.setText(post.getPostTitle());
+        usernameTextView.setText(post.getPostedBy());
+        dateTextView.setText(post.getPostedOn());
+        descriptionTextView.setText(post.getPostDescription());
+        likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
+        categoryTextView.setText(post.getPostCategory());
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(post.getTitle());
+            getSupportActionBar().setTitle(post.getPostTitle());
         }
 
-        setCategoryIndicatorColor(post.getCategory());
-        setPostImage(post.getCategory());
+        setCategoryIndicatorColor(post.getPostCategory());
+        setPostImage(post.getPostCategory());
     }
 
     private void setCategoryIndicatorColor(String category) {
@@ -202,51 +202,51 @@ public class PostDetailActivity extends AppCompatActivity {
             return;
         }
 
-        checkUserLikeStatus(postId);
-        checkUserSaveStatus(postId);
+//        checkUserLikeStatus(postId);
+//        checkUserSaveStatus(postId);
     }
 
-    private void checkUserLikeStatus(String postId) {
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userLikesRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
+//    private void checkUserLikeStatus(String postId) {
+//        // Use the correct method from DatabaseConnector
+//        DatabaseReference userLikesRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
+//
+//        userLikesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                isPostLikedByUser = snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
+//                updateLikeButtonUI();
+//                Log.d(TAG, "User like status for post " + postId + ": " + isPostLikedByUser);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to check user like status: " + error.getMessage());
+//                isPostLikedByUser = false;
+//                updateLikeButtonUI();
+//            }
+//        });
+//    }
 
-        userLikesRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                isPostLikedByUser = snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
-                updateLikeButtonUI();
-                Log.d(TAG, "User like status for post " + postId + ": " + isPostLikedByUser);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to check user like status: " + error.getMessage());
-                isPostLikedByUser = false;
-                updateLikeButtonUI();
-            }
-        });
-    }
-
-    private void checkUserSaveStatus(String postId) {
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userSavesRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
-
-        userSavesRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                isPostSavedByUser = snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
-                updateSaveButtonUI();
-                Log.d(TAG, "User save status for post " + postId + ": " + isPostSavedByUser);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to check user save status: " + error.getMessage());
-                isPostSavedByUser = false;
-                updateSaveButtonUI();
-            }
-        });
-    }
+//    private void checkUserSaveStatus(String postId) {
+//        // Use the correct method from DatabaseConnector
+//        DatabaseReference userSavesRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
+//
+//        userSavesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                isPostSavedByUser = snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
+//                updateSaveButtonUI();
+//                Log.d(TAG, "User save status for post " + postId + ": " + isPostSavedByUser);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to check user save status: " + error.getMessage());
+//                isPostSavedByUser = false;
+//                updateSaveButtonUI();
+//            }
+//        });
+//    }
 
     private void toggleLikeStatus() {
         if (currentUserId == null || post == null) {
@@ -257,69 +257,69 @@ public class PostDetailActivity extends AppCompatActivity {
         likeButton.setEnabled(false);
 
         if (isPostLikedByUser) {
-            unlikePost();
+//            unlikePost();
         } else {
             likePost();
         }
     }
 
     private void likePost() {
-        String postId = post.getId();
+        String postId = post.getPostID();
 
-        int newLikeCount = post.getLikes() + 1;
-        post.setLikes(newLikeCount);
-
-        updateLikesInDatabase(postId, newLikeCount);
-
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userLikeRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
-
-        userLikeRef.setValue(true)
-                .addOnSuccessListener(aVoid -> {
-                    isPostLikedByUser = true;
-                    likesTextView.setText(String.valueOf(post.getLikes()));
-                    updateLikeButtonUI();
-                    likeButton.setEnabled(true);
-                    Snackbar.make(findViewById(android.R.id.content), "Post liked! 👍", Snackbar.LENGTH_SHORT).show();
-                    Log.d(TAG, "Successfully liked post " + postId);
-                })
-                .addOnFailureListener(e -> {
-                    post.setLikes(post.getLikes() - 1);
-                    likesTextView.setText(String.valueOf(post.getLikes()));
-                    likeButton.setEnabled(true);
-                    Toast.makeText(this, "Failed to like post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to like post: " + e.getMessage());
-                });
-    }
-
-    private void unlikePost() {
-        String postId = post.getId();
-
-        int newLikeCount = Math.max(0, post.getLikes() - 1);
-        post.setLikes(newLikeCount);
+        int newLikeCount = post.getNumberOfLikes() + 1;
+        post.setNumberOfLikes(newLikeCount);
 
         updateLikesInDatabase(postId, newLikeCount);
 
         // Use the correct method from DatabaseConnector
-        DatabaseReference userLikeRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
+//        DatabaseReference userLikeRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
 
-        userLikeRef.removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    isPostLikedByUser = false;
-                    likesTextView.setText(String.valueOf(post.getLikes()));
-                    updateLikeButtonUI();
-                    likeButton.setEnabled(true);
-                    Snackbar.make(findViewById(android.R.id.content), "Post unliked", Snackbar.LENGTH_SHORT).show();
-                    Log.d(TAG, "Successfully unliked post " + postId);
-                })
-                .addOnFailureListener(e -> {
-                    post.setLikes(post.getLikes() + 1);
-                    likesTextView.setText(String.valueOf(post.getLikes()));
-                    likeButton.setEnabled(true);
-                    Toast.makeText(this, "Failed to unlike post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to unlike post: " + e.getMessage());
-                });
+//        userLikeRef.setValue(true)
+//                .addOnSuccessListener(aVoid -> {
+//                    isPostLikedByUser = true;
+//                    likesTextView.setText(String.valueOf(post.getLikes()));
+//                    updateLikeButtonUI();
+//                    likeButton.setEnabled(true);
+//                    Snackbar.make(findViewById(android.R.id.content), "Post liked! 👍", Snackbar.LENGTH_SHORT).show();
+//                    Log.d(TAG, "Successfully liked post " + postId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    post.setLikes(post.getLikes() - 1);
+//                    likesTextView.setText(String.valueOf(post.getLikes()));
+//                    likeButton.setEnabled(true);
+//                    Toast.makeText(this, "Failed to like post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "Failed to like post: " + e.getMessage());
+//                });
     }
+
+//    private void unlikePost() {
+//        String postId = post.getId();
+//
+//        int newLikeCount = Math.max(0, post.getLikes() - 1);
+//        post.setLikes(newLikeCount);
+//
+//        updateLikesInDatabase(postId, newLikeCount);
+//
+//        // Use the correct method from DatabaseConnector
+//        DatabaseReference userLikeRef = databaseConnector.getUserPostLikeReference(currentUserId, postId);
+//
+//        userLikeRef.removeValue()
+//                .addOnSuccessListener(aVoid -> {
+//                    isPostLikedByUser = false;
+//                    likesTextView.setText(String.valueOf(post.getLikes()));
+//                    updateLikeButtonUI();
+//                    likeButton.setEnabled(true);
+//                    Snackbar.make(findViewById(android.R.id.content), "Post unliked", Snackbar.LENGTH_SHORT).show();
+//                    Log.d(TAG, "Successfully unliked post " + postId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    post.setLikes(post.getLikes() + 1);
+//                    likesTextView.setText(String.valueOf(post.getLikes()));
+//                    likeButton.setEnabled(true);
+//                    Toast.makeText(this, "Failed to unlike post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "Failed to unlike post: " + e.getMessage());
+//                });
+//    }
 
     private void updateLikeButtonUI() {
         if (isPostLikedByUser) {
@@ -340,53 +340,53 @@ public class PostDetailActivity extends AppCompatActivity {
         saveToolbarButton.setEnabled(false);
 
         if (isPostSavedByUser) {
-            unsavePost();
+//            unsavePost();
         } else {
-            savePost();
+//            savePost();
         }
     }
 
-    private void savePost() {
-        String postId = post.getId();
+//    private void savePost() {
+//        String postId = post.getId();
+//
+//        // Use the correct method from DatabaseConnector
+//        DatabaseReference userSaveRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
+//
+//        userSaveRef.setValue(true)
+//                .addOnSuccessListener(aVoid -> {
+//                    isPostSavedByUser = true;
+//                    updateSaveButtonUI();
+//                    saveToolbarButton.setEnabled(true);
+//                    Snackbar.make(findViewById(android.R.id.content), "Post saved! 💾", Snackbar.LENGTH_SHORT).show();
+//                    Log.d(TAG, "Successfully saved post " + postId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    saveToolbarButton.setEnabled(true);
+//                    Toast.makeText(this, "Failed to save post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "Failed to save post: " + e.getMessage());
+//                });
+//    }
 
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userSaveRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
-
-        userSaveRef.setValue(true)
-                .addOnSuccessListener(aVoid -> {
-                    isPostSavedByUser = true;
-                    updateSaveButtonUI();
-                    saveToolbarButton.setEnabled(true);
-                    Snackbar.make(findViewById(android.R.id.content), "Post saved! 💾", Snackbar.LENGTH_SHORT).show();
-                    Log.d(TAG, "Successfully saved post " + postId);
-                })
-                .addOnFailureListener(e -> {
-                    saveToolbarButton.setEnabled(true);
-                    Toast.makeText(this, "Failed to save post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to save post: " + e.getMessage());
-                });
-    }
-
-    private void unsavePost() {
-        String postId = post.getId();
-
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userSaveRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
-
-        userSaveRef.removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    isPostSavedByUser = false;
-                    updateSaveButtonUI();
-                    saveToolbarButton.setEnabled(true);
-                    Snackbar.make(findViewById(android.R.id.content), "Post unsaved", Snackbar.LENGTH_SHORT).show();
-                    Log.d(TAG, "Successfully unsaved post " + postId);
-                })
-                .addOnFailureListener(e -> {
-                    saveToolbarButton.setEnabled(true);
-                    Toast.makeText(this, "Failed to unsave post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to unsave post: " + e.getMessage());
-                });
-    }
+//    private void unsavePost() {
+//        String postId = post.getId();
+//
+//        // Use the correct method from DatabaseConnector
+//        DatabaseReference userSaveRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
+//
+//        userSaveRef.removeValue()
+//                .addOnSuccessListener(aVoid -> {
+//                    isPostSavedByUser = false;
+//                    updateSaveButtonUI();
+//                    saveToolbarButton.setEnabled(true);
+//                    Snackbar.make(findViewById(android.R.id.content), "Post unsaved", Snackbar.LENGTH_SHORT).show();
+//                    Log.d(TAG, "Successfully unsaved post " + postId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    saveToolbarButton.setEnabled(true);
+//                    Toast.makeText(this, "Failed to unsave post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "Failed to unsave post: " + e.getMessage());
+//                });
+//    }
 
     private void updateSaveButtonUI() {
         if (isPostSavedByUser) {
@@ -401,15 +401,15 @@ public class PostDetailActivity extends AppCompatActivity {
     private void sharePost() {
         if (post == null) return;
 
-        String shareText = "Check out this " + post.getCategory().toLowerCase() +
-                " project: \"" + post.getTitle() + "\" by " + post.getUserId() +
-                " on SUYT app!\n\n" + post.getDescription();
+        String shareText = "Check out this " + post.getPostCategory().toLowerCase() +
+                " project: \"" + post.getPostTitle() + "\" by " + post.getPostedBy() +
+                " on SUYT app!\n\n" + post.getPostDescription();
 
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Recycling Project: " + post.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Recycling Project: " + post.getPostTitle());
 
         startActivity(Intent.createChooser(shareIntent, "Share via"));
     }

@@ -31,6 +31,8 @@ import java.util.List;
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Achievement;
+import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class AchievementsFragment extends Fragment {
 
@@ -41,6 +43,7 @@ public class AchievementsFragment extends Fragment {
     private TextView tvSelectedAchievementDescription;
     private ProgressBar progressAchievement;
     private FloatingActionButton fabRefresh;
+    private UtilityClass utility;
 
     private FirebaseFirestore db;
     private UserController userController;
@@ -107,8 +110,9 @@ public class AchievementsFragment extends Fragment {
     private void loadAchievements() {
         createPlaceholderAchievements();
 
+        User currentUser = utility.getUser(getContext());
         // Get the current user ID
-        String userId = userController.getCurrentUserId();
+        String userId = currentUser.getUserId();
         if (userId == null) {
             Toast.makeText(getContext(), "No user logged in", Toast.LENGTH_SHORT).show();
             return;

@@ -29,16 +29,17 @@ public class AnalysisRepository {
             throw new IllegalArgumentException("Analysis result and ID cannot be null");
         }
 
-        DatabaseReference analysisRef = databaseConnector.getAnalysisResultReference(analysisResult.getId());
-
-        return analysisRef.setValue(analysisResult.toMap())
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Analysis result saved successfully: " + analysisResult.getId());
-                    updateUserAnalysisHistory(analysisResult);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to save analysis result: " + e.getMessage());
-                });
+//        DatabaseReference analysisRef = databaseConnector.getAnalysisResultReference(analysisResult.getId());
+//
+//        return analysisRef.setValue(analysisResult.toMap())
+//                .addOnSuccessListener(aVoid -> {
+//                    Log.d(TAG, "Analysis result saved successfully: " + analysisResult.getId());
+//                    updateUserAnalysisHistory(analysisResult);
+//                })
+//                .addOnFailureListener(e -> {
+//                    Log.e(TAG, "Failed to save analysis result: " + e.getMessage());
+//                });
+        return null;
     }
 
     private void updateUserAnalysisHistory(AnalysisResult analysisResult) {
@@ -51,98 +52,99 @@ public class AnalysisRepository {
         historyEntry.put("timestamp", analysisResult.getTimestamp());
         historyEntry.put("imageUrl", analysisResult.getImageUrl());
 
-        DatabaseReference historyRef = databaseConnector.getUserSpecificAnalysisReference(userId, analysisId);
-        historyRef.setValue(historyEntry);
-
-        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
-        recentRef.setValue(analysisId)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Updated user recent analysis: " + analysisId);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to update recent analysis: " + e.getMessage());
-                });
+//        DatabaseReference historyRef = databaseConnector.getUserSpecificAnalysisReference(userId, analysisId);
+//        historyRef.setValue(historyEntry);
+//
+//        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
+//        recentRef.setValue(analysisId)
+//                .addOnSuccessListener(aVoid -> {
+//                    Log.d(TAG, "Updated user recent analysis: " + analysisId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    Log.e(TAG, "Failed to update recent analysis: " + e.getMessage());
+//                });
     }
 
     public void getUserRecentAnalysis(String userId, AnalysisCallback callback) {
-        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
-
-        recentRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    String recentAnalysisId = snapshot.getValue(String.class);
-                    if (recentAnalysisId != null) {
-                        getAnalysisResult(recentAnalysisId, callback);
-                    } else {
-                        callback.onResult(null);
-                    }
-                } else {
-                    callback.onResult(null);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to get recent analysis: " + error.getMessage());
-                callback.onError(error.getMessage());
-            }
-        });
+//        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
+//
+//        recentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                if (snapshot.exists()) {
+//                    String recentAnalysisId = snapshot.getValue(String.class);
+//                    if (recentAnalysisId != null) {
+//                        getAnalysisResult(recentAnalysisId, callback);
+//                    } else {
+//                        callback.onResult(null);
+//                    }
+//                } else {
+//                    callback.onResult(null);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to get recent analysis: " + error.getMessage());
+//                callback.onError(error.getMessage());
+//            }
+//        });
     }
 
     public void getAnalysisResult(String analysisId, AnalysisCallback callback) {
-        DatabaseReference analysisRef = databaseConnector.getAnalysisResultReference(analysisId);
-
-        analysisRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    try {
-                        AnalysisResult result = snapshot.getValue(AnalysisResult.class);
-                        callback.onResult(result);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to parse analysis result: " + e.getMessage());
-                        callback.onError("Failed to parse analysis result");
-                    }
-                } else {
-                    callback.onResult(null);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to get analysis result: " + error.getMessage());
-                callback.onError(error.getMessage());
-            }
-        });
+//        DatabaseReference analysisRef = databaseConnector.getAnalysisResultReference(analysisId);
+//
+//        analysisRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                if (snapshot.exists()) {
+//                    try {
+//                        AnalysisResult result = snapshot.getValue(AnalysisResult.class);
+//                        callback.onResult(result);
+//                    } catch (Exception e) {
+//                        Log.e(TAG, "Failed to parse analysis result: " + e.getMessage());
+//                        callback.onError("Failed to parse analysis result");
+//                    }
+//                } else {
+//                    callback.onResult(null);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to get analysis result: " + error.getMessage());
+//                callback.onError(error.getMessage());
+//            }
+//        });
     }
 
     public void hasRecentAnalysis(String userId, BooleanCallback callback) {
-        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
-
-        recentRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                callback.onResult(snapshot.exists() && snapshot.getValue() != null);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to check recent analysis: " + error.getMessage());
-                callback.onResult(false);
-            }
-        });
+//        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
+//
+//        recentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                callback.onResult(snapshot.exists() && snapshot.getValue() != null);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.e(TAG, "Failed to check recent analysis: " + error.getMessage());
+//                callback.onResult(false);
+//            }
+//        });
     }
 
     public Task<Void> clearUserRecentAnalysis(String userId) {
-        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
-        return recentRef.removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Cleared recent analysis for user: " + userId);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to clear recent analysis: " + e.getMessage());
-                });
+//        DatabaseReference recentRef = databaseConnector.getUserRecentAnalysisReference(userId);
+//        return recentRef.removeValue()
+//                .addOnSuccessListener(aVoid -> {
+//                    Log.d(TAG, "Cleared recent analysis for user: " + userId);
+//                })
+//                .addOnFailureListener(e -> {
+//                    Log.e(TAG, "Failed to clear recent analysis: " + e.getMessage());
+//                });
+        return null;
     }
 
     public interface AnalysisCallback {

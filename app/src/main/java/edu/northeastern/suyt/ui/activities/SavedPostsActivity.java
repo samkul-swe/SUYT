@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,10 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.PostController;
+import edu.northeastern.suyt.controller.PostsController;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
+import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class SavedPostsActivity extends AppCompatActivity implements PostAdapter.OnPostClickListener {
 
@@ -32,9 +35,10 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     private PostAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private TextView emptyStateTextView;
+    private UtilityClass utility;
 
     // Controllers
-    private PostController postController;
+    private PostsController postsController;
     private UserController userController;
 
     // Data
@@ -46,7 +50,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         setContentView(R.layout.activity_saved_posts);
 
         // Initialize controllers
-        postController = new PostController(this);
+        postsController = new PostsController();
         userController = new UserController(getApplicationContext());
         savedPostsList = new ArrayList<>();
 
@@ -100,18 +104,17 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
             swipeRefreshLayout.setRefreshing(true);
         }
 
-        // Check if user is signed in
-        if (!userController.isUserSignedIn()) {
-            handleLoadingError("Please sign in to view saved posts");
+        User currentUser = utility.getUser(this);
+        if (currentUser.getSavedPosts() == null) {
+            updateUI();
+            stopRefreshing();
             return;
         }
-
         // Get user's saved posts
-        postController.getUserSavedPosts(new PostController.SavedPostsCallback() {
+        postsController.getUserSavedPosts(currentUser.getSavedPosts(), new PostsController.GetAllPostsCallback() {
             @Override
             public void onSuccess(List<Post> savedPosts) {
                 Log.d(TAG, "Successfully loaded " + savedPosts.size() + " saved posts");
-
                 savedPostsList.clear();
                 savedPostsList.addAll(savedPosts);
 
@@ -122,10 +125,10 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
             }
 
             @Override
-            public void onFailure(String errorMessage) {
-                Log.e(TAG, "Failed to load saved posts: " + errorMessage);
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Failed to load saved posts: " + e);
                 runOnUiThread(() -> {
-                    handleLoadingError(errorMessage);
+                    handleLoadingError(String.valueOf(e));
                     stopRefreshing();
                 });
             }
@@ -146,12 +149,12 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         emptyStateTextView.setText("No saved posts yet.\nStart exploring and save posts you like!");
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void showSavedPosts() {
         recyclerView.setVisibility(View.VISIBLE);
         emptyStateTextView.setVisibility(View.GONE);
 
         // Update adapter with new data
-//        adapter.updatePosts(savedPostsList);
         adapter.notifyDataSetChanged();
     }
 
@@ -175,7 +178,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     public void onPostClick(Post post) {
         if (post != null) {
             Intent intent = new Intent(this, PostDetailActivity.class);
-            intent.putExtra("POST_ID", post.getId());
+            intent.putExtra("POST_ID", post.getPostID());
             intent.putExtra("POST", post); // Pass the entire post object as backup
             startActivity(intent);
         }
@@ -193,11 +196,12 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     }
 
     private void savePost(Post post) {
-        postController.savePost(post.getId(), new PostController.SavePostCallback() {
+        userController.savePost(post.getPostID(), new UserController.UpdateCallback() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-//                    post.setSaved(true);
+                    savedPostsList.add(post);
                     adapter.notifyDataSetChanged();
                     Toast.makeText(SavedPostsActivity.this, "Post saved", Toast.LENGTH_SHORT).show();
                 });
@@ -213,7 +217,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     }
 
     private void unsavePost(Post post) {
-        postController.unsavePost(post.getId(), new PostController.SavePostCallback() {
+        userController.unsavePost(post.getPostID(), new UserController.UpdateCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
@@ -236,9 +240,9 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     private void sharePost(Post post) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, post.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, post.getPostTitle());
         shareIntent.putExtra(Intent.EXTRA_TEXT,
-                post.getTitle() + "\n\n" + "\n\nShared from EcoApp");
+                post.getPostTitle() + "\n\n" + "\n\nShared from EcoApp");
 
         try {
             startActivity(Intent.createChooser(shareIntent, "Share Post"));
@@ -250,7 +254,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);

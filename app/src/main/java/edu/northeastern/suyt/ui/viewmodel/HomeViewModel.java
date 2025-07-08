@@ -70,17 +70,17 @@ public class HomeViewModel extends ViewModel {
                 List<Post> posts = new ArrayList<>();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Post post = new Post();
-                    post.setId(postSnapshot.getKey());
-                    post.setUserId(postSnapshot.child("userId").getValue(String.class));
-                    post.setTitle(postSnapshot.child("title").getValue(String.class));
-                    post.setDescription(postSnapshot.child("description").getValue(String.class));
-                    post.setImageUrl(postSnapshot.child("imageUrl").getValue(String.class));
-                    post.setCategory(postSnapshot.child("category").getValue(String.class));
+                    post.setPostID(postSnapshot.getKey());
+                    post.setPostedBy(postSnapshot.child("userId").getValue(String.class));
+                    post.setPostTitle(postSnapshot.child("title").getValue(String.class));
+                    post.setPostDescription(postSnapshot.child("description").getValue(String.class));
+                    post.setPostImage(postSnapshot.child("imageUrl").getValue(String.class));
+                    post.setPostCategory(postSnapshot.child("category").getValue(String.class));
 
                     Integer likes = postSnapshot.child("likes").getValue(Integer.class);
-                    post.setLikes(likes != null ? likes : 0);
+                    post.setNumberOfLikes(likes != null ? likes : 0);
 
-                    post.setDate(postSnapshot.child("date").getValue(String.class));
+                    post.setPostedOn(postSnapshot.child("date").getValue(String.class));
                     posts.add(post);
                 }
 

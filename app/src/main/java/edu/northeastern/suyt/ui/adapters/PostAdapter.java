@@ -79,21 +79,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         executorService.execute(() -> {
             mainHandler.post(() -> {
 
-                if (post.getCategory().equalsIgnoreCase("reuse")) {
+                if (post.getPostCategory().equalsIgnoreCase("reuse")) {
                     holder.postImageView.setImageResource(R.drawable.reuse);
-                } else if (post.getCategory().equalsIgnoreCase("recycle")) {
+                } else if (post.getPostCategory().equalsIgnoreCase("recycle")) {
                     holder.postImageView.setImageResource(R.drawable.recycle);
                 } else {
                     holder.postImageView.setImageResource(R.drawable.reduce);
                 }
                 UserController userController = new UserController(this.context);
-                userController.get
 
-                holder.postImageView.setTag(post.getImageUrl());
-                holder.titleTextView.setText(post.getTitle());
-                holder.usernameTextView.setText(post.getUserId());
-                holder.likesTextView.setText(String.valueOf(post.getLikes()));
-                holder.dateTextView.setText(post.getDate());
+                holder.postImageView.setTag(post.getPostImage());
+                holder.titleTextView.setText(post.getPostTitle());
+                holder.usernameTextView.setText(post.getPostedBy());
+                holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
+                holder.dateTextView.setText(post.getPostedOn());
 
                 configureLikeButton(holder, post, enableLikeButton);
             });
@@ -105,7 +104,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             }
         });
 
-        setCategoryIndicatorColor(holder, post.getCategory());
+        setCategoryIndicatorColor(holder, post.getPostCategory());
     }
 
     private void configureLikeButton(PostViewHolder holder, Post post, boolean enableLikeButton) {
@@ -113,10 +112,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             holder.likeButton.setEnabled(true);
             holder.likeButton.setAlpha(1.0f);
             holder.likeButton.setOnClickListener(v -> {
-                post.setLikes(post.getLikes() + 1);
-                holder.likesTextView.setText(String.valueOf(post.getLikes()));
+                post.setNumberOfLikes(post.getNumberOfLikes() + 1);
+                holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
 
-                updateLikeInDatabase(post.getId(), post.getLikes());
+                updateLikeInDatabase(post.getPostID(), post.getNumberOfLikes());
             });
         } else {
             holder.likeButton.setEnabled(false);

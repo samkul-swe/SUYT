@@ -22,12 +22,14 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.controller.AnalysisController;
 import edu.northeastern.suyt.model.AnalysisResult;
+import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.activities.RecentAnalysisActivity;
 import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
 import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ProfileFragment extends Fragment {
     // UI Components
@@ -41,6 +43,7 @@ public class ProfileFragment extends Fragment {
     private LinearLayout savedPostsButton;
     private Button createPostButton;
     private Button logoutButton;
+    private UtilityClass utility;
 
     // Controllers
     private UserController userController;
@@ -85,33 +88,13 @@ public class ProfileFragment extends Fragment {
 
     private void loadProfileData() {
         // Get current user data from UserController
-        userController.getCurrentUser(new UserController.UserDataCallback() {
-            @Override
-            public void onSuccess(String username, String email, String rank) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
+        User currentUser = utility.getUser(getContext());
+        usernameTextView.setText(currentUser.getUsername() != null ? currentUser.getUsername() : "Swarley");
+        emailTextView.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "exampler@example.com");
+        rankTextView.setText(currentUser.getRank() != null ? currentUser.getRank() : "Plant Soldier");
 
-                usernameTextView.setText(username != null ? username : "Swarley");
-                emailTextView.setText(email != null ? email : "exampler@example.com");
-                rankTextView.setText(rank != null ? rank : "Plant Soldier");
-
-                // Set profile image
-                profileImageView.setImageResource(R.drawable.placeholder_profile);
-            }
-
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onFailure(String errorMessage) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-                usernameTextView.setText("Swarley");
-                emailTextView.setText("exampler@example.com");
-                rankTextView.setText("Plant Soldier");
-                profileImageView.setImageResource(R.drawable.placeholder_profile);
-            }
-        });
+        // Set profile image
+        profileImageView.setImageResource(R.drawable.placeholder_profile);
     }
 
     @SuppressLint("DefaultLocale")

@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.PostController;
+import edu.northeastern.suyt.controller.PostsController;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
@@ -51,6 +52,7 @@ public class CreatePostActivity extends AppCompatActivity {
     private Button takePhotoButton;
     private Button choosePhotoButton;
     private Button createPostButton;
+    private UtilityClass utility;
 
     private String currentPhotoPath;
     private boolean hasImage = false;
@@ -190,13 +192,14 @@ public class CreatePostActivity extends AppCompatActivity {
         String category = selectedRadioButton.getText().toString();
 
         UserController userController = new UserController(this);
-        String userId = userController.getCurrentUserId();
+        User currentUser = utility.getUser(this);
+        String userId = currentUser.getUserId();
 
         Post post = new Post(UUID.randomUUID().toString(), userId, title, description,
                 "image", category, 0, String.valueOf(LocalDate.now()));
-        PostController postController = new PostController(this);
+        PostsController postsController = new PostsController();
         try {
-            postController.addPost(post, isSaved -> new android.os.Handler(getMainLooper()).post(() -> {
+            postsController.createPost(post, isSaved -> new android.os.Handler(getMainLooper()).post(() -> {
                 Log.d("SignUpActivity", "Registration successful");
                 Toast.makeText(this, "Post created successfully!", Toast.LENGTH_SHORT).show();
                 navigateToHome();
