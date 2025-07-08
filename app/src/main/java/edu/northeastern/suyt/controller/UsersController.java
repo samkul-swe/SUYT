@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.controller;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -15,44 +14,28 @@ import edu.northeastern.suyt.firebase.AuthConnector;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UsersController {
-
     private static final String TAG = "UsersController";
-
     private final FirebaseAuth mAuth;
-    private final UtilityClass utility;
-    private final Context appContext;
 
-    public UsersController(Context context) {
+    public UsersController() {
         mAuth = AuthConnector.getFirebaseAuth();
-        utility = new UtilityClass();
-        appContext = context;
     }
 
-    // Create a new user
-    public void registerUser(String username, String email, String password, UserController.RegisterCallback callback) {
+    public void registerUser(String username, String email, String password, RegisterCallback callback) {
         Log.d(TAG, "Starting registration for: " + email);
         try {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Log.d(TAG, "Authentication successful");
+                            Log.d(TAG, "Creating user in firebase authentication successful.");
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
                                 String uid = firebaseUser.getUid();
-                                User currentUser = new User();
-                                currentUser.setUsername(username);
-                                currentUser.setUserId(uid);
-                                UserStats userStats = new UserStats(0,0,0);
-                                currentUser.setUserStats(userStats);
-                                currentUser.setSavedPosts(new ArrayList<>());
-                                currentUser.setEmail(email);
-                                currentUser.setRank("Plant Soldier");
+                                User currentUser = new User(uid, username, email, false, new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
                                 UsersRepository usersRepository = new UsersRepository();
                                 DatabaseReference usersRef = usersRepository.getUsersRef();
-
                                 usersRef.child(uid).setValue(currentUser);
                                 callback.onSuccess();
                             } else {
@@ -72,8 +55,7 @@ public class UsersController {
         }
     }
 
-    // Find the user and get all their information
-    public void logInUser(String email, String password, UserController.AuthCallback callback) {
+    public void logInUser(String email, String password, AuthCallback callback) {
         Log.d(TAG, "Attempting log in for: " + email);
         try {
             mAuth.signInWithEmailAndPassword(email, password)
@@ -111,7 +93,7 @@ public class UsersController {
         }
     }
 
-    public void getUserData(String userId, UserController.AuthCallback callback) {
+    public void getUserData(String userId, AuthCallback callback) {
         UsersRepository userRepository = new UsersRepository(userId);
         DatabaseReference userRef = userRepository.getUserRef();
 
@@ -130,21 +112,51 @@ public class UsersController {
                 user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
                 user.setUserId(userId);
                 Log.d(TAG, "User data retrieved: " + user);
-                utility.saveUser(appContext, user);
                 callback.onSuccess(user);
             } else {
                 callback.onFailure("User data not found");
             }
-        }).addOnFailureListener(exception -> {
-            Log.e(TAG, "Error getting user data", exception);
-        });
+        }).addOnFailureListener(exception -> Log.e(TAG, "Error getting user data", exception));
     }
 
-    public void removeUser() {
-
+    public void removeUser(String userId, RemoveUserCallback callback) {
+        UsersRepository userRepository = new UsersRepository(userId);
+        DatabaseReference userRef = userRepository.getUserRef();
+        try {
+            assert mAuth.getCurrentUser() != null;
+            mAuth.getCurrentUser().delete();
+            Log.d(TAG, "User removed from firebase authentication");
+            userRef.removeValue();
+            Log.d(TAG, "User removed from firebase database");
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error removing user", e);
+            callback.onFailure("Error removing user: " + e.getMessage());
+        }
     }
 
-    public void updateUsers() {
+    public void updateUsers(UpdateUserCallBack callBack) {
+        //TODO: Implement
+    }
 
+    //CALLBACK INTERFACES
+    public interface RegisterCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface AuthCallback {
+        void onSuccess(User user);
+        void onFailure(String errorMessage);
+    }
+
+    public interface RemoveUserCallback {
+        void onSuccess();
+        void onFailure(String errorMessage);
+    }
+
+    public interface UpdateUserCallBack {
+        void onSuccess(boolean success);
+        void onFailure(String errorMessage);
     }
 }

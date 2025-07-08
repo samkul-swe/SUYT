@@ -55,7 +55,7 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         // Initialize controllers
-        userController = new UserController(getContext());
+        userController = new UserController();
         analysisController = new AnalysisController();
 
         // Initialize views

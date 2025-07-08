@@ -179,6 +179,26 @@ public class PostController {
     }
 
     // Callback interfaces
+    public interface UpdatePostTitleCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+    public interface UpdatePostDescriptionCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+    public interface UpdatePostCategoryCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+    public interface UpdatePostImageCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
     public interface PostDetailsCallback {
         void onSuccess(Post post);
         void onFailure(Exception e);

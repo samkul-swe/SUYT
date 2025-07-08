@@ -1,10 +1,7 @@
 package edu.northeastern.suyt.controller;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -12,54 +9,101 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 
-import java.util.Objects;
-
-import edu.northeastern.suyt.firebase.AuthConnector;
-import edu.northeastern.suyt.firebase.DatabaseConnector;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
-import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UserController {
     private static final String TAG = "UserController";
 
+    private final DatabaseReference userRef;
     private final FirebaseAuth mAuth;
-    private final UtilityClass utility;
-    private final Context appContext;
+    FirebaseUser currentUser;
 
-    public UserController(Context context) {
-        mAuth = AuthConnector.getFirebaseAuth();
-        utility = new UtilityClass();
-        appContext = context;
+    public UserController(String userId) {
+        UsersRepository userRepository = new UsersRepository(userId);
+        userRef = userRepository.getUserRef();
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
     }
 
     public void updateRank(String rank, UpdateCallback callback) {
-
+        Log.d(TAG, "Updating rank to: " + rank);
+        if (rank == null || rank.isEmpty()) {
+            callback.onFailure("Invalid rank");
+            return;
+        }
+        try {
+            userRef.child("rank").setValue(rank);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating rank", e);
+            callback.onFailure("Error updating rank: " + e.getMessage());
+        }
     }
 
     public void updateRecyclePoints(int points, UpdateCallback callback) {
-
+        Log.d(TAG, "Updating recycle points to: " + points);
+        if (points == 0) {
+            callback.onFailure("Invalid points");
+            return;
+        }
+        try {
+            userRef.child("userStats").child("recyclePoints").setValue(points);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating recycle points", e);
+            callback.onFailure("Error updating recycle points: " + e.getMessage());
+        }
     }
 
     public void updateReducePoints(int points, UpdateCallback callback) {
-
+        Log.d(TAG, "Updating reduce points to: " + points);
+        if (points == 0) {
+            callback.onFailure("Invalid points");
+            return;
+        }
+        try {
+            userRef.child("userStats").child("reducePoints").setValue(points);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating reduce points", e);
+            callback.onFailure("Error updating reduce points: " + e.getMessage());
+        }
     }
 
     public void updateReusePoints(int points, UpdateCallback callback) {
-
+        Log.d(TAG, "Updating recuse points to: " + points);
+        if (points == 0) {
+            callback.onFailure("Invalid points");
+            return;
+        }
+        try {
+            userRef.child("userStats").child("reusePoints").setValue(points);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating reuse points", e);
+            callback.onFailure("Error updating reuse points: " + e.getMessage());
+        }
     }
 
     public void updateUserName(String username, UpdateCallback callback) {
-
+        Log.d(TAG, "Updating username to: " + username);
+        if (username == null || username.isEmpty()) {
+            callback.onFailure("Invalid username");
+            return;
+        }
+        try {
+            userRef.child("username").setValue(username);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating username", e);
+            callback.onFailure("Error updating username: " + e.getMessage());
+        }
     }
 
     public void savePost(String postId, UpdateCallback callback) {
-        User currentUser = utility.getUser(appContext);
         Log.d(TAG, "Post saved: " + postId);
-        currentUser.addSavedPost(postId);
-        utility.saveUser(appContext, currentUser);
         try {
-            DatabaseConnector.getInstance().getUserReference(currentUser.getUserId()).child("savedPosts").child(postId).setValue(true);
+            userRef.child("savedPosts").child(postId).setValue(true);
             callback.onSuccess();
         } catch (Exception e) {
             Log.e(TAG, "Error saving post", e);
@@ -68,12 +112,9 @@ public class UserController {
     }
 
     public void unsavePost(String postId, UpdateCallback callback) {
-        User currentUser = utility.getUser(appContext);
         Log.d(TAG, "Post unsaved: " + postId);
-        currentUser.removeSavedPost(postId);
-        utility.saveUser(appContext, currentUser);
         try {
-            DatabaseConnector.getInstance().getUserReference(currentUser.getUserId()).child("savedPosts").child(postId).removeValue();
+            userRef.child("savedPosts").child(postId).removeValue();
             callback.onSuccess();
         } catch (Exception e) {
             Log.e(TAG, "Error removing post", e);
@@ -81,102 +122,40 @@ public class UserController {
         }
     }
 
-    public void authenticateEmail(String email) {
-
-    }
-
-    public void getUserStats(String userId, StatsCallback callback) {
-
-    }
-
-    public Task<Void> updateUserEmail(String newEmail, String password) {
-        User user = utility.getUser(appContext);
+    public void updateUserEmail(String newEmail, UpdateCallback callback) {
         Log.d(TAG, "Attempting to update email to: " + newEmail);
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "No user is currently logged in");
-            return Tasks.forException(new Exception("No user is currently logged in"));
+            callback.onFailure("No user is currently logged in");
         }
-
         String currentEmail = currentUser.getEmail();
         if (currentEmail == null) {
             Log.e(TAG, "Current user has no email");
-            return Tasks.forException(new Exception("Current user has no email"));
+            callback.onFailure("Current user has no email");
         }
-
-        AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, password);
-
-        return currentUser.reauthenticate(credential)
-            .continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Failed to re-authenticate", task.getException());
-                    throw new Exception("Incorrect password. Please try again.");
-                }
-
-                Log.d(TAG, "User re-authenticated successfully");
-                return currentUser.updateEmail(newEmail);
-            })
-            .continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Failed to update email in Authentication", task.getException());
-                    throw Objects.requireNonNull(task.getException());
-                }
-
-                Log.d(TAG, "Email updated in Authentication");
-
-                // Update email in Firestore
-                UsersRepository userRepository = new UsersRepository(user.getUserId());
-                DatabaseReference userRef = userRepository.getUserRef();
-                return userRef.setValue("email", newEmail);
-            })
-            .continueWith(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Failed to update email in Firestore", task.getException());
-                    throw Objects.requireNonNull(task.getException());
-                }
-
-                Log.d(TAG, "Email updated in Firestore");
-                return null;
-            });
+        try {
+            currentUser.verifyBeforeUpdateEmail(newEmail);
+            callback.onSuccess();
+        } catch (Exception e) {
+            callback.onFailure("Error updating email : " + e);
+        }
     }
 
-    public Task<Void> updateUserPassword(String currentPassword, String newPassword) {
+    public void updateUserPassword(String currentEmail, String currentPassword, String newPassword, UpdateCallback callback) {
         Log.d(TAG, "Attempting to update password");
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Log.e(TAG, "No user is currently logged in");
-            return Tasks.forException(new Exception("No user is currently logged in"));
-        }
-
-        String currentEmail = currentUser.getEmail();
-        if (currentEmail == null) {
-            Log.e(TAG, "Current user has no email");
-            return Tasks.forException(new Exception("Current user has no email"));
-        }
 
         AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, currentPassword);
 
-        return currentUser.reauthenticate(credential)
-            .continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Failed to re-authenticate", task.getException());
-                    throw new Exception("Incorrect password. Please try again.");
-                }
-
-                Log.d(TAG, "User re-authenticated successfully");
-                return currentUser.updatePassword(newPassword);
-            })
-            .continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Failed to update password", task.getException());
-                    throw Objects.requireNonNull(task.getException());
-                }
-
-                Log.d(TAG, "Password updated successfully");
-                return Tasks.forResult(null);
-            });
+        currentUser.reauthenticate(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                // Reauthentication successful, proceed to update password
+                currentUser.updatePassword(newPassword);
+                callback.onSuccess();
+            } else {
+                // Handle reauthentication failure (e.g., incorrect old password)
+                callback.onFailure("Authentication failed");
+            }
+        });
     }
 
     public void sendPasswordResetEmail(String email, PasswordResetCallback callback) {
@@ -240,16 +219,6 @@ public class UserController {
     }
 
     // CALLBACK INTERFACES
-    public interface RegisterCallback {
-        void onSuccess();
-        void onFailure(String errorMessage);
-    }
-
-    public interface AuthCallback {
-        void onSuccess(User user);
-        void onFailure(String errorMessage);
-    }
-
     public interface UpdateCallback {
         void onSuccess();
         void onFailure(String errorMessage);

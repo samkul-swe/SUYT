@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.controller.UsersController;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -26,9 +26,8 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private EditText confirmPasswordEditText;
     private Button signUpButton;
-    private TextView loginTextView;
     private ProgressBar loadingIndicator;
-    private UserController userController;
+    private UsersController usersController;
 
     private TextView requirementLength;
     private TextView requirementUppercase;
@@ -43,7 +42,7 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-        userController = new UserController(getApplicationContext());
+        usersController = new UsersController();
 
         usernameEditText = findViewById(R.id.username_edit_text);
         emailEditText = findViewById(R.id.email_edit_text);
@@ -51,7 +50,7 @@ public class SignUpActivity extends AppCompatActivity {
         confirmPasswordEditText = findViewById(R.id.confirm_password_edit_text);
         signUpButton = findViewById(R.id.sign_up_button);
         loadingIndicator = findViewById(R.id.loading_indicator);
-        loginTextView = findViewById(R.id.login_text_view);
+        TextView loginTextView = findViewById(R.id.login_text_view);
         requirementLength = findViewById(R.id.requirement_length);
         requirementUppercase = findViewById(R.id.requirement_uppercase);
         requirementNumber = findViewById(R.id.requirement_number);
@@ -133,12 +132,12 @@ public class SignUpActivity extends AppCompatActivity {
         }
 
         signUpButton.setEnabled(false);
-        setLoadingIndicatorVisibility(View.VISIBLE);
+        setLoadingIndicatorVisibility();
 
         Toast.makeText(SignUpActivity.this, "Contacting authentication server...", Toast.LENGTH_SHORT).show();
 
         try {
-            userController.registerUser(username, email, password, new UserController.RegisterCallback() {
+            usersController.registerUser(username, email, password, new UsersController.RegisterCallback() {
                 @Override
                 public void onSuccess() {
                     new android.os.Handler(getMainLooper()).post(() -> {
@@ -174,11 +173,11 @@ public class SignUpActivity extends AppCompatActivity {
         finish();
     }
 
-    private void setLoadingIndicatorVisibility(int visible) {
+    private void setLoadingIndicatorVisibility() {
         if (loadingIndicator != null) {
-            loadingIndicator.setVisibility(visible);
+            loadingIndicator.setVisibility(View.VISIBLE);
         } else {
-            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + visible);
+            Log.e("SignUpActivity", "loadingIndicator is null when trying to set visibility: " + View.VISIBLE);
         }
     }
 }
