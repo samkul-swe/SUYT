@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
 
@@ -25,6 +27,7 @@ public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
     private String currentEmail;
     private OnEmailChangedListener listener;
     private UserController userController;
+    private UtilityClass utility;
 
     public interface OnEmailChangedListener {
         void onEmailChanged(String newEmail);
@@ -34,7 +37,8 @@ public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
         super(context);
         this.currentEmail = currentEmail;
         this.listener = listener;
-        this.userController = new UserController(getContext());
+        User currentUser = utility.getUser(context);
+        this.userController = new UserController(currentUser.getUserId());
     }
 
     @Override

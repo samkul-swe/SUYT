@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.controller;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -14,41 +15,49 @@ import edu.northeastern.suyt.firebase.AuthConnector;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UsersController {
     private static final String TAG = "UsersController";
     private final FirebaseAuth mAuth;
+    private UtilityClass utility = new UtilityClass();
+    private Context context;
 
-    public UsersController() {
+    public UsersController(Context context) {
         mAuth = AuthConnector.getFirebaseAuth();
+        this.context = context;
     }
 
     public void registerUser(String username, String email, String password, RegisterCallback callback) {
         Log.d(TAG, "Starting registration for: " + email);
         try {
             mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "Creating user in firebase authentication successful.");
-                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                            if (firebaseUser != null) {
-                                String uid = firebaseUser.getUid();
-                                User currentUser = new User(uid, username, email, false, new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
-                                UsersRepository usersRepository = new UsersRepository();
-                                DatabaseReference usersRef = usersRepository.getUsersRef();
-                                usersRef.child(uid).setValue(currentUser);
-                                callback.onSuccess();
-                            } else {
-                                Log.e(TAG, "User is null after successful authentication");
-                                callback.onFailure("Authentication successful but user is null");
-                            }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Creating user in firebase authentication successful.");
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            Log.d(TAG, "Creating user in firebase database...");
+                            String uid = firebaseUser.getUid();
+                            User currentUser = new User(uid, username, email, false, new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
+                            UsersRepository usersRepository = new UsersRepository();
+                            DatabaseReference usersRef = usersRepository.getUsersRef();
+                            usersRef.child(uid).setValue(currentUser);
+                            Log.d(TAG, "User created in firebase database");
+                            utility.saveUser(this.context, currentUser);
+                            Log.d(TAG, "User saved to shared preferences");
+                            callback.onSuccess();
                         } else {
-                            Log.e(TAG, "Authentication failed", task.getException());
-                            String errorMessage = task.getException() != null ?
-                                    task.getException().getMessage() : "Authentication failed";
-                            callback.onFailure(errorMessage);
+                            Log.e(TAG, "User is null after successful authentication");
+                            callback.onFailure("Authentication successful but user is null");
                         }
-                    });
+                    } else {
+                        Log.e(TAG, "Authentication failed", task.getException());
+                        String errorMessage = task.getException() != null ?
+                                task.getException().getMessage() : "Authentication failed";
+                        callback.onFailure(errorMessage);
+                    }
+                });
         } catch (Exception e) {
             Log.e(TAG, "Unexpected exception in registerUser", e);
             callback.onFailure("Unexpected error: " + e.getMessage());
@@ -109,7 +118,7 @@ public class UsersController {
                         user.addSavedPost((String) postId);
                     }
                 }
-                user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
+//                user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
                 user.setUserId(userId);
                 Log.d(TAG, "User data retrieved: " + user);
                 callback.onSuccess(user);

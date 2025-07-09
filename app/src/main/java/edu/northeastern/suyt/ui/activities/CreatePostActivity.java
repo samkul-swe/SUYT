@@ -191,9 +191,9 @@ public class CreatePostActivity extends AppCompatActivity {
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
         String category = selectedRadioButton.getText().toString();
 
-        UserController userController = new UserController(this);
         User currentUser = utility.getUser(this);
         String userId = currentUser.getUserId();
+        UserController userController = new UserController(userId);
 
         Post post = new Post(UUID.randomUUID().toString(), userId, title, description,
                 "image", category, 0, String.valueOf(LocalDate.now()));

@@ -31,6 +31,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -54,7 +55,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView recyclePointsTextView;
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
-    private UtilityClass utility;
+    private UtilityClass utility = new UtilityClass();
 
     private HomeViewModel viewModel;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -93,7 +94,8 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
-        userController = new UserController(requireContext());
+        User currentUser = utility.getUser(getContext());
+        userController = new UserController(currentUser.getUserId());
 
         if (savedInstanceState != null) {
             restoreInstanceState(savedInstanceState);

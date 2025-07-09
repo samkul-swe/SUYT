@@ -19,8 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.controller.AnalysisController;
+import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.AnalysisResult;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
@@ -54,8 +54,9 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        User currentUser = utility.getUser(requireContext());
         // Initialize controllers
-        userController = new UserController();
+        userController = new UserController(currentUser.getUserId());
         analysisController = new AnalysisController();
 
         // Initialize views
@@ -213,7 +214,7 @@ public class ProfileFragment extends Fragment {
                             }
                             Toast.makeText(requireContext(), "Failed to update email: " + errorMessage, Toast.LENGTH_LONG).show();
                         }
-                    }.toString());
+                    });
                 });
         dialog.show();
     }

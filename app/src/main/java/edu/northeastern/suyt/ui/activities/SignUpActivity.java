@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -33,16 +34,20 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView requirementUppercase;
     private TextView requirementNumber;
     private TextView requirementSpecial;
+    private TextView requirementFormat;
     private boolean isLengthValid = false;
     private boolean isUppercaseValid = false;
     private boolean isNumberValid = false;
     private boolean isSpecialValid = false;
+    private boolean isValidFormat = false;
+    private boolean isUsernameLengthValid = false;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-        usersController = new UsersController();
+        usersController = new UsersController(this);
 
         usernameEditText = findViewById(R.id.username_edit_text);
         emailEditText = findViewById(R.id.email_edit_text);
@@ -55,10 +60,26 @@ public class SignUpActivity extends AppCompatActivity {
         requirementUppercase = findViewById(R.id.requirement_uppercase);
         requirementNumber = findViewById(R.id.requirement_number);
         requirementSpecial = findViewById(R.id.requirement_special);
+        requirementFormat = findViewById(R.id.requirement_format);
 
         signUpButton.setOnClickListener(v -> attemptSignUp());
         String loginText = "Already have an account? <font color='#3344DD'>Login here!</font>";
         loginTextView.setText(Html.fromHtml(loginText, Html.FROM_HTML_MODE_LEGACY));
+
+        usernameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                //does nothing
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //does nothing
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                validateUserName(s.toString());
+            }
+        });
 
         passwordEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -80,6 +101,30 @@ public class SignUpActivity extends AppCompatActivity {
         signUpButton.setOnClickListener(v -> attemptSignUp());
 
         loginTextView.setOnClickListener(v -> navigateToLogin());
+    }
+
+    private void validateUserName(String username) {
+        int validColor = ContextCompat.getColor(this, R.color.passwordValid);
+        int invalidColor = ContextCompat.getColor(this, R.color.darkGray);
+
+        isUsernameLengthValid = !username.isEmpty();
+        requirementLength.setTextColor(isLengthValid ? validColor : invalidColor);
+
+        isValidFormat = isValidUsernameFormat(username);
+        requirementFormat.setTextColor(isValidFormat ? validColor : invalidColor);
+    }
+
+    private boolean isValidUsernameFormat(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        String trimmed = username.trim();
+
+        if (trimmed.length() < 3 || trimmed.length() > 30) {
+            return false;
+        }
+        return trimmed.matches("^[a-zA-Z0-9][a-zA-Z0-9._-]*$");
     }
 
     private void validatePassword(String password) {
@@ -119,6 +164,10 @@ public class SignUpActivity extends AppCompatActivity {
 
         if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(SignUpActivity.this, "Incomplete form. Please fill in all the details.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!isValidFormat && !isUsernameLengthValid) {
+            Toast.makeText(SignUpActivity.this, "Username does not meet requirements.", Toast.LENGTH_LONG).show();
             return;
         }
         if (!(isLengthValid && isUppercaseValid && isNumberValid && isSpecialValid)) {

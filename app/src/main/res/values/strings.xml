@@ -24,6 +24,7 @@
     <string name="password_uppercase">• One uppercase letter (A-Z)</string>
     <string name="password_character">• One special character (!@#$%^&amp;*)</string>
     <string name="password_digit">• At least one number (0-9)</string>
+    <string name="password_format">• No spaces or special characters</string>
 
     <!-- Password Reset -->
     <string name="forgot_pass_title">Reset Your Password</string>

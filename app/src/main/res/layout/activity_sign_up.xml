@@ -179,6 +179,14 @@
                             android:text="@string/password_character"
                             android:textColor="@android:color/darker_gray"
                             android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/requirement_format"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/password_format"
+                            android:textColor="@android:color/darker_gray"
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                     <com.google.android.material.textfield.TextInputLayout

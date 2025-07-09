@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ChangePasswordDialog extends Dialog implements View.OnClickListener {
     private EditText currentPasswordEditText;
@@ -23,6 +25,7 @@ public class ChangePasswordDialog extends Dialog implements View.OnClickListener
 
     private OnPasswordChangedListener listener;
     private UserController userController;
+    private UtilityClass utility;
 
     public interface OnPasswordChangedListener {
         void onPasswordChanged(boolean success);
@@ -31,7 +34,8 @@ public class ChangePasswordDialog extends Dialog implements View.OnClickListener
     public ChangePasswordDialog(@NonNull Context context, OnPasswordChangedListener listener) {
         super(context);
         this.listener = listener;
-        this.userController = new UserController(getContext());
+        User currentUser = utility.getUser(context);
+        this.userController = new UserController(currentUser.getUserId());
     }
 
     @Override

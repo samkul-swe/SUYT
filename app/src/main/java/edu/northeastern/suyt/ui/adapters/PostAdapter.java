@@ -22,7 +22,9 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
+import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
@@ -32,6 +34,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final Handler mainHandler;
     private boolean enableLikeButton;
     private Context context;
+    private UtilityClass utility;
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
@@ -86,7 +89,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 } else {
                     holder.postImageView.setImageResource(R.drawable.reduce);
                 }
-                UserController userController = new UserController(this.context);
+                User currentUser = utility.getUser(this.context);
+                UserController userController = new UserController(currentUser.getUserId());
 
                 holder.postImageView.setTag(post.getPostImage());
                 holder.titleTextView.setText(post.getPostTitle());

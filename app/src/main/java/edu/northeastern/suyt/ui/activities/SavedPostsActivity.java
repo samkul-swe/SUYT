@@ -51,7 +51,8 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
 
         // Initialize controllers
         postsController = new PostsController();
-        userController = new UserController(getApplicationContext());
+        User currentUser = utility.getUser(this);
+        userController = new UserController(currentUser.getUserId());
         savedPostsList = new ArrayList<>();
 
         // Setup toolbar

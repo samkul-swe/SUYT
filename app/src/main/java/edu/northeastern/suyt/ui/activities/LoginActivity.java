@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        usersController = new UsersController();
+        usersController = new UsersController(this);
 
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);

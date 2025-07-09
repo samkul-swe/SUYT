@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
@@ -16,8 +17,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.Objects;
+
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ForgotPassword extends AppCompatActivity {
 
@@ -26,7 +31,7 @@ public class ForgotPassword extends AppCompatActivity {
     private Button backToLoginButton;
     private ProgressBar loadingIndicator;
     private UserController userController;
-
+    private UtilityClass utility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +44,8 @@ public class ForgotPassword extends AppCompatActivity {
             return insets;
         });
 
-        userController = new UserController(getApplicationContext());
+        User currentUser = utility.getUser(getApplicationContext());
+        userController = new UserController(currentUser.getUserId());
         initializeViews();
         setupClickListeners();
     }
@@ -59,7 +65,7 @@ public class ForgotPassword extends AppCompatActivity {
     }
 
     private void sendPasswordResetEmail() {
-        String email = emailEditText.getText().toString().trim();
+        String email = Objects.requireNonNull(emailEditText.getText()).toString().trim();
 
         if (email.isEmpty()) {
             emailEditText.setError("Email is required");
@@ -108,6 +114,7 @@ public class ForgotPassword extends AppCompatActivity {
                 .show();
     }
 
+    @SuppressLint("SetTextI18n")
     private void setLoadingState(boolean isLoading) {
         loadingIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         sendResetLinkButton.setEnabled(!isLoading);
