@@ -15,6 +15,7 @@ import edu.northeastern.suyt.firebase.AuthConnector;
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
+import edu.northeastern.suyt.utils.SessionManager;
 import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UsersController {
@@ -46,6 +47,9 @@ public class UsersController {
                             Log.d(TAG, "User created in firebase database");
                             utility.saveUser(this.context, currentUser);
                             Log.d(TAG, "User saved to shared preferences");
+                            SessionManager sessionManager = new SessionManager(this.context);
+                            sessionManager.saveLoginSession();
+                            Log.d(TAG, "Login session saved");
                             callback.onSuccess();
                         } else {
                             Log.e(TAG, "User is null after successful authentication");

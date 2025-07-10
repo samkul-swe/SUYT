@@ -15,7 +15,7 @@ public class SessionManager {
         editor = sharedPref.edit();
     }
 
-    public void saveLoginSession(String authToken, String userId) {
+    public void saveLoginSession() {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
     }

@@ -94,7 +94,8 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
-        User currentUser = utility.getUser(getContext());
+        User currentUser = utility.getUser(requireContext().getApplicationContext());
+        if (currentUser == null) return;
         userController = new UserController(currentUser.getUserId());
 
         if (savedInstanceState != null) {
@@ -208,7 +209,8 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     }
 
     private void loadUserStats() {
-        User currentUser = utility.getUser(getContext());
+        User currentUser = utility.getUser(requireContext().getApplicationContext());
+        if (currentUser == null) return;
         String currentUserId = currentUser.getUserId();
 
         if (currentUserId == null || currentUserId.isEmpty()) {

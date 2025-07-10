@@ -15,4 +15,9 @@ public class UtilityClass {
         Sharable app = (Sharable) context.getApplicationContext();
         return app.getCurrentUser();
     }
+
+    public String getUserID(Context context){
+        Sharable app = (Sharable) context.getApplicationContext();
+        return app.getCurrentUser().getUserId();
+    }
 }

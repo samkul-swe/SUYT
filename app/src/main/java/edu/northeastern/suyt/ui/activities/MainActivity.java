@@ -1,5 +1,7 @@
 package edu.northeastern.suyt.ui.activities;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -27,47 +29,56 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            setContentView(R.layout.activity_main);
+        SharedPreferences sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPref.getBoolean("is_logged_in", false);
 
-            BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-            if (bottomNavigationView == null) {
-                finish();
-                return;
-            }
+        if (isLoggedIn) {
+            try {
+                setContentView(R.layout.activity_main);
 
-            bottomNavigationView.setOnItemSelectedListener(item -> {
-                try {
-                    Fragment fragment = null;
-                    int id = item.getItemId();
+                BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+                if (bottomNavigationView == null) {
+                    finish();
+                    return;
+                }
 
-                    if (id == R.id.nav_rrr) {
-                        fragment = new RRRFragment();
-                    } else if (id == R.id.nav_home) {
-                        fragment = new HomeFragment();
-                    } else if (id == R.id.nav_profile) {
-                        fragment = new ProfileFragment();
-                    } else if (id == R.id.nav_achievements) {
-                        fragment = new AchievementsFragment();
+                bottomNavigationView.setOnItemSelectedListener(item -> {
+                    try {
+                        Fragment fragment = null;
+                        int id = item.getItemId();
+
+                        if (id == R.id.nav_rrr) {
+                            fragment = new RRRFragment();
+                        } else if (id == R.id.nav_home) {
+                            fragment = new HomeFragment();
+                        } else if (id == R.id.nav_profile) {
+                            fragment = new ProfileFragment();
+                        } else if (id == R.id.nav_achievements) {
+                            fragment = new AchievementsFragment();
+                        }
+
+                        return loadFragment(fragment);
+                    } catch (Exception e) {
+                        return false;
                     }
+                });
 
-                    return loadFragment(fragment);
-                } catch (Exception e) {
-                    return false;
+                if (savedInstanceState == null) {
+                    try {
+                        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                    } catch (Exception e) {
+                        loadSimpleFallbackFragment();
+                    }
                 }
-            });
 
-            if (savedInstanceState == null) {
-                try {
-                    bottomNavigationView.setSelectedItemId(R.id.nav_home);
-                } catch (Exception e) {
-                    loadSimpleFallbackFragment();
-                }
+            } catch (Exception e) {
+                // Show error and finish
+                Toast.makeText(this, "Error loading main screen: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                finish();
             }
-
-        } catch (Exception e) {
+        }  else {
             // Show error and finish
-            Toast.makeText(this, "Error loading main screen: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show();
             finish();
         }
     }
