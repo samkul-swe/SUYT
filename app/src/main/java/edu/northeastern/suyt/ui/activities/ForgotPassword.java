@@ -22,7 +22,6 @@ import java.util.Objects;
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ForgotPassword extends AppCompatActivity {
 

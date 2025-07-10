@@ -1,8 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -18,7 +16,6 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UsersController;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.utils.SessionManager;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
@@ -27,17 +24,15 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private ProgressBar loadingIndicator;
     private UsersController usersController;
-    private UtilityClass utilityClass = new UtilityClass();
+    private final UtilityClass utility = new UtilityClass();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        SessionManager sessionManager = new SessionManager(this);
-
         // Check if already logged in
-        if (sessionManager.isLoggedIn()) {
+        if (new SessionManager(this).isLoggedIn()) {
             navigateToMain();
             return;
         }
@@ -93,9 +88,8 @@ public class LoginActivity extends AppCompatActivity {
                         setLoadingIndicatorVisibility(View.GONE);
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                         // After successful login
-                        SessionManager sessionManager = new SessionManager(getApplicationContext());
-                        sessionManager.saveLoginSession();
-                        utilityClass.saveUser(getApplicationContext(), user);
+                        new SessionManager(LoginActivity.this).saveLoginSession();
+                        utility.saveUser(LoginActivity.this, user);
                         navigateToMain();
                     });
                 }

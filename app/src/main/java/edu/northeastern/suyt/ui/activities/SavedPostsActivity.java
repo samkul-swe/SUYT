@@ -25,7 +25,6 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class SavedPostsActivity extends AppCompatActivity implements PostAdapter.OnPostClickListener {
 

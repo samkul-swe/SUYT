@@ -24,7 +24,6 @@ import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 

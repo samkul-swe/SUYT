@@ -1,7 +1,6 @@
 package edu.northeastern.suyt.ui.activities;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -11,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -21,6 +21,7 @@ import edu.northeastern.suyt.ui.fragments.AchievementsFragment;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 import edu.northeastern.suyt.ui.fragments.ProfileFragment;
 import edu.northeastern.suyt.ui.fragments.RRRFragment;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -29,10 +30,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        boolean isLoggedIn = sharedPref.getBoolean("is_logged_in", false);
-
-        if (isLoggedIn) {
+        if (new SessionManager(this).isLoggedIn()) {
             try {
                 setContentView(R.layout.activity_main);
 
@@ -101,8 +99,9 @@ public class MainActivity extends AppCompatActivity {
     private void loadSimpleFallbackFragment() {
         try {
             Fragment fallback = new Fragment() {
+                @SuppressLint("SetTextI18n")
                 @Override
-                public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+                public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
                     TextView textView = new TextView(requireContext());
                     textView.setText("Welcome! Main screen is loading...");
                     textView.setGravity(Gravity.CENTER);

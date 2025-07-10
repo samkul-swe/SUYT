@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.ui.fragments;
 
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -9,11 +8,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -24,15 +21,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Achievement;
 import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class AchievementsFragment extends Fragment {
 

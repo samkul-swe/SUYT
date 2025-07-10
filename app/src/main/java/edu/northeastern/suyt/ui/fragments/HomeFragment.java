@@ -2,11 +2,9 @@ package edu.northeastern.suyt.ui.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,24 +18,18 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.ai.type.Content;
 import com.google.firebase.ai.type.GenerateContentResponse;
 import com.google.firebase.ai.type.Schema;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
-import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.gemini.GeminiClient;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
@@ -45,7 +37,6 @@ import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
 import edu.northeastern.suyt.ui.viewmodel.HomeViewModel;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
@@ -55,7 +46,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView recyclePointsTextView;
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
-    private UtilityClass utility = new UtilityClass();
+    private final UtilityClass utility = new UtilityClass();
 
     private HomeViewModel viewModel;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -71,7 +62,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private static final String KEY_REUSE_POINTS = "reuse_points";
     private static final String KEY_RECYCLE_POINTS = "recycle_points";
 
-    private SharedPreferences preferences;
     private PostAdapter postAdapter;
     private ThreadPoolExecutor geminiExecutor;
     private LinearLayoutManager layoutManager;
@@ -81,7 +71,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private int reducePoints;
     private int reusePoints;
     private int recyclePoints;
-    private UserController userController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,7 +85,7 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
         User currentUser = utility.getUser(requireContext().getApplicationContext());
         if (currentUser == null) return;
-        userController = new UserController(currentUser.getUserId());
+        UserController userController = new UserController(currentUser.getUserId());
 
         if (savedInstanceState != null) {
             restoreInstanceState(savedInstanceState);

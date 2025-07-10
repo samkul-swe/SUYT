@@ -4,8 +4,6 @@ import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 
-import edu.northeastern.suyt.utils.Sharable;
-
 public class SUYTApplication extends Sharable {
     private static final String TAG = "SUYTApplication";
 

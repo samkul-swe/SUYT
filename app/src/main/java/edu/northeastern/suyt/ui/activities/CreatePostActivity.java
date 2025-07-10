@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -14,7 +13,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.Toolbar;
@@ -32,13 +30,10 @@ import java.util.Locale;
 import java.util.UUID;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.PostController;
 import edu.northeastern.suyt.controller.PostsController;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.ui.fragments.HomeFragment;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class CreatePostActivity extends AppCompatActivity {
 

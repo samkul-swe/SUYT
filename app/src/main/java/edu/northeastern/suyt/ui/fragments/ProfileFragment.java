@@ -29,7 +29,6 @@ import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.activities.RecentAnalysisActivity;
 import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
 import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ProfileFragment extends Fragment {
     // UI Components

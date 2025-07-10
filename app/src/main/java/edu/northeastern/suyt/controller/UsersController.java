@@ -16,13 +16,12 @@ import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.utils.SessionManager;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class UsersController {
     private static final String TAG = "UsersController";
     private final FirebaseAuth mAuth;
-    private UtilityClass utility = new UtilityClass();
-    private Context context;
+    private final UtilityClass utility = new UtilityClass();
+    private final Context context;
 
     public UsersController(Context context) {
         mAuth = AuthConnector.getFirebaseAuth();
@@ -40,17 +39,9 @@ public class UsersController {
                         if (firebaseUser != null) {
                             Log.d(TAG, "Creating user in firebase database...");
                             String uid = firebaseUser.getUid();
-                            User currentUser = new User(uid, username, email, false, new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
-                            UsersRepository usersRepository = new UsersRepository();
-                            DatabaseReference usersRef = usersRepository.getUsersRef();
-                            usersRef.child(uid).setValue(currentUser);
-                            Log.d(TAG, "User created in firebase database");
-                            utility.saveUser(this.context, currentUser);
-                            Log.d(TAG, "User saved to shared preferences");
-                            SessionManager sessionManager = new SessionManager(this.context);
-                            sessionManager.saveLoginSession();
-                            Log.d(TAG, "Login session saved");
-                            callback.onSuccess();
+                            User currentUser = new User(uid, username, email, false,
+                                    new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
+                            saveUserToDatabase(currentUser, callback);
                         } else {
                             Log.e(TAG, "User is null after successful authentication");
                             callback.onFailure("Authentication successful but user is null");
@@ -66,6 +57,21 @@ public class UsersController {
             Log.e(TAG, "Unexpected exception in registerUser", e);
             callback.onFailure("Unexpected error: " + e.getMessage());
         }
+    }
+
+    public void saveUserToDatabase(User user, RegisterCallback callback) {
+        DatabaseReference userRef = new UsersRepository(user.getUserId()).getUserRef();
+        userRef.setValue(user).addOnSuccessListener(unused -> {
+            Log.d(TAG, "User saved to database");
+            utility.saveUser(context, user);
+            Log.d(TAG, "User saved to local storage");
+            new SessionManager(context).saveLoginSession();
+            Log.d(TAG, "Login session saved");
+            callback.onSuccess();
+        }).addOnFailureListener(exception -> {
+            Log.e(TAG, "Error saving user to database", exception);
+            callback.onFailure("Error saving user to database: " + exception.getMessage());
+        });
     }
 
     public void logInUser(String email, String password, AuthCallback callback) {
@@ -122,7 +128,9 @@ public class UsersController {
                         user.addSavedPost((String) postId);
                     }
                 }
-//                user.setUserStats(dataSnapshot.child("userStats").getValue(UserStats.class));
+                if (dataSnapshot.child("userStats").exists()) {
+
+                }
                 user.setUserId(userId);
                 Log.d(TAG, "User data retrieved: " + user);
                 callback.onSuccess(user);

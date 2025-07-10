@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.utils.UtilityClass;
 
 public class ChangePasswordDialog extends Dialog implements View.OnClickListener {
     private EditText currentPasswordEditText;
