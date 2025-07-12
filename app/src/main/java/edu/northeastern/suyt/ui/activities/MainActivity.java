@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.appcheck.FirebaseAppCheck;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.ui.fragments.AchievementsFragment;
@@ -29,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
+        firebaseAppCheck.getLimitedUseAppCheckToken();
 
         if (new SessionManager(this).isLoggedIn()) {
             try {

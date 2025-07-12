@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,8 @@ import edu.northeastern.suyt.utils.SessionManager;
 
 public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
+    private static final String TAG = "HomeFragment";
+
     private TextView userRankTextView;
     private TextView reducePointsTextView;
     private TextView reusePointsTextView;
@@ -52,8 +55,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private int recyclePoints;
 
     private static final long QUOTE_VALIDITY_PERIOD = 24 * 60 * 60 * 1000L; // 24 hours
-    private static final String DEFAULT_QUOTE = "Every small action counts towards a greener tomorrow!";
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,30 +78,13 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         super.onViewCreated(view, savedInstanceState);
 
         findViews(view);
-
         setupRecyclerView();
-
         setupViewModelObservers();
+
         loadUserStats();
         viewModel.loadPostsIfNeeded();
 
-        quoteForUserTextView.setText(DEFAULT_QUOTE);
-
-        viewModel.getQuote().observe(getViewLifecycleOwner(), quote -> {
-            if (quote != null) {
-                quoteForUserTextView.setText(quote);
-            }
-        });
-
-        viewModel.getIsLoadingQuote().observe(getViewLifecycleOwner(), isLoading -> {
-            if (isLoading) {
-                quoteLoadingProgress.setVisibility(View.VISIBLE);
-            } else {
-                quoteLoadingProgress.setVisibility(View.GONE);
-            }
-        });
-
-        viewModel.loadQuoteIfNeeded();
+        handleQuoteLoading();
     }
 
     private void findViews(View view) {
@@ -119,6 +103,58 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         recyclerView.setItemViewCacheSize(20);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+    }
+
+    private void handleQuoteLoading() {
+        SessionManager sessionManager = new SessionManager(requireContext());
+
+        String savedQuote = sessionManager.getSavedQuote();
+        long quoteTimestamp = sessionManager.getQuoteTimestamp();
+        boolean isQuoteValid = savedQuote != null &&
+                (System.currentTimeMillis() - quoteTimestamp) < QUOTE_VALIDITY_PERIOD;
+
+        if (isQuoteValid) {
+            Log.d(TAG, "Using saved quote : " + savedQuote);
+            quoteForUserTextView.setText(savedQuote);
+            currentQuote = savedQuote;
+        } else {
+            Log.d(TAG, "Refreshing quote");
+            viewModel.loadQuoteIfNeeded();
+        }
+    }
+
+    private void setupViewModelObservers() {
+        viewModel.getPosts().observe(getViewLifecycleOwner(), posts -> {
+            if (posts != null) {
+                updatePostsUI(posts);
+                restoreScrollPosition();
+            }
+        });
+
+        viewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getQuote().observe(getViewLifecycleOwner(), quote -> {
+            if (quote != null) {
+                quoteForUserTextView.setText(quote);
+                currentQuote = quote;
+
+                SessionManager sessionManager = new SessionManager(requireContext());
+                sessionManager.setSavedQuote(quote);
+                sessionManager.setQuoteTimestamp(System.currentTimeMillis());
+            }
+        });
+
+        viewModel.getIsLoadingQuote().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                quoteLoadingProgress.setVisibility(View.VISIBLE);
+            } else {
+                quoteLoadingProgress.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override
@@ -169,21 +205,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         outState.putInt("recyclePoints", recyclePoints);
     }
 
-    private void setupViewModelObservers() {
-        viewModel.getPosts().observe(getViewLifecycleOwner(), posts -> {
-            if (posts != null) {
-                updatePostsUI(posts);
-                restoreScrollPosition();
-            }
-        });
-
-        viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null && !error.isEmpty()) {
-                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     private void restoreInstanceState(@NonNull Bundle savedInstanceState) {
         currentQuote = savedInstanceState.getString("currentQuote");
         userRank = savedInstanceState.getString("userRank");
@@ -216,12 +237,10 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
                 recyclerView.setVisibility(View.VISIBLE);
 
                 if (postAdapter == null) {
-                    // Create adapter with like button disabled for HomeFragment
                     postAdapter = new PostAdapter(requireContext(), false); // false = disable like button
                     postAdapter.setOnPostClickListener(this);
                     recyclerView.setAdapter(postAdapter);
                 } else {
-                    // Ensure like button stays disabled
                     postAdapter.setLikeButtonEnabled(false);
                 }
 

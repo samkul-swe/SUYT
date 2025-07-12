@@ -21,7 +21,6 @@ import edu.northeastern.suyt.utils.GeminiHelper;
 public class HomeViewModel extends ViewModel {
 
     private static final String TAG = "HomeViewModel";
-    private static final String DEFAULT_QUOTE = "Every small action counts towards a greener tomorrow!";
     private static final long CACHE_VALIDITY_PERIOD = 5 * 60 * 1000L; // 5 minutes
 
     // Posts related LiveData
@@ -38,8 +37,8 @@ public class HomeViewModel extends ViewModel {
     private Parcelable recyclerViewState;
 
     // Dependencies
-    private GeminiHelper geminiHelper;
-    private PostsRepository postsRepository;
+    private final GeminiHelper geminiHelper;
+    private final PostsRepository postsRepository;
 
     // State management
     private boolean quoteLoaded = false;
@@ -54,9 +53,6 @@ public class HomeViewModel extends ViewModel {
         // Initialize dependencies
         geminiHelper = new GeminiHelper();
         postsRepository = new PostsRepository();
-
-        // Set default quote
-        quote.setValue(DEFAULT_QUOTE);
     }
 
     // Getters for LiveData
@@ -88,13 +84,13 @@ public class HomeViewModel extends ViewModel {
         }
 
         Log.d(TAG, "Loading quote from Gemini API");
-        isLoadingQuote.setValue(true);
+        isLoadingQuote.postValue(true);
 
         geminiHelper.generateNewQuote(new GeminiHelper.QuoteCallback() {
             @Override
             public void onSuccess(String generatedQuote) {
                 Log.d(TAG, "Quote loaded successfully: " + generatedQuote);
-                quote.postValue(generatedQuote);
+                quote.postValue(generatedQuote); // Use setValue - callback is on main thread now
                 isLoadingQuote.postValue(false);
                 quoteLoaded = true;
             }
@@ -112,7 +108,6 @@ public class HomeViewModel extends ViewModel {
     public void refreshQuote() {
         Log.d(TAG, "Refreshing quote");
         quoteLoaded = false;
-        quote.setValue(DEFAULT_QUOTE); // Reset to default
         loadQuoteIfNeeded();
     }
 
