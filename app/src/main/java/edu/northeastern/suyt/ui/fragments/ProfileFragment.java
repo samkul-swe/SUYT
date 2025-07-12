@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +56,7 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
         // Initialize controllers
         sessionManager = new SessionManager(requireContext());
+        Log.d("ProfileFragment", "User ID: " + sessionManager.getUsername());
         userController = new UserController(sessionManager.getUserId());
         analysisController = new AnalysisController();
 

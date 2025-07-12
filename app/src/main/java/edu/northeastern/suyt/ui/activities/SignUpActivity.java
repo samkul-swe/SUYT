@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.UsersController;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -193,6 +194,8 @@ public class SignUpActivity extends AppCompatActivity {
                         Log.d("SignUpActivity", "Registration successful");
                         loadingIndicator.setVisibility(View.GONE);
                         Toast.makeText(SignUpActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                        SessionManager sessionManager = new SessionManager(SignUpActivity.this);
+                        Log.d("SignUpActivity", "Session manager : " + sessionManager.getUsername());
                         navigateToHome();
                     });
                 }

@@ -65,10 +65,8 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "RRRFragment";
 
-    // ViewModel
     private RRRViewModel viewModel;
 
-    // UI Elements
     private ImageView itemImageView;
     private TextView itemNameTextView;
     private Button recycleButton;
@@ -80,7 +78,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private LinearLayout buttonsContainer;
     private TextView initialHintTextView;
 
-    // Detailed info layouts
     private LinearLayout recycleInfoLayout;
     private TextView recycleDescription;
     private TextView recycleCenter;
@@ -99,7 +96,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private TextView reduceMoneyExpected;
     private TextView reduceOtherSuggestions;
 
-    // Completion section UI elements
     private androidx.cardview.widget.CardView completionSection;
     private Button completedYesButton;
     private Button completedNoButton;
@@ -107,15 +103,12 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     private Button shareWithPhotoButton;
     private Button skipSharingButton;
 
-    // Camera and file handling
     private String currentPhotoPath;
 
-    // Location services
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
-    // ActivityResultLaunchers
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageFromGalleryLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
@@ -151,7 +144,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void initializeViews(View view) {
-        // Initialize existing views
         itemImageView = view.findViewById(R.id.item_image_view);
         itemNameTextView = view.findViewById(R.id.item_name_text_view);
         recycleButton = view.findViewById(R.id.recycle_button);
@@ -162,7 +154,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         buttonsContainer = view.findViewById(R.id.buttons_container);
         initialHintTextView = view.findViewById(R.id.initial_hint_text_view);
 
-        // Initialize new views for detailed info
         infoContentGeneralTextView = view.findViewById(R.id.info_content_general_text_view);
 
         recycleInfoLayout = view.findViewById(R.id.recycle_info_layout);
@@ -183,7 +174,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         reduceMoneyExpected = view.findViewById(R.id.reduce_money_expected);
         reduceOtherSuggestions = view.findViewById(R.id.reduce_other_suggestions);
 
-        // Initialize completion section views
         completionSection = view.findViewById(R.id.completion_section);
         completedYesButton = view.findViewById(R.id.completed_yes_button);
         completedNoButton = view.findViewById(R.id.completed_no_button);
@@ -203,7 +193,6 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
         cameraFab.setOnClickListener(v -> checkAndRequestCameraPermission());
         downloadsFab.setOnClickListener(v -> checkAndRequestStoragePermissions());
 
-        // Completion section click listeners
         completedYesButton.setOnClickListener(v -> handleCompletionYes());
         completedNoButton.setOnClickListener(v -> handleCompletionNo());
         shareWithPhotoButton.setOnClickListener(v -> handleShareWithPhoto());
@@ -211,23 +200,18 @@ public class RRRFragment extends Fragment implements View.OnClickListener {
     }
 
     private void observeViewModel() {
-        // Observe UI state changes
         viewModel.uiState.observe(getViewLifecycleOwner(), this::handleUIStateChange);
 
-        // Observe current item changes
         viewModel.currentItem.observe(getViewLifecycleOwner(), this::handleCurrentItemChange);
 
-        // Observe selected tab changes
         viewModel.selectedTab.observe(getViewLifecycleOwner(), this::handleSelectedTabChange);
 
-        // Observe status messages
         viewModel.statusMessage.observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 itemNameTextView.setText(message);
             }
         });
 
-        // Observe error messages
         viewModel.errorMessage.observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();

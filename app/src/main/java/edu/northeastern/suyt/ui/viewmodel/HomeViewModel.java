@@ -23,39 +23,31 @@ public class HomeViewModel extends ViewModel {
     private static final String TAG = "HomeViewModel";
     private static final long CACHE_VALIDITY_PERIOD = 5 * 60 * 1000L; // 5 minutes
 
-    // Posts related LiveData
-    private MutableLiveData<List<Post>> postsLiveData;
-    private MutableLiveData<Boolean> loadingLiveData;
-    private MutableLiveData<String> errorLiveData;
+    private final MutableLiveData<List<Post>> postsLiveData;
+    private final MutableLiveData<Boolean> loadingLiveData;
+    private final MutableLiveData<String> errorLiveData;
 
-    // Quote related LiveData
-    private MutableLiveData<String> quote = new MutableLiveData<>();
-    private MutableLiveData<Boolean> isLoadingQuote = new MutableLiveData<>(false);
+    private final MutableLiveData<String> quote = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoadingQuote = new MutableLiveData<>(false);
 
-    // Cache management
     private long lastFetchTime = 0;
     private Parcelable recyclerViewState;
 
-    // Dependencies
     private final GeminiHelper geminiHelper;
     private final PostsRepository postsRepository;
 
-    // State management
     private boolean quoteLoaded = false;
     private boolean isLoadingPosts = false;
 
     public HomeViewModel() {
-        // Initialize LiveData
         postsLiveData = new MutableLiveData<>();
         loadingLiveData = new MutableLiveData<>(false);
         errorLiveData = new MutableLiveData<>();
 
-        // Initialize dependencies
         geminiHelper = new GeminiHelper();
         postsRepository = new PostsRepository();
     }
 
-    // Getters for LiveData
     public LiveData<List<Post>> getPosts() {
         return postsLiveData;
     }
@@ -76,7 +68,6 @@ public class HomeViewModel extends ViewModel {
         return isLoadingQuote;
     }
 
-    // Quote management methods
     public void loadQuoteIfNeeded() {
         if (quoteLoaded || Boolean.TRUE.equals(isLoadingQuote.getValue())) {
             Log.d(TAG, "Quote already loaded or loading, skipping");
@@ -90,7 +81,7 @@ public class HomeViewModel extends ViewModel {
             @Override
             public void onSuccess(String generatedQuote) {
                 Log.d(TAG, "Quote loaded successfully: " + generatedQuote);
-                quote.postValue(generatedQuote); // Use setValue - callback is on main thread now
+                quote.postValue(generatedQuote);
                 isLoadingQuote.postValue(false);
                 quoteLoaded = true;
             }
@@ -98,9 +89,8 @@ public class HomeViewModel extends ViewModel {
             @Override
             public void onFailure(String errorMessage) {
                 Log.e(TAG, "Failed to load quote: " + errorMessage);
-                // Keep the default quote on failure
                 isLoadingQuote.postValue(false);
-                quoteLoaded = true; // Don't retry automatically
+                quoteLoaded = true;
             }
         });
     }
@@ -111,7 +101,6 @@ public class HomeViewModel extends ViewModel {
         loadQuoteIfNeeded();
     }
 
-    // Posts management methods
     public void loadPostsIfNeeded() {
         List<Post> currentPosts = postsLiveData.getValue();
         if (currentPosts == null || currentPosts.isEmpty() || shouldRefresh()) {
@@ -139,7 +128,7 @@ public class HomeViewModel extends ViewModel {
         Log.d(TAG, "Loading posts from Firebase");
         isLoadingPosts = true;
         loadingLiveData.setValue(true);
-        errorLiveData.setValue(null); // Clear previous errors
+        errorLiveData.setValue(null);
 
         Task<DataSnapshot> task = postsRepository.getPostsRef().get();
 
@@ -155,7 +144,6 @@ public class HomeViewModel extends ViewModel {
                         }
                     }
 
-                    // Sort posts by date (newest first) - optional
                     Collections.reverse(posts);
 
                     Log.d(TAG, "Successfully loaded " + posts.size() + " posts");
@@ -163,7 +151,7 @@ public class HomeViewModel extends ViewModel {
                     postsLiveData.setValue(posts);
                 } else {
                     Log.d(TAG, "No posts found in database");
-                    postsLiveData.setValue(new ArrayList<>()); // Empty list
+                    postsLiveData.setValue(new ArrayList<>());
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing posts data", e);
@@ -202,7 +190,6 @@ public class HomeViewModel extends ViewModel {
         }
     }
 
-    // RecyclerView state management
     public void setRecyclerViewState(Parcelable state) {
         this.recyclerViewState = state;
     }
@@ -211,7 +198,6 @@ public class HomeViewModel extends ViewModel {
         return recyclerViewState;
     }
 
-    // Clear error
     public void clearError() {
         errorLiveData.setValue(null);
     }
@@ -220,6 +206,5 @@ public class HomeViewModel extends ViewModel {
     protected void onCleared() {
         super.onCleared();
         Log.d(TAG, "HomeViewModel cleared");
-        // Clean up any resources if needed
     }
 }
