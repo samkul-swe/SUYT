@@ -30,7 +30,6 @@ public class ForgotPassword extends AppCompatActivity {
     private Button backToLoginButton;
     private ProgressBar loadingIndicator;
     private UserController userController;
-    private UtilityClass utility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +42,6 @@ public class ForgotPassword extends AppCompatActivity {
             return insets;
         });
 
-        User currentUser = utility.getUser(getApplicationContext());
-        userController = new UserController(currentUser.getUserId());
         initializeViews();
         setupClickListeners();
     }

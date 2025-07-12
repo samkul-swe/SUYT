@@ -24,7 +24,6 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private ProgressBar loadingIndicator;
     private UsersController usersController;
-    private final UtilityClass utility = new UtilityClass();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
+        SessionManager sessionManager = new SessionManager(this);
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
@@ -88,8 +88,8 @@ public class LoginActivity extends AppCompatActivity {
                         setLoadingIndicatorVisibility(View.GONE);
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
                         // After successful login
-                        new SessionManager(LoginActivity.this).saveLoginSession();
-                        utility.saveUser(LoginActivity.this, user);
+                        sessionManager.saveLoginSession();
+                        sessionManager.saveUserData(user);
                         navigateToMain();
                     });
                 }

@@ -23,8 +23,6 @@ public class ChangePasswordDialog extends Dialog implements View.OnClickListener
     private Button cancelButton;
 
     private OnPasswordChangedListener listener;
-    private UserController userController;
-    private UtilityClass utility;
 
     public interface OnPasswordChangedListener {
         void onPasswordChanged(boolean success);
@@ -33,8 +31,6 @@ public class ChangePasswordDialog extends Dialog implements View.OnClickListener
     public ChangePasswordDialog(@NonNull Context context, OnPasswordChangedListener listener) {
         super(context);
         this.listener = listener;
-        User currentUser = utility.getUser(context);
-        this.userController = new UserController(currentUser.getUserId());
     }
 
     @Override

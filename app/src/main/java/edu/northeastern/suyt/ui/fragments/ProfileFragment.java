@@ -22,13 +22,14 @@ import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.AnalysisController;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.AnalysisResult;
-import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.activities.RecentAnalysisActivity;
 import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
 import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
+import edu.northeastern.suyt.utils.GeneralHelper;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class ProfileFragment extends Fragment {
     // UI Components
@@ -42,7 +43,7 @@ public class ProfileFragment extends Fragment {
     private LinearLayout savedPostsButton;
     private Button createPostButton;
     private Button logoutButton;
-    private UtilityClass utility;
+    private SessionManager sessionManager;
 
     // Controllers
     private UserController userController;
@@ -52,10 +53,9 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-
-        User currentUser = utility.getUser(requireContext());
         // Initialize controllers
-        userController = new UserController(currentUser.getUserId());
+        sessionManager = new SessionManager(requireContext());
+        userController = new UserController(sessionManager.getUserId());
         analysisController = new AnalysisController();
 
         // Initialize views
@@ -88,10 +88,10 @@ public class ProfileFragment extends Fragment {
 
     private void loadProfileData() {
         // Get current user data from UserController
-        User currentUser = utility.getUser(getContext());
-        usernameTextView.setText(currentUser.getUsername() != null ? currentUser.getUsername() : "Swarley");
-        emailTextView.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "exampler@example.com");
-        rankTextView.setText(currentUser.getRank() != null ? currentUser.getRank() : "Plant Soldier");
+        GeneralHelper generalHelper = new GeneralHelper();
+        usernameTextView.setText(sessionManager.getUsername() != null ? sessionManager.getUsername() : "Swarley");
+        emailTextView.setText(sessionManager.getEmail() != null ? sessionManager.getEmail() : "exampler@example.com");
+        rankTextView.setText(generalHelper.calculateUserRank(sessionManager.getReducePoints() + sessionManager.getReusePoints() + sessionManager.getRecyclePoints()));
 
         // Set profile image
         profileImageView.setImageResource(R.drawable.placeholder_profile);

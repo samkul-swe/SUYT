@@ -34,6 +34,7 @@ import edu.northeastern.suyt.controller.PostsController;
 import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class CreatePostActivity extends AppCompatActivity {
 
@@ -47,7 +48,6 @@ public class CreatePostActivity extends AppCompatActivity {
     private Button takePhotoButton;
     private Button choosePhotoButton;
     private Button createPostButton;
-    private UtilityClass utility;
 
     private String currentPhotoPath;
     private boolean hasImage = false;
@@ -186,9 +186,7 @@ public class CreatePostActivity extends AppCompatActivity {
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
         String category = selectedRadioButton.getText().toString();
 
-        User currentUser = utility.getUser(this);
-        String userId = currentUser.getUserId();
-        UserController userController = new UserController(userId);
+        String userId = new SessionManager(this).getUserId();
 
         Post post = new Post(UUID.randomUUID().toString(), userId, title, description,
                 "image", category, 0, String.valueOf(LocalDate.now()));

@@ -17,23 +17,20 @@ public class User implements Parcelable {
     private String email;
     private boolean emailVerified = false;
     private UserStats userStats;
-    private String rank;
     private List<String> savedPosts;
 
     public User() {
         this.savedPosts = new ArrayList<>();
         this.userStats = new UserStats(0,0,0);
-        this.rank = "Plant Soldier";
     }
 
-    public User(String userId, String username, String email, boolean emailVerified, UserStats userStats, List<String> savedPosts, String rank) {
+    public User(String userId, String username, String email, boolean emailVerified) {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.emailVerified = emailVerified;
         this.savedPosts = new ArrayList<>();
         this.userStats = new UserStats(0,0,0);
-        this.rank = rank;
     }
 
     protected User(Parcel in) {
@@ -43,7 +40,6 @@ public class User implements Parcelable {
         emailVerified = in.readByte() != 0;
         savedPosts = in.createStringArrayList();
         userStats = in.readParcelable(UserStats.class.getClassLoader());
-        rank = in.readString();
     }
 
     public static final Creator<User> CREATOR = new Creator<>() {
@@ -90,14 +86,6 @@ public class User implements Parcelable {
         this.emailVerified = emailVerified;
     }
 
-    public String getRank() {
-        return rank;
-    }
-
-    public void setRank(String rank) {
-        this.rank = rank;
-    }
-
     public UserStats getUserStats() {
         return userStats;
     }
@@ -140,6 +128,5 @@ public class User implements Parcelable {
         parcel.writeByte((byte) (emailVerified ? 1 : 0));
         parcel.writeStringList(savedPosts);
         parcel.writeParcelable(userStats, i);
-        parcel.writeString(rank);
     }
 }

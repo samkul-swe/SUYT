@@ -20,7 +20,6 @@ import edu.northeastern.suyt.utils.SessionManager;
 public class UsersController {
     private static final String TAG = "UsersController";
     private final FirebaseAuth mAuth;
-    private final UtilityClass utility = new UtilityClass();
     private final Context context;
 
     public UsersController(Context context) {
@@ -39,8 +38,7 @@ public class UsersController {
                         if (firebaseUser != null) {
                             Log.d(TAG, "Creating user in firebase database...");
                             String uid = firebaseUser.getUid();
-                            User currentUser = new User(uid, username, email, false,
-                                    new UserStats(0,0,0), new ArrayList<>(), "Plant Soldier");
+                            User currentUser = new User(uid, username, email, false);
                             saveUserToDatabase(currentUser, callback);
                         } else {
                             Log.e(TAG, "User is null after successful authentication");
@@ -60,12 +58,12 @@ public class UsersController {
     }
 
     public void saveUserToDatabase(User user, RegisterCallback callback) {
+        SessionManager sessionManager = new SessionManager(context);
         DatabaseReference userRef = new UsersRepository(user.getUserId()).getUserRef();
         userRef.setValue(user).addOnSuccessListener(unused -> {
             Log.d(TAG, "User saved to database");
-            utility.saveUser(context, user);
-            Log.d(TAG, "User saved to local storage");
-            new SessionManager(context).saveLoginSession();
+            sessionManager.saveLoginSession();
+            sessionManager.saveUserData(user);
             Log.d(TAG, "Login session saved");
             callback.onSuccess();
         }).addOnFailureListener(exception -> {
@@ -122,7 +120,6 @@ public class UsersController {
                 user.setUsername(dataSnapshot.child("username").getValue(String.class));
                 user.setEmail(dataSnapshot.child("email").getValue(String.class));
                 user.setEmailVerified(Boolean.TRUE.equals(dataSnapshot.child("emailVerified").getValue(Boolean.class)));
-                user.setRank(dataSnapshot.child("rank").getValue(String.class));
                 if (dataSnapshot.child("savedPosts").exists()) {
                     for (Object postId : Objects.requireNonNull(dataSnapshot.child("savedPosts").getValue(ArrayList.class))) {
                         user.addSavedPost((String) postId);

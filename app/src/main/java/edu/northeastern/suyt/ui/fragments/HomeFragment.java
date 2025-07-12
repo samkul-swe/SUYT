@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.ui.fragments;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,6 +7,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,25 +18,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.firebase.ai.type.Content;
-import com.google.firebase.ai.type.GenerateContentResponse;
-import com.google.firebase.ai.type.Schema;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.UserController;
-import edu.northeastern.suyt.gemini.GeminiClient;
 import edu.northeastern.suyt.model.Post;
-import edu.northeastern.suyt.model.User;
-import edu.northeastern.suyt.model.UserStats;
 import edu.northeastern.suyt.ui.activities.PostDetailActivity;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
 import edu.northeastern.suyt.ui.viewmodel.HomeViewModel;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class HomeFragment extends Fragment implements PostAdapter.OnPostClickListener {
 
@@ -46,24 +35,14 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView recyclePointsTextView;
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
-    private final UtilityClass utility = new UtilityClass();
+
+    // Loading indicator
+    private ProgressBar quoteLoadingProgress;
 
     private HomeViewModel viewModel;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private static final String PREF_NAME = "quote_preferences";
-    private static final String KEY_QUOTE = "saved_quote";
-    private static final String KEY_TIMESTAMP = "quote_timestamp";
-    private static final long QUOTE_VALIDITY_PERIOD = 24 * 60 * 60 * 1000L; // 24 hours
-
-    private static final String KEY_CURRENT_QUOTE = "current_quote";
-    private static final String KEY_USER_RANK = "user_rank";
-    private static final String KEY_REDUCE_POINTS = "reduce_points";
-    private static final String KEY_REUSE_POINTS = "reuse_points";
-    private static final String KEY_RECYCLE_POINTS = "recycle_points";
-
     private PostAdapter postAdapter;
-    private ThreadPoolExecutor geminiExecutor;
     private LinearLayoutManager layoutManager;
 
     private String currentQuote;
@@ -72,20 +51,15 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private int reusePoints;
     private int recyclePoints;
 
+    private static final long QUOTE_VALIDITY_PERIOD = 24 * 60 * 60 * 1000L; // 24 hours
+    private static final String DEFAULT_QUOTE = "Every small action counts towards a greener tomorrow!";
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-
-        preferences = requireContext().getApplicationContext()
-                .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        geminiExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
-        User currentUser = utility.getUser(requireContext().getApplicationContext());
-        if (currentUser == null) return;
-        UserController userController = new UserController(currentUser.getUserId());
 
         if (savedInstanceState != null) {
             restoreInstanceState(savedInstanceState);
@@ -95,31 +69,56 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-
-        userRankTextView = view.findViewById(R.id.user_rank_text_view);
-        quoteForUserTextView = view.findViewById(R.id.quote_for_user_text_view);
-        reducePointsTextView = view.findViewById(R.id.reduce_points_text_view);
-        reusePointsTextView = view.findViewById(R.id.reuse_points_text_view);
-        recyclePointsTextView = view.findViewById(R.id.recycle_points_text_view);
-        recyclerView = view.findViewById(R.id.recycler_view);
-
-        layoutManager = new LinearLayoutManager(requireContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemViewCacheSize(20);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-
-        return view;
+        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        findViews(view);
+
+        setupRecyclerView();
+
         setupViewModelObservers();
         loadUserStats();
         viewModel.loadPostsIfNeeded();
+
+        quoteForUserTextView.setText(DEFAULT_QUOTE);
+
+        viewModel.getQuote().observe(getViewLifecycleOwner(), quote -> {
+            if (quote != null) {
+                quoteForUserTextView.setText(quote);
+            }
+        });
+
+        viewModel.getIsLoadingQuote().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                quoteLoadingProgress.setVisibility(View.VISIBLE);
+            } else {
+                quoteLoadingProgress.setVisibility(View.GONE);
+            }
+        });
+
+        viewModel.loadQuoteIfNeeded();
+    }
+
+    private void findViews(View view) {
+        userRankTextView = view.findViewById(R.id.user_rank_text_view);
+        quoteForUserTextView = view.findViewById(R.id.quote_for_user_text_view);
+        quoteLoadingProgress = view.findViewById(R.id.quote_loading_progress);
+        reducePointsTextView = view.findViewById(R.id.reduce_points_text_view);
+        reusePointsTextView = view.findViewById(R.id.reuse_points_text_view);
+        recyclePointsTextView = view.findViewById(R.id.recycle_points_text_view);
+        recyclerView = view.findViewById(R.id.recycler_view);
+    }
+
+    private void setupRecyclerView() {
+        layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemViewCacheSize(20);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
     }
 
     @Override
@@ -154,10 +153,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     public void onDestroy() {
         super.onDestroy();
 
-        if (geminiExecutor != null && !geminiExecutor.isShutdown()) {
-            geminiExecutor.shutdown();
-        }
-
         if (postAdapter != null) {
             postAdapter.cleanup();
         }
@@ -167,11 +162,11 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putString(KEY_CURRENT_QUOTE, currentQuote);
-        outState.putString(KEY_USER_RANK, userRank);
-        outState.putInt(KEY_REDUCE_POINTS, reducePoints);
-        outState.putInt(KEY_REUSE_POINTS, reusePoints);
-        outState.putInt(KEY_RECYCLE_POINTS, recyclePoints);
+        outState.putString("currentQuote", currentQuote);
+        outState.putString("userRank", userRank);
+        outState.putInt("reducePoints", reducePoints);
+        outState.putInt("reusePoints", reusePoints);
+        outState.putInt("recyclePoints", recyclePoints);
     }
 
     private void setupViewModelObservers() {
@@ -190,127 +185,27 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     }
 
     private void restoreInstanceState(@NonNull Bundle savedInstanceState) {
-        currentQuote = savedInstanceState.getString(KEY_CURRENT_QUOTE);
-        userRank = savedInstanceState.getString(KEY_USER_RANK);
-        reducePoints = savedInstanceState.getInt(KEY_REDUCE_POINTS, 0);
-        reusePoints = savedInstanceState.getInt(KEY_REUSE_POINTS, 0);
-        recyclePoints = savedInstanceState.getInt(KEY_RECYCLE_POINTS, 0);
+        currentQuote = savedInstanceState.getString("currentQuote");
+        userRank = savedInstanceState.getString("userRank");
+        reducePoints = savedInstanceState.getInt("reducePoints", 0);
+        reusePoints = savedInstanceState.getInt("reusePoints", 0);
+        recyclePoints = savedInstanceState.getInt("recyclePoints", 0);
     }
 
     private void loadUserStats() {
-        User currentUser = utility.getUser(requireContext().getApplicationContext());
-        if (currentUser == null) return;
-        String currentUserId = currentUser.getUserId();
+        SessionManager sessionManager = new SessionManager(requireContext());
 
-        if (currentUserId == null || currentUserId.isEmpty()) {
-            setDefaultUserStats();
-        } else {
-            UserStats userStats = currentUser.getUserStats();
-            if (userStats == null) return;
-            userRank = calculateUserRank(userStats.getTotalPoints());
-            reducePoints = userStats.getReducePoints();
-            reusePoints = userStats.getReusePoints();
-            recyclePoints = userStats.getRecyclePoints();
-        }
+        userRank = sessionManager.getUserRank();
+        reducePoints = sessionManager.getReducePoints();
+        reusePoints = sessionManager.getReusePoints();
+        recyclePoints = sessionManager.getRecyclePoints();
 
-        updateUserStatsUI();
-
-    }
-
-    private void updateUserStatsUI() {
         if (!isAdded()) return;
 
         userRankTextView.setText(userRank);
         reducePointsTextView.setText(String.valueOf(reducePoints));
         reusePointsTextView.setText(String.valueOf(reusePoints));
         recyclePointsTextView.setText(String.valueOf(recyclePoints));
-
-        if (currentQuote == null) {
-            loadQuote();
-        } else {
-            quoteForUserTextView.setText(currentQuote);
-        }
-    }
-
-    private void setDefaultUserStats() {
-        reducePoints = 0;
-        reusePoints = 0;
-        recyclePoints = 0;
-    }
-
-    private String calculateUserRank(int totalPoints) {
-        if (totalPoints >= 1000) {
-            return "Eco Master";
-        } else if (totalPoints >= 500) {
-            return "Green Champion";
-        } else if (totalPoints >= 200) {
-            return "Eco Warrior";
-        } else if (totalPoints >= 50) {
-            return "Green Helper";
-        } else {
-            return "Beginner";
-        }
-    }
-
-    private void loadQuote() {
-        String savedQuote = preferences.getString(KEY_QUOTE, null);
-        long timestamp = preferences.getLong(KEY_TIMESTAMP, 0);
-        long currentTime = System.currentTimeMillis();
-
-        if (savedQuote != null && currentTime - timestamp < QUOTE_VALIDITY_PERIOD) {
-            currentQuote = savedQuote;
-            if (isAdded() && quoteForUserTextView != null) {
-                quoteForUserTextView.setText(currentQuote);
-            }
-        } else {
-            generateNewQuote();
-        }
-    }
-
-    private void generateNewQuote() {
-        if (!isAdded()) return;
-
-        Content prompt = new Content.Builder()
-                .addText("Give me a motivational witty quote about recycling, reusing or reducing")
-                .build();
-        Schema schema = Schema.str();
-
-        ListenableFuture<GenerateContentResponse> response = new GeminiClient(schema).generateResult(prompt);
-        Futures.addCallback(
-                response,
-                new FutureCallback<>() {
-                    @Override
-                    public void onSuccess(GenerateContentResponse result) {
-                        if (isAdded()) {
-                            mainHandler.post(() -> {
-                                if (isAdded() && quoteForUserTextView != null) {
-                                    currentQuote = result.getText();
-                                    quoteForUserTextView.setText(currentQuote);
-
-                                    preferences.edit()
-                                    .putString(KEY_QUOTE, currentQuote)
-                                    .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
-                                    .apply();
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Throwable t) {
-                        t.printStackTrace();
-                        if (isAdded()) {
-                            mainHandler.post(() -> {
-                                if (isAdded() && quoteForUserTextView != null) {
-                                    currentQuote = "Every small action counts towards a greener tomorrow!";
-                                    quoteForUserTextView.setText(currentQuote);
-                                }
-                            });
-                        }
-                    }
-                },
-                geminiExecutor
-        );
     }
 
     private void updatePostsUI(List<Post> posts) {
@@ -351,15 +246,5 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
             intent.putExtra("POST", post);
             startActivity(intent);
         }
-    }
-
-    @Override
-    public void onPostSave(Post post) {
-
-    }
-
-    @Override
-    public void onPostShare(Post post) {
-
     }
 }

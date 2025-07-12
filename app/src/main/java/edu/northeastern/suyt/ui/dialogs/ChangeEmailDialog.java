@@ -25,8 +25,6 @@ public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
 
     private String currentEmail;
     private OnEmailChangedListener listener;
-    private UserController userController;
-    private UtilityClass utility;
 
     public interface OnEmailChangedListener {
         void onEmailChanged(String newEmail);
@@ -36,8 +34,6 @@ public class ChangeEmailDialog extends Dialog implements View.OnClickListener {
         super(context);
         this.currentEmail = currentEmail;
         this.listener = listener;
-        User currentUser = utility.getUser(context);
-        this.userController = new UserController(currentUser.getUserId());
     }
 
     @Override

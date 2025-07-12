@@ -37,7 +37,6 @@ public class AchievementsFragment extends Fragment {
     private TextView tvSelectedAchievementDescription;
     private ProgressBar progressAchievement;
     private FloatingActionButton fabRefresh;
-    private UtilityClass utility;
 
     private FirebaseFirestore db;
     private UserController userController;
@@ -57,8 +56,6 @@ public class AchievementsFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_achievement, container, false);
 
         db = FirebaseFirestore.getInstance();
-        User currentUser = utility.getUser(getContext());
-        userController = new UserController(currentUser.getUserId());
 
         return rootView;
     }
@@ -105,13 +102,7 @@ public class AchievementsFragment extends Fragment {
     private void loadAchievements() {
         createPlaceholderAchievements();
 
-        User currentUser = utility.getUser(getContext());
-        // Get the current user ID
-        String userId = currentUser.getUserId();
-        if (userId == null) {
-            Toast.makeText(getContext(), "No user logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        String userId = ""; //TODO : Fix this
 
         db.collection("users").document(userId)
                 .collection("achievements")

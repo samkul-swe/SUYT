@@ -25,6 +25,7 @@ import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class SavedPostsActivity extends AppCompatActivity implements PostAdapter.OnPostClickListener {
 
@@ -34,7 +35,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     private PostAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private TextView emptyStateTextView;
-    private UtilityClass utility;
 
     // Controllers
     private PostsController postsController;
@@ -50,8 +50,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
 
         // Initialize controllers
         postsController = new PostsController();
-        User currentUser = utility.getUser(this);
-        userController = new UserController(currentUser.getUserId());
         savedPostsList = new ArrayList<>();
 
         // Setup toolbar
@@ -104,14 +102,14 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
             swipeRefreshLayout.setRefreshing(true);
         }
 
-        User currentUser = utility.getUser(this);
-        if (currentUser.getSavedPosts() == null) {
+        List<String> savedPosts = new SessionManager(this).getSavedPosts();
+        if (savedPosts == null) {
             updateUI();
             stopRefreshing();
             return;
         }
         // Get user's saved posts
-        postsController.getUserSavedPosts(currentUser.getSavedPosts(), new PostsController.GetAllPostsCallback() {
+        postsController.getUserSavedPosts(savedPosts, new PostsController.GetAllPostsCallback() {
             @Override
             public void onSuccess(List<Post> savedPosts) {
                 Log.d(TAG, "Successfully loaded " + savedPosts.size() + " saved posts");
@@ -182,17 +180,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
             intent.putExtra("POST", post); // Pass the entire post object as backup
             startActivity(intent);
         }
-    }
-
-    @Override
-    public void onPostSave(Post post) {
-        // Handle save/unsave action - for now do nothing
-    }
-
-    @Override
-    public void onPostShare(Post post) {
-        // Handle post sharing
-        sharePost(post);
     }
 
     private void savePost(Post post) {
