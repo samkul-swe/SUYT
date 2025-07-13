@@ -177,4 +177,10 @@ public class UsersController {
         void onSuccess(boolean success);
         void onFailure(String errorMessage);
     }
+
+    public interface GetUserNameCallback {
+        void onSuccess(String username);
+        void onFailure(String errorMessage);
+    }
+
 }

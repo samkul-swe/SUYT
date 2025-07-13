@@ -1,5 +1,6 @@
 package edu.northeastern.suyt.ui.viewmodel;
 
+import android.app.Application;
 import android.os.Parcelable;
 import android.util.Log;
 
@@ -9,12 +10,15 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import edu.northeastern.suyt.controller.UsersController;
 import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
+import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.utils.GeminiHelper;
 
@@ -168,20 +172,50 @@ public class HomeViewModel extends ViewModel {
         });
     }
 
+    public void getUserName(String userId, UsersController.GetUserNameCallback callback) {
+        UsersRepository userRepository = new UsersRepository(userId);
+        DatabaseReference userRef = userRepository.getUserRef();
+        try{
+            userRef.get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    String username = dataSnapshot.child("username").getValue(String.class);
+                    Log.d(TAG, "Username retrieved: " + username);
+                    callback.onSuccess(username);
+                } else {
+                    callback.onFailure("User data not found");
+                }
+            }).addOnFailureListener(exception -> Log.e(TAG, "Error getting user data", exception));
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting username", e);
+            callback.onFailure("Error getting username: " + e.getMessage());
+        }
+    }
+
     private Post createPostFromSnapshot(DataSnapshot postSnapshot) {
         try {
             Post post = new Post();
             post.setPostID(postSnapshot.getKey());
-            post.setPostedBy(postSnapshot.child("userId").getValue(String.class));
-            post.setPostTitle(postSnapshot.child("title").getValue(String.class));
-            post.setPostDescription(postSnapshot.child("description").getValue(String.class));
-            post.setPostImage(postSnapshot.child("imageUrl").getValue(String.class));
-            post.setPostCategory(postSnapshot.child("category").getValue(String.class));
 
-            Integer likes = postSnapshot.child("likes").getValue(Integer.class);
+            String userID = postSnapshot.child("postedBy").getValue(String.class);
+            getUserName(userID, new UsersController.GetUserNameCallback() {
+                @Override
+                public void onSuccess(String username) {
+                    post.setPostedBy(username);
+                }
+                @Override
+                public void onFailure(String errorMessage) {
+                    Log.e(TAG, "Error getting username: " + errorMessage);
+                }
+            });
+            post.setPostTitle(postSnapshot.child("postTitle").getValue(String.class));
+            post.setPostDescription(postSnapshot.child("postDescription").getValue(String.class));
+            post.setPostImage(postSnapshot.child("postImage").getValue(String.class));
+            post.setPostCategory(postSnapshot.child("postCategory").getValue(String.class));
+
+            Integer likes = postSnapshot.child("numberOfLikes").getValue(Integer.class);
             post.setNumberOfLikes(likes != null ? likes : 0);
 
-            post.setPostedOn(postSnapshot.child("date").getValue(String.class));
+            post.setPostedOn(postSnapshot.child("postedOn").getValue(String.class));
 
             return post;
         } catch (Exception e) {

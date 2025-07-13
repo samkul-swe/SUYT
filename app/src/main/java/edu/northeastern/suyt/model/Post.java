@@ -131,4 +131,18 @@ public class Post implements Parcelable {
     public void setPostedOn(String postedOn) {
         this.postedOn = postedOn;
     }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "postID='" + postID + '\'' +
+                ", postedBy='" + postedBy + '\'' +
+                ", postTitle='" + postTitle + '\'' +
+                ", postDescription='" + postDescription + '\'' +
+                ", postImage='" + postImage + '\'' +
+                ", postCategory='" + postCategory + '\'' +
+                ", numberOfLikes=" + numberOfLikes +
+                ", postedOn='" + postedOn + '\'' +
+                '}';
+    }
 }

@@ -31,12 +31,12 @@ import java.util.UUID;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.PostsController;
-import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
-import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.utils.SessionManager;
 
 public class CreatePostActivity extends AppCompatActivity {
+
+    private static final String TAG = "CreatePostActivity";
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_PICK_IMAGE = 2;
@@ -45,9 +45,6 @@ public class CreatePostActivity extends AppCompatActivity {
     private EditText titleEditText;
     private EditText descriptionEditText;
     private RadioGroup categoryRadioGroup;
-    private Button takePhotoButton;
-    private Button choosePhotoButton;
-    private Button createPostButton;
 
     private String currentPhotoPath;
     private boolean hasImage = false;
@@ -57,7 +54,6 @@ public class CreatePostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_post);
 
-        // Set up toolbar with back button
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -65,16 +61,14 @@ public class CreatePostActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Create Post");
         }
 
-        // Initialize views
         postImageView = findViewById(R.id.post_image_view);
         titleEditText = findViewById(R.id.title_edit_text);
         descriptionEditText = findViewById(R.id.description_edit_text);
         categoryRadioGroup = findViewById(R.id.category_radio_group);
-        takePhotoButton = findViewById(R.id.take_photo_button);
-        choosePhotoButton = findViewById(R.id.choose_photo_button);
-        createPostButton = findViewById(R.id.create_post_button);
+        Button takePhotoButton = findViewById(R.id.take_photo_button);
+        Button choosePhotoButton = findViewById(R.id.choose_photo_button);
+        Button createPostButton = findViewById(R.id.create_post_button);
 
-        // Set up button click listeners
         takePhotoButton.setOnClickListener(v -> takePhoto());
         choosePhotoButton.setOnClickListener(v -> choosePhotoFromGallery());
         createPostButton.setOnClickListener(v -> createPost());
@@ -83,18 +77,14 @@ public class CreatePostActivity extends AppCompatActivity {
     private void takePhoto() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        // Ensure there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the file where the photo should go
             File photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                // Error occurred while creating the File
                 Toast.makeText(this, "Error creating image file", Toast.LENGTH_SHORT).show();
             }
 
-            // Continue only if the file was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.suyt.fileprovider",
@@ -108,7 +98,6 @@ public class CreatePostActivity extends AppCompatActivity {
     }
 
     private File createImageFile() throws IOException {
-        // Create an image file name
         try {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
             String imageFileName = "JPEG_" + timeStamp + "_";
@@ -118,18 +107,16 @@ public class CreatePostActivity extends AppCompatActivity {
                     ".jpg",         /* suffix */
                     storageDir      /* directory */
             );
-            // Save a file: path for use with ACTION_VIEW intents
             currentPhotoPath = image.getAbsolutePath();
             return image;
         } catch(IOException e) {
-            Log.e("CreatePostActivity", "Error creating image file", e);
+            Log.e(TAG, "Error creating image file", e);
         }
         return null;
     }
 
     ActivityResultLauncher<String> mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
             uri -> {
-                // Handle the returned Uri
                 postImageView.setImageURI(uri);
                 hasImage = true;
             });
@@ -145,11 +132,9 @@ public class CreatePostActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
-                // Show the captured image
                 postImageView.setImageURI(Uri.parse(currentPhotoPath));
                 hasImage = true;
             } else if (requestCode == REQUEST_PICK_IMAGE && data != null) {
-                // Show the selected image from gallery
                 Uri selectedImageUri = data.getData();
                 postImageView.setImageURI(selectedImageUri);
                 hasImage = true;
@@ -158,7 +143,6 @@ public class CreatePostActivity extends AppCompatActivity {
     }
 
     private void createPost() {
-        // Validate inputs
         String title = titleEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
 
@@ -193,7 +177,7 @@ public class CreatePostActivity extends AppCompatActivity {
         PostsController postsController = new PostsController();
         try {
             postsController.createPost(post, isSaved -> new android.os.Handler(getMainLooper()).post(() -> {
-                Log.d("SignUpActivity", "Registration successful");
+                Log.d(TAG, "Post created successfully!");
                 Toast.makeText(this, "Post created successfully!", Toast.LENGTH_SHORT).show();
                 navigateToHome();
             }));
@@ -211,7 +195,6 @@ public class CreatePostActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Handle back button click
             onBackPressed();
             return true;
         }

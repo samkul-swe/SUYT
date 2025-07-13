@@ -12,34 +12,31 @@ import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
 
 public class PostsController {
-    private String TAG = "PostsController";
-    private PostsRepository postsRepository;
-    private DatabaseReference postsRef;
+    private final String TAG = "PostsController";
+    private final DatabaseReference postsRef;
     private com.google.firebase.database.ValueEventListener valueEventListener;
 
-    private List<Post> cachedPosts;
+    private final List<Post> cachedPosts;
     private boolean isInitialLoadComplete = false;
 
     public PostsController() {
-        postsRepository = new PostsRepository();
+        PostsRepository postsRepository = new PostsRepository();
         postsRef = postsRepository.getPostsRef();
         cachedPosts = new ArrayList<>();
     }
 
     public void createPost(Post post, PostCreatedCallback callback) {
         postsRef.child(post.getPostID()).setValue(post)
-                .addOnSuccessListener(aVoid -> {
-                    // Add to cache after successful creation
-                    addPostToCache(post);
-                    callback.onResult(true);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error creating post", e);
-                    callback.onResult(false);
-                });
+            .addOnSuccessListener(aVoid -> {
+                addPostToCache(post);
+                callback.onResult(true);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error creating post", e);
+                callback.onResult(false);
+            });
     }
 
-    // Load initial posts (first 50) - call this once when app starts
     public void loadInitialPosts(GetAllPostsCallback callback) {
         postsRef.limitToLast(50).get()
                 .addOnSuccessListener(dataSnapshot -> {
@@ -68,18 +65,15 @@ public class PostsController {
                 });
     }
 
-    // Get all cached posts (no database call)
     public void getAllPosts(GetAllPostsCallback callback) {
         if (!isInitialLoadComplete) {
             callback.onFailure(new IllegalStateException("Posts not loaded yet. Call loadInitialPosts() first."));
             return;
         }
 
-        // Return a copy of cached posts immediately
         callback.onSuccess(new ArrayList<>(cachedPosts));
     }
 
-    // Get user's posts from cached data (no database call)
     public void getUserCreatedPosts(String userID, GetAllPostsCallback callback) {
         if (userID == null || userID.trim().isEmpty()) {
             callback.onFailure(new IllegalArgumentException("UserID cannot be null or empty"));
@@ -102,7 +96,6 @@ public class PostsController {
         callback.onSuccess(userPosts);
     }
 
-    // Get post by ID from cached data (no database call)
     public void getPostByID(String postID, GetPostCallback callback) {
         if (postID == null || postID.trim().isEmpty()) {
             callback.onFailure(new IllegalArgumentException("PostID cannot be null or empty"));
@@ -122,7 +115,6 @@ public class PostsController {
         }
     }
 
-    // Get user saved posts from cached data (no database call)
     public void getUserSavedPosts(List<String> savedPostIDs, GetAllPostsCallback callback) {
         if (savedPostIDs == null || savedPostIDs.isEmpty()) {
             callback.onSuccess(new ArrayList<>());
@@ -145,7 +137,6 @@ public class PostsController {
         callback.onSuccess(savedPosts);
     }
 
-    // Get posts by category from cached data (no database call)
     public void getPostsByCategory(String category, GetAllPostsCallback callback) {
         if (category == null || category.trim().isEmpty()) {
             callback.onFailure(new IllegalArgumentException("Category cannot be null or empty"));
@@ -168,15 +159,13 @@ public class PostsController {
         callback.onSuccess(categoryPosts);
     }
 
-    // Load more posts for pagination (append to existing cache)
     public void loadMorePosts(int limit, GetAllPostsCallback callback) {
         if (cachedPosts.isEmpty()) {
             callback.onFailure(new IllegalStateException("No posts loaded yet. Call loadInitialPosts() first."));
             return;
         }
 
-        // Get the oldest post's key for pagination
-        String lastPostKey = cachedPosts.get(0).getPostID(); // Assuming posts are ordered by creation time
+        String lastPostKey = cachedPosts.get(0).getPostID();
 
         postsRef.orderByKey().endBefore(lastPostKey).limitToLast(limit).get()
                 .addOnSuccessListener(dataSnapshot -> {
@@ -195,11 +184,10 @@ public class PostsController {
                         }
                     }
 
-                    // Add new posts to the beginning of cached posts
                     cachedPosts.addAll(0, newPosts);
                     Log.d(TAG, "Loaded " + newPosts.size() + " more posts. Total cached: " + cachedPosts.size());
 
-                    callback.onSuccess(newPosts); // Return only the new posts
+                    callback.onSuccess(newPosts);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading more posts", e);
@@ -218,7 +206,6 @@ public class PostsController {
             post.setPostedOn(postSnapshot.child("postedOn").getValue(String.class));
             post.setPostImage(postSnapshot.child("image").getValue(String.class));
 
-            // Handle potential null values for integers
             Integer likes = postSnapshot.child("likes").getValue(Integer.class);
             post.setNumberOfLikes(likes != null ? likes : 0);
 
@@ -229,7 +216,6 @@ public class PostsController {
         }
     }
 
-    // Add a new post to cache (call after successful creation)
     public void addPostToCache(Post post) {
         if (post != null && isInitialLoadComplete) {
             cachedPosts.add(post); // Add to end (newest)
@@ -237,7 +223,6 @@ public class PostsController {
         }
     }
 
-    // Remove post from cache (call after successful deletion)
     public void removePostFromCache(String postID) {
         if (postID != null && isInitialLoadComplete) {
             cachedPosts.removeIf(post -> postID.equals(post.getPostID()));
@@ -245,17 +230,14 @@ public class PostsController {
         }
     }
 
-    // Check if initial posts are loaded
     public boolean isInitialLoadComplete() {
         return isInitialLoadComplete;
     }
 
-    // Get total cached posts count
     public int getCachedPostsCount() {
         return cachedPosts.size();
     }
 
-    // Method to remove the listener when no longer needed
     public void stopListening() {
         if (valueEventListener != null) {
             postsRef.removeEventListener(valueEventListener);

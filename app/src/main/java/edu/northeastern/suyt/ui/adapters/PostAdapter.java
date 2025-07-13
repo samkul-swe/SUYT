@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final ExecutorService executorService;
     private final Handler mainHandler;
     private boolean enableLikeButton;
-    private Context context;
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
@@ -43,7 +43,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         this.enableLikeButton = enableLikeButton;
         this.executorService = Executors.newFixedThreadPool(4);
         this.mainHandler = new Handler(Looper.getMainLooper());
-        this.context = context;
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -72,7 +71,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     @SuppressLint("CheckResult")
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
+        if (posts == null || posts.isEmpty()) {
+            return;
+        }
+
         Post post = posts.get(position);
+
+        Log.d("PostAdapter", "Binding post: " + post.toString());
 
         executorService.execute(() -> {
             mainHandler.post(() -> {
