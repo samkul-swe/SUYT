@@ -100,7 +100,7 @@ public class PostController {
             return;
         }
 
-        postRef.child("likes").setValue(newLikeCount)
+        postRef.child("numberOfLikes").setValue(newLikeCount)
             .addOnSuccessListener(aVoid -> {
                 if (cachedPost != null) {
                     cachedPost.setNumberOfLikes(newLikeCount);
@@ -120,7 +120,7 @@ public class PostController {
             return;
         }
 
-        postRef.child("likes").get()
+        postRef.child("numberOfLikes").get()
                 .addOnSuccessListener(dataSnapshot -> {
                     if (dataSnapshot.exists()) {
                         Integer likes = dataSnapshot.getValue(Integer.class);

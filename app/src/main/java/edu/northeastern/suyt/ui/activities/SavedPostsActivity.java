@@ -81,7 +81,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new PostAdapter(this, true); // true indicates this is for saved posts
+        adapter = new PostAdapter();
         recyclerView.setAdapter(adapter);
     }
 

@@ -33,22 +33,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private OnPostClickListener listener;
     private final ExecutorService executorService;
     private final Handler mainHandler;
-    private boolean enableLikeButton;
 
     public interface OnPostClickListener {
         void onPostClick(Post post);
     }
 
-    public PostAdapter(Context context, boolean enableLikeButton) {
-        this.enableLikeButton = enableLikeButton;
+    public PostAdapter() {
         this.executorService = Executors.newFixedThreadPool(4);
         this.mainHandler = new Handler(Looper.getMainLooper());
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void setLikeButtonEnabled(boolean enabled) {
-        this.enableLikeButton = enabled;
-        notifyDataSetChanged();
     }
 
     public void setOnPostClickListener(HomeFragment homeFragment) {
@@ -79,7 +71,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
         executorService.execute(() -> {
             mainHandler.post(() -> {
-
                 if (post.getPostCategory().equalsIgnoreCase("reuse")) {
                     holder.postImageView.setImageResource(R.drawable.reuse);
                 } else if (post.getPostCategory().equalsIgnoreCase("recycle")) {
@@ -93,8 +84,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 holder.usernameTextView.setText(post.getPostedBy());
                 holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
                 holder.dateTextView.setText(post.getPostedOn());
-
-                configureLikeButton(holder, post, enableLikeButton);
             });
         });
 
@@ -105,43 +94,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         });
 
         setCategoryIndicatorColor(holder, post.getPostCategory());
-    }
-
-    private void configureLikeButton(PostViewHolder holder, Post post, boolean enableLikeButton) {
-        if (enableLikeButton) {
-            holder.likeButton.setEnabled(true);
-            holder.likeButton.setAlpha(1.0f);
-            holder.likeButton.setOnClickListener(v -> {
-                post.setNumberOfLikes(post.getNumberOfLikes() + 1);
-                holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
-
-                updateLikeInDatabase(post.getPostID(), post.getNumberOfLikes());
-            });
-        } else {
-            holder.likeButton.setEnabled(false);
-            holder.likeButton.setAlpha(0.5f);
-            holder.likeButton.setOnClickListener(null);
-        }
-    }
-
-    private void updateLikeInDatabase(String postId, int newLikeCount) {
-        if (postId == null || postId.isEmpty()) {
-            return;
-        }
-
-        PostsRepository postsRepository = new PostsRepository();
-
-        postsRepository.getPostsRef()
-            .child(postId)
-            .child("likes")
-            .setValue(newLikeCount)
-            .addOnSuccessListener(aVoid -> {
-                System.out.println("Successfully updated like count for post: " + postId);
-            })
-            .addOnFailureListener(exception -> {
-                System.err.println("Failed to update like count: " + exception.getMessage());
-                exception.printStackTrace();
-            });
     }
 
     private void setCategoryIndicatorColor(PostViewHolder holder, String category) {

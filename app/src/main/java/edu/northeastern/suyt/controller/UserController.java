@@ -62,36 +62,6 @@ public class UserController {
         }
     }
 
-    public void isPostSavedByUser(String postId, ContainsCallback callback) {
-        Log.d(TAG, "Checking if post is saved by user");
-        try {
-            userRef.child("savedPosts").child(postId).get().addOnSuccessListener(dataSnapshot -> {
-                if (dataSnapshot.exists()) {
-                    callback.onSuccess();
-                } else {
-                    callback.onFailure();
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Error checking if post is saved by user", e);
-        }
-    }
-
-    public void isPostLikedByUser(String postId, ContainsCallback callback) {
-        Log.d(TAG, "Checking if post is liked by user");
-        try {
-            userRef.child("likedPosts").child(postId).get().addOnSuccessListener(dataSnapshot -> {
-                if (dataSnapshot.exists()) {
-                    callback.onSuccess();
-                } else {
-                    callback.onFailure();
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Error checking if post is liked by user", e);
-        }
-    }
-
     public void updateRecyclePoints(int points, UpdateCallback callback) {
         Log.d(TAG, "Updating recycle points to: " + points);
         if (points == 0) {

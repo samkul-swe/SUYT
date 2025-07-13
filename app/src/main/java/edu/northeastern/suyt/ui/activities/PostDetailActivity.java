@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,7 +16,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.database.DatabaseReference;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.PostController;
@@ -37,13 +35,16 @@ public class PostDetailActivity extends AppCompatActivity {
     private View categoryIndicator;
     private ImageButton saveToolbarButton;
     private MaterialButton likeButton;
+    private MaterialButton shareButton;
 
     private Post post;
     private UserController userController;
     private PostController postController;
+    private SessionManager sessionManager;
 
     private boolean isPostLikedByUser = false;
     private boolean isPostSavedByUser = false;
+    private boolean setPostLikedByUser = false;
     private String currentUserId;
 
     @Override
@@ -51,10 +52,9 @@ public class PostDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_detail);
 
-        SessionManager sessionManager = new SessionManager(this);
+        sessionManager = new SessionManager(this);
         currentUserId = sessionManager.getUserId();
         userController = new UserController(currentUserId);
-        postController = new PostController(post.getPostID());
 
         setupToolbar();
         initializeViews();
@@ -81,7 +81,7 @@ public class PostDetailActivity extends AppCompatActivity {
         categoryIndicator = findViewById(R.id.category_indicator);
 
         likeButton = findViewById(R.id.like_button);
-        Button shareButton = findViewById(R.id.share_button);
+        shareButton = findViewById(R.id.share_button);
         saveToolbarButton = findViewById(R.id.save_button_toolbar);
     }
 
@@ -90,6 +90,7 @@ public class PostDetailActivity extends AppCompatActivity {
             post = getIntent().getParcelableExtra("POST");
 
             if (post != null) {
+                postController = new PostController(post.getPostID());
                 loadPostData();
                 checkUserPostStatus(post.getPostID());
             } else {
@@ -192,35 +193,23 @@ public class PostDetailActivity extends AppCompatActivity {
     }
 
     private void checkUserLikeStatus(String postId) {
-        userController.isPostLikedByUser(postId, new UserController.ContainsCallback() {
-            @Override
-            public void onSuccess() {
-                isPostLikedByUser = true;
-                updateLikeButtonUI();
-            }
-
-            @Override
-            public void onFailure() {
-                isPostLikedByUser = false;
-                updateLikeButtonUI();
-            }
-        });
+        if (sessionManager.isLikedPost(postId)) {
+            isPostLikedByUser = true;
+            updateLikeButtonUI();
+        } else {
+            isPostLikedByUser = false;
+            updateLikeButtonUI();
+        }
     }
 
     private void checkUserSaveStatus(String postId) {
-        userController.isPostSavedByUser(postId, new UserController.ContainsCallback() {
-            @Override
-            public void onSuccess() {
-                isPostSavedByUser = true;
-                updateSaveButtonUI();
-            }
-
-            @Override
-            public void onFailure() {
-                isPostSavedByUser = false;
-                updateSaveButtonUI();
-            }
-        });
+        if (sessionManager.isSavedPost(postId)) {
+            isPostSavedByUser = true;
+            updateSaveButtonUI();
+        } else {
+            isPostSavedByUser = false;
+            updateSaveButtonUI();
+        }
     }
 
     private void toggleLikeStatus() {
@@ -244,8 +233,12 @@ public class PostDetailActivity extends AppCompatActivity {
         int newLikeCount = post.getNumberOfLikes() + 1;
         post.setNumberOfLikes(newLikeCount);
         likesTextView.setText(String.valueOf(newLikeCount));
+        isPostLikedByUser = true;
 
-        updateLikesInDatabase(postId, newLikeCount);
+        sessionManager.addLikedPost(postId);
+        updateLikeButtonUI();
+
+        updateLikedInDatabase(postId, newLikeCount);
     }
 
     private void unlikePost() {
@@ -255,16 +248,20 @@ public class PostDetailActivity extends AppCompatActivity {
         post.setNumberOfLikes(newLikeCount);
         likesTextView.setText(String.valueOf(newLikeCount));
 
-        updateLikesInDatabase(postId, newLikeCount);
+        sessionManager.removeLikedPost(postId);
+        isPostLikedByUser = false;
+        updateLikeButtonUI();
+
+        updateUnlikedInDatabase(postId, newLikeCount);
     }
 
     private void updateLikeButtonUI() {
         if (isPostLikedByUser) {
             likeButton.setIconResource(R.drawable.ic_favorite_filled);
-            likeButton.setIconTint(ContextCompat.getColorStateList(this, R.color.colorAccent));
+            likeButton.setIconTint(ContextCompat.getColorStateList(this, android.R.color.darker_gray));
         } else {
             likeButton.setIconResource(R.drawable.ic_favorite_border);
-            likeButton.setIconTint(ContextCompat.getColorStateList(this, android.R.color.darker_gray));
+            likeButton.setIconTint(ContextCompat.getColorStateList(this, android.R.color.white));
         }
     }
 
@@ -285,27 +282,17 @@ public class PostDetailActivity extends AppCompatActivity {
 
     private void savePost() {
         String postId = post.getPostID();
+
+        sessionManager.addSavedPost(postId);
+        updateSavedInDatabase(postId, true);
+
     }
 
     private void unsavePost() {
-        String postId = post.getId();
+        String postId = post.getPostID();
 
-        // Use the correct method from DatabaseConnector
-        DatabaseReference userSaveRef = databaseConnector.getUserPostSaveReference(currentUserId, postId);
-
-        userSaveRef.removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    isPostSavedByUser = false;
-                    updateSaveButtonUI();
-                    saveToolbarButton.setEnabled(true);
-                    Snackbar.make(findViewById(android.R.id.content), "Post unsaved", Snackbar.LENGTH_SHORT).show();
-                    Log.d(TAG, "Successfully unsaved post " + postId);
-                })
-                .addOnFailureListener(e -> {
-                    saveToolbarButton.setEnabled(true);
-                    Toast.makeText(this, "Failed to unsave post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to unsave post: " + e.getMessage());
-                });
+        sessionManager.removeSavedPost(postId);
+        updateSavedInDatabase(postId, false);
     }
 
     private void updateSaveButtonUI() {
@@ -368,7 +355,63 @@ public class PostDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void updateLikesInDatabase(String postId, int newLikeCount) {
+    private void updateSavedInDatabase(String postId, boolean isSaved) {
+        if (postId != null) {
+            if (isSaved) {
+                userController.savePost(postId, new UserController.UpdateCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Successfully updated save for user");
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Log.e(TAG, "Failed to update save for user: " + errorMessage);
+                    }
+                });
+            } else {
+                userController.unsavePost(postId, new UserController.UpdateCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Successfully updated unsave for user");
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Log.e(TAG, "Failed to update unsave for user: " + errorMessage);
+                    }
+                });
+            }
+        }
+    }
+
+    private void updateUnlikedInDatabase(String postId, int newLikeCount) {
+        if (postId != null) {
+            postController.updateLikes(newLikeCount, new PostController.UpdateLikesCallback() {
+                @Override
+                public void onSuccess() {
+                    userController.unlikePost(postId, new UserController.UpdateCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d(TAG, "Successfully updated unlike for user");
+                        }
+
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            Log.e(TAG, "Failed to update unlike for user: " + errorMessage);
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure() {
+                    Log.e(TAG, "Failed to update likes in database");
+                }
+            });
+        }
+    }
+
+    private void updateLikedInDatabase(String postId, int newLikeCount) {
         if (postId != null) {
             postController.updateLikes(newLikeCount, new PostController.UpdateLikesCallback() {
                 @Override

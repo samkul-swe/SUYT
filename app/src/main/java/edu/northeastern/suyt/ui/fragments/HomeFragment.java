@@ -237,11 +237,9 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
                 recyclerView.setVisibility(View.VISIBLE);
 
                 if (postAdapter == null) {
-                    postAdapter = new PostAdapter(requireContext(), false); // false = disable like button
+                    postAdapter = new PostAdapter();
                     postAdapter.setOnPostClickListener(this);
                     recyclerView.setAdapter(postAdapter);
-                } else {
-                    postAdapter.setLikeButtonEnabled(false);
                 }
 
                 postAdapter.updateData(posts);
