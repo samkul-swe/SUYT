@@ -44,7 +44,6 @@ public class PostDetailActivity extends AppCompatActivity {
 
     private boolean isPostLikedByUser = false;
     private boolean isPostSavedByUser = false;
-    private boolean setPostLikedByUser = false;
     private String currentUserId;
 
     @Override
@@ -284,6 +283,8 @@ public class PostDetailActivity extends AppCompatActivity {
         String postId = post.getPostID();
 
         sessionManager.addSavedPost(postId);
+        isPostSavedByUser = true;
+        updateSaveButtonUI();
         updateSavedInDatabase(postId, true);
 
     }
@@ -292,6 +293,8 @@ public class PostDetailActivity extends AppCompatActivity {
         String postId = post.getPostID();
 
         sessionManager.removeSavedPost(postId);
+        isPostSavedByUser = false;
+        updateSaveButtonUI();
         updateSavedInDatabase(postId, false);
     }
 
@@ -324,7 +327,9 @@ public class PostDetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
