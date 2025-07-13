@@ -49,4 +49,6 @@
     <color name="colorOutline">#79747E</color>
     <color name="colorSurface">#FFFFFF</color>
 
+    <color name="image_placeholder_background">#F5F5F5</color>
+
 </resources>

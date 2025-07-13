@@ -267,5 +267,11 @@
     <string name="nav_profile">Profile</string>
     <string name="nav_settings">Settings</string>
 
+    <string name="post_image">Post image</string>
+    <string name="likes_icon">Likes icon</string>
+    <string name="likes">likes</string>
+    <string name="like">Like</string>
+    <string name="bookmark_post">Bookmark post</string>
+
 
 </resources>

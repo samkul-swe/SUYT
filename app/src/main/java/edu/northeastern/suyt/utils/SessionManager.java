@@ -21,6 +21,7 @@ public class SessionManager {
     private static final String KEY_REUSE_POINTS = "reuse_points";
     private static final String KEY_USER_RANK = "user_rank";
     private static final String KEY_SAVED_POSTS = "saved_posts";
+    private static final String KEY_LIKED_POSTS = "liked_posts";
 
     private static final String KEY_QUOTE = "saved_quote";
     private static final String KEY_TIMESTAMP = "quote_timestamp";
@@ -101,6 +102,46 @@ public class SessionManager {
 
     public long getQuoteTimestamp() {
         return sharedPref.getLong(KEY_TIMESTAMP, 0);
+    }
+
+    public ArrayList<String> getLikedPosts() {
+        return new ArrayList<>(sharedPref.getStringSet(KEY_LIKED_POSTS, new HashSet<>()));
+    }
+
+    public void addSavedPost(String postId) {
+        HashSet<String> savedPosts = new HashSet<>(getSavedPosts());
+        savedPosts.add(postId);
+        editor.putStringSet(KEY_SAVED_POSTS, savedPosts);
+        editor.apply();
+    }
+
+    public void removeSavedPost(String postId) {
+        HashSet<String> savedPosts = new HashSet<>(getSavedPosts());
+        savedPosts.remove(postId);
+        editor.putStringSet(KEY_SAVED_POSTS, savedPosts);
+        editor.apply();
+    }
+
+    public boolean isSavedPost(String postId) {
+        return getSavedPosts().contains(postId);
+    }
+
+    public void addLikedPost(String postId) {
+        HashSet<String> likedPosts = new HashSet<>(getLikedPosts());
+        likedPosts.add(postId);
+        editor.putStringSet(KEY_LIKED_POSTS, likedPosts);
+        editor.apply();
+    }
+
+    public void removeLikedPost(String postId) {
+        HashSet<String> likedPosts = new HashSet<>(getLikedPosts());
+        likedPosts.remove(postId);
+        editor.putStringSet(KEY_LIKED_POSTS, likedPosts);
+        editor.apply();
+    }
+
+    public boolean isLikedPost(String postId) {
+        return getLikedPosts().contains(postId);
     }
 
     public void logout() {

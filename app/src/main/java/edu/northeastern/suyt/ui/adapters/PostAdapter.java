@@ -77,8 +77,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
         Post post = posts.get(position);
 
-        Log.d("PostAdapter", "Binding post: " + post.toString());
-
         executorService.execute(() -> {
             mainHandler.post(() -> {
 

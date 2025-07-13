@@ -96,22 +96,22 @@ public class PostController {
 
     public void updateLikes(int newLikeCount, UpdateLikesCallback callback) {
         if (newLikeCount < 0) {
-            callback.onFailure(new IllegalArgumentException("Like count cannot be negative"));
+            callback.onFailure();
             return;
         }
 
         postRef.child("likes").setValue(newLikeCount)
-                .addOnSuccessListener(aVoid -> {
-                    if (cachedPost != null) {
-                        cachedPost.setNumberOfLikes(newLikeCount);
-                    }
-                    Log.d(TAG, "Updated likes for post " + currentPostID + " to: " + newLikeCount);
-                    callback.onSuccess(newLikeCount);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error updating likes for post: " + currentPostID, e);
-                    callback.onFailure(e);
-                });
+            .addOnSuccessListener(aVoid -> {
+                if (cachedPost != null) {
+                    cachedPost.setNumberOfLikes(newLikeCount);
+                }
+                Log.d(TAG, "Updated likes for post " + currentPostID + " to: " + newLikeCount);
+                callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error updating likes for post: " + currentPostID, e);
+                callback.onFailure();
+            });
     }
 
     public void getCurrentLikeCount(LikeCountCallback callback) {
@@ -210,8 +210,8 @@ public class PostController {
     }
 
     public interface UpdateLikesCallback {
-        void onSuccess(int newLikeCount);
-        void onFailure(Exception e);
+        void onSuccess();
+        void onFailure();
     }
 
     public interface LikeCountCallback {

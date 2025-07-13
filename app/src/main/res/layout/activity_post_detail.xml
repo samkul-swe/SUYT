@@ -30,7 +30,9 @@
                 android:contentDescription="Save Post"
                 android:src="@drawable/ic_save_border"
                 app:tint="@android:color/white"
-                android:padding="12dp" /> </androidx.appcompat.widget.Toolbar>
+                android:padding="12dp" />
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -44,26 +46,30 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Improved Image with better height -->
             <ImageView
                 android:id="@+id/post_image_view"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="240dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_image_placeholder"
-                android:contentDescription="Post image" />
+                android:contentDescription="Post image"
+                android:background="@android:color/darker_gray" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp">
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp">
 
+                <!-- Slightly rounded category indicator -->
                 <View
                     android:id="@+id/category_indicator"
-                    android:layout_width="6dp"
+                    android:layout_width="4dp"
                     android:layout_height="match_parent"
-                    android:background="@color/colorRecycle" />
+                    android:background="@color/colorRecycle"
+                    android:layout_marginEnd="4dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -72,108 +78,127 @@
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp">
 
+                    <!-- Better title styling -->
                     <TextView
                         android:id="@+id/title_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="26sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="@android:color/black"
-                        android:layout_marginBottom="4dp"/>
+                        android:layout_marginBottom="12dp"
+                        android:lineSpacingExtra="4dp"/>
+
+                    <!-- Improved user info layout -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginTop="4dp">
+                        android:layout_marginBottom="16dp">
 
-                        <TextView
-                            android:id="@+id/username_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimary"
-                            android:textSize="14sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/darker_gray"
-                            android:textSize="14sp"/>
-
-                        <TextView
-                            android:id="@+id/date_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/darker_gray"
-                            android:textSize="14sp"/>
-
-                        <View
+                        <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="1dp"
-                            android:layout_weight="1" />
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
+                            <TextView
+                                android:id="@+id/username_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textStyle="bold"
+                                android:textColor="@color/colorPrimary"
+                                android:textSize="15sp"
+                                android:ellipsize="end"
+                                android:maxLines="1"/>
+
+                            <TextView
+                                android:id="@+id/date_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@android:color/darker_gray"
+                                android:textSize="13sp"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"/>
+
+                        </LinearLayout>
+
+                        <!-- Category as a styled TextView -->
                         <TextView
                             android:id="@+id/category_text_view"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textStyle="italic"
+                            android:textStyle="bold"
                             android:textColor="@color/colorAccent"
-                            android:textSize="14sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="8dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"
+                            android:textSize="13sp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
                             android:background="@drawable/rounded_category_background"/>
+
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="20dp" />
+                    <!-- Better description -->
                     <TextView
                         android:id="@+id/description_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
-                        android:lineSpacingExtra="5dp" />
+                        android:lineSpacingExtra="6dp"
+                        android:layout_marginBottom="24dp" />
+
+                    <!-- Improved divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="#E0E0E0"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="20dp" />
+                        android:layout_marginBottom="16dp" />
 
+                    <!-- Enhanced actions section -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@drawable/ic_favorite_filled"
-                            app:tint="@color/colorAccent"
-                            android:contentDescription="Likes icon" />
-
-                        <TextView
-                            android:id="@+id/likes_count_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorAccent"
-                            android:layout_marginStart="8dp" />
-
-                        <View
+                        <!-- Likes section with better spacing -->
+                        <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="1dp"
-                            android:layout_weight="1" />
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
 
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_favorite_filled"
+                                app:tint="@color/colorAccent"
+                                android:contentDescription="Likes icon" />
+
+                            <TextView
+                                android:id="@+id/likes_count_text_view"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/colorAccent"
+                                android:layout_marginStart="6dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=" likes"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/darker_gray" />
+
+                        </LinearLayout>
+
+                        <!-- Improved button spacing -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/like_button"
                             android:layout_width="wrap_content"
@@ -183,9 +208,10 @@
                             app:iconTint="@android:color/white"
                             android:textColor="@android:color/white"
                             android:backgroundTint="@color/colorAccent"
-                            app:cornerRadius="24dp"
+                            app:cornerRadius="20dp"
                             android:layout_marginEnd="8dp"
-                            android:paddingStart="16dp"
+                            android:minWidth="0dp"
+                            android:paddingStart="12dp"
                             android:paddingEnd="16dp"/>
 
                         <com.google.android.material.button.MaterialButton
@@ -197,15 +223,19 @@
                             app:iconTint="@android:color/white"
                             android:textColor="@android:color/white"
                             android:backgroundTint="@color/colorPrimary"
-                            app:cornerRadius="24dp"
-                            android:paddingStart="16dp"
+                            app:cornerRadius="20dp"
+                            android:minWidth="0dp"
+                            android:paddingStart="12dp"
                             android:paddingEnd="16dp"/>
 
                     </LinearLayout>
 
                 </LinearLayout>
+
             </LinearLayout>
+
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

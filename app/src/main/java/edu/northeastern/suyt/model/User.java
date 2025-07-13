@@ -18,9 +18,11 @@ public class User implements Parcelable {
     private boolean emailVerified = false;
     private UserStats userStats;
     private List<String> savedPosts;
+    private List<String> likedPosts;
 
     public User() {
         this.savedPosts = new ArrayList<>();
+        this.likedPosts = new ArrayList<>();
         this.userStats = new UserStats(0,0,0);
     }
 
@@ -30,6 +32,7 @@ public class User implements Parcelable {
         this.email = email;
         this.emailVerified = emailVerified;
         this.savedPosts = new ArrayList<>();
+        this.likedPosts = new ArrayList<>();
         this.userStats = new UserStats(0,0,0);
     }
 
@@ -39,6 +42,7 @@ public class User implements Parcelable {
         email = in.readString();
         emailVerified = in.readByte() != 0;
         savedPosts = in.createStringArrayList();
+        likedPosts = in.createStringArrayList();
         userStats = in.readParcelable(UserStats.class.getClassLoader());
     }
 
@@ -115,6 +119,27 @@ public class User implements Parcelable {
         }
     }
 
+    public void addLikedPost(String postId) {
+        if (likedPosts == null) {
+            likedPosts = new ArrayList<>();
+        }
+        likedPosts.add(postId);
+    }
+
+    public void removeLikedPost(String postId) {
+        if (likedPosts != null) {
+            likedPosts.remove(postId);
+        }
+    }
+
+    public List<String> getLikedPosts() {
+        return likedPosts;
+    }
+
+    public void setLikedPosts(List<String> likedPosts) {
+        this.likedPosts = likedPosts;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -127,6 +152,7 @@ public class User implements Parcelable {
         parcel.writeString(email);
         parcel.writeByte((byte) (emailVerified ? 1 : 0));
         parcel.writeStringList(savedPosts);
+        parcel.writeStringList(likedPosts);
         parcel.writeParcelable(userStats, i);
     }
 }

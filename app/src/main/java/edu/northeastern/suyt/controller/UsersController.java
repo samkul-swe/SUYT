@@ -125,8 +125,17 @@ public class UsersController {
                         user.addSavedPost((String) postId);
                     }
                 }
+                if (dataSnapshot.child("likedPosts").exists()) {
+                    for (Object postId : Objects.requireNonNull(dataSnapshot.child("likedPosts").getValue(ArrayList.class))) {
+                        user.addLikedPost((String) postId);
+                    }
+                }
                 if (dataSnapshot.child("userStats").exists()) {
-
+                    UserStats userStats = new UserStats();
+                    userStats.setRecyclePoints(Objects.requireNonNull(dataSnapshot.child("userStats").child("recyclePoints").getValue(Integer.class)));
+                    userStats.setReducePoints(Objects.requireNonNull(dataSnapshot.child("userStats").child("reducePoints").getValue(Integer.class)));
+                    userStats.setReusePoints(Objects.requireNonNull(dataSnapshot.child("userStats").child("reusePoints").getValue(Integer.class)));
+                    user.setUserStats(userStats);
                 }
                 user.setUserId(userId);
                 Log.d(TAG, "User data retrieved: " + user);

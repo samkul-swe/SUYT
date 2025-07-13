@@ -25,6 +25,28 @@ public class UserController {
         currentUser = mAuth.getCurrentUser();
     }
 
+    public void likePost(String postId, UpdateCallback callback) {
+        Log.d(TAG, "Post liked: " + postId);
+        try {
+            userRef.child("likedPosts").child(postId).setValue(true);
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error liking post", e);
+            callback.onFailure("Error liking post: " + e.getMessage());
+        }
+    }
+
+    public void unlikePost(String postId, UpdateCallback callback) {
+        Log.d(TAG, "Post unliked: " + postId);
+        try {
+            userRef.child("likedPosts").child(postId).removeValue();
+            callback.onSuccess();
+        } catch (Exception e) {
+            Log.e(TAG, "Error unliking post", e);
+            callback.onFailure("Error unliking post: " + e.getMessage());
+        }
+    }
+
     public void updateRank(String rank, UpdateCallback callback) {
         Log.d(TAG, "Updating rank to: " + rank);
         if (rank == null || rank.isEmpty()) {
@@ -37,6 +59,36 @@ public class UserController {
         } catch (Exception e) {
             Log.e(TAG, "Error updating rank", e);
             callback.onFailure("Error updating rank: " + e.getMessage());
+        }
+    }
+
+    public void isPostSavedByUser(String postId, ContainsCallback callback) {
+        Log.d(TAG, "Checking if post is saved by user");
+        try {
+            userRef.child("savedPosts").child(postId).get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onFailure();
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if post is saved by user", e);
+        }
+    }
+
+    public void isPostLikedByUser(String postId, ContainsCallback callback) {
+        Log.d(TAG, "Checking if post is liked by user");
+        try {
+            userRef.child("likedPosts").child(postId).get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onFailure();
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if post is liked by user", e);
         }
     }
 
@@ -219,6 +271,11 @@ public class UserController {
     }
 
     // CALLBACK INTERFACES
+    public interface ContainsCallback {
+        void onSuccess();
+        void onFailure();
+    }
+
     public interface UpdateCallback {
         void onSuccess();
         void onFailure(String errorMessage);
