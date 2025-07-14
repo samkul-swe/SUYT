@@ -18,7 +18,7 @@ public class PostsController {
     private final DatabaseReference postsRef = postsRepository.getPostsRef();
     private com.google.firebase.database.ValueEventListener valueEventListener;
 
-    private final List<Post> cachedPosts = new ArrayList<>();
+    private static final List<Post> cachedPosts = new ArrayList<>();
     private static boolean isInitialLoadComplete;
 
     public PostsController() {
