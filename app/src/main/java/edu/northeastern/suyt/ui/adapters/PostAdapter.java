@@ -47,6 +47,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         this.listener = homeFragment;
     }
 
+    public void setOnPostClickListener(OnPostClickListener listener) {this.listener = listener;}
+
     @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
     public void updateData(List<Post> posts) {
         this.posts = posts;

@@ -39,7 +39,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private TextView quoteForUserTextView;
     private RecyclerView recyclerView;
 
-    // Loading indicator
     private ProgressBar quoteLoadingProgress;
 
     private HomeViewModel viewModel;

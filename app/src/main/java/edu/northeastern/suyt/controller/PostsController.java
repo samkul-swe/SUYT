@@ -9,20 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
+import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
 import edu.northeastern.suyt.model.Post;
 
 public class PostsController {
     private final String TAG = "PostsController";
-    private final DatabaseReference postsRef;
+    PostsRepository postsRepository = new PostsRepository();
+    private final DatabaseReference postsRef = postsRepository.getPostsRef();
     private com.google.firebase.database.ValueEventListener valueEventListener;
 
-    private final List<Post> cachedPosts;
-    private boolean isInitialLoadComplete = false;
+    private final List<Post> cachedPosts = new ArrayList<>();
+    private static boolean isInitialLoadComplete;
 
     public PostsController() {
-        PostsRepository postsRepository = new PostsRepository();
-        postsRef = postsRepository.getPostsRef();
-        cachedPosts = new ArrayList<>();
+
     }
 
     public void createPost(Post post, PostCreatedCallback callback) {
@@ -37,32 +37,31 @@ public class PostsController {
             });
     }
 
-    public void loadInitialPosts(GetAllPostsCallback callback) {
+    public void loadInitialPosts(PostsLoadedCallback callback) {
         postsRef.limitToLast(50).get()
-                .addOnSuccessListener(dataSnapshot -> {
-                    cachedPosts.clear();
-
-                    if (dataSnapshot.exists()) {
-                        for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                            try {
-                                Post post = createPostFromSnapshot(postSnapshot);
-                                if (post != null) {
-                                    cachedPosts.add(post);
-                                }
-                            } catch (Exception e) {
-                                Log.w(TAG, "Error parsing post: " + postSnapshot.getKey(), e);
+            .addOnSuccessListener(dataSnapshot -> {
+                cachedPosts.clear();
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        try {
+                            Post post = createPostFromSnapshot(postSnapshot);
+                            if (post != null) {
+                                cachedPosts.add(post);
                             }
+                        } catch (Exception e) {
+                            Log.w(TAG, "Error parsing post: " + postSnapshot.getKey(), e);
                         }
                     }
+                }
 
-                    isInitialLoadComplete = true;
-                    Log.d(TAG, "Loaded " + cachedPosts.size() + " initial posts");
-                    callback.onSuccess(new ArrayList<>(cachedPosts)); // Return copy
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading initial posts", e);
-                    callback.onFailure(e);
-                });
+                isInitialLoadComplete = true;
+                Log.d(TAG, "Loaded " + cachedPosts.size() + " initial posts");
+                callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error loading initial posts", e);
+                callback.onFailure(e);
+            });
     }
 
     public void getAllPosts(GetAllPostsCallback callback) {
@@ -121,12 +120,8 @@ public class PostsController {
             return;
         }
 
-        if (!isInitialLoadComplete) {
-            callback.onFailure(new IllegalStateException("Posts not loaded yet. Call loadInitialPosts() first."));
-            return;
-        }
-
         List<Post> savedPosts = new ArrayList<>();
+
         for (Post post : cachedPosts) {
             if (savedPostIDs.contains(post.getPostID())) {
                 savedPosts.add(post);
@@ -199,20 +194,51 @@ public class PostsController {
         try {
             Post post = new Post();
             post.setPostID(postSnapshot.getKey());
-            post.setPostTitle(postSnapshot.child("title").getValue(String.class));
-            post.setPostDescription(postSnapshot.child("description").getValue(String.class));
-            post.setPostCategory(postSnapshot.child("category").getValue(String.class));
-            post.setPostedBy(postSnapshot.child("postedBy").getValue(String.class));
-            post.setPostedOn(postSnapshot.child("postedOn").getValue(String.class));
-            post.setPostImage(postSnapshot.child("image").getValue(String.class));
 
-            Integer likes = postSnapshot.child("likes").getValue(Integer.class);
+            String userID = postSnapshot.child("postedBy").getValue(String.class);
+            getUserName(userID, new UsersController.GetUserNameCallback() {
+                @Override
+                public void onSuccess(String username) {
+                    post.setPostedBy(username);
+                }
+                @Override
+                public void onFailure(String errorMessage) {
+                    Log.e(TAG, "Error getting username: " + errorMessage);
+                }
+            });
+            post.setPostTitle(postSnapshot.child("postTitle").getValue(String.class));
+            post.setPostDescription(postSnapshot.child("postDescription").getValue(String.class));
+            post.setPostImage(postSnapshot.child("postImage").getValue(String.class));
+            post.setPostCategory(postSnapshot.child("postCategory").getValue(String.class));
+
+            Integer likes = postSnapshot.child("numberOfLikes").getValue(Integer.class);
             post.setNumberOfLikes(likes != null ? likes : 0);
+
+            post.setPostedOn(postSnapshot.child("postedOn").getValue(String.class));
 
             return post;
         } catch (Exception e) {
-            Log.e(TAG, "Error creating post from snapshot", e);
+            Log.e(TAG, "Error creating post from snapshot: " + postSnapshot.getKey(), e);
             return null;
+        }
+    }
+
+    public void getUserName(String userId, UsersController.GetUserNameCallback callback) {
+        UsersRepository userRepository = new UsersRepository(userId);
+        DatabaseReference userRef = userRepository.getUserRef();
+        try{
+            userRef.get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    String username = dataSnapshot.child("username").getValue(String.class);
+                    Log.d(TAG, "Username retrieved: " + username);
+                    callback.onSuccess(username);
+                } else {
+                    callback.onFailure("User data not found");
+                }
+            }).addOnFailureListener(exception -> Log.e(TAG, "Error getting user data", exception));
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting username", e);
+            callback.onFailure("Error getting username: " + e.getMessage());
         }
     }
 
@@ -246,6 +272,12 @@ public class PostsController {
     }
 
     // Callback interfaces
+    public interface PostsLoadedCallback {
+        void onSuccess();
+        void onFailure(Exception e);
+    }
+
+
     public interface PostCreatedCallback {
         void onResult(boolean isSaved);
     }

@@ -18,6 +18,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 
 import edu.northeastern.suyt.R;
+import edu.northeastern.suyt.controller.PostsController;
 import edu.northeastern.suyt.ui.fragments.AchievementsFragment;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
 import edu.northeastern.suyt.ui.fragments.ProfileFragment;
@@ -33,6 +34,19 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.getLimitedUseAppCheckToken();
+
+        PostsController postsController = new PostsController();
+        postsController.loadInitialPosts(new PostsController.PostsLoadedCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "Posts loaded successfully");
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Error loading posts", e);
+            }
+        });
 
         if (new SessionManager(this).isLoggedIn()) {
             try {
@@ -74,12 +88,10 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (Exception e) {
-                // Show error and finish
                 Toast.makeText(this, "Error loading main screen: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 finish();
             }
         }  else {
-            // Show error and finish
             Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show();
             finish();
         }
@@ -89,9 +101,9 @@ public class MainActivity extends AppCompatActivity {
         if (fragment != null) {
             try {
                 getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .commit();
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .commit();
                 return true;
             } catch (Exception e) {
                 return false;
@@ -106,18 +118,18 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("SetTextI18n")
                 @Override
                 public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-                    TextView textView = new TextView(requireContext());
-                    textView.setText("Welcome! Main screen is loading...");
-                    textView.setGravity(Gravity.CENTER);
-                    textView.setTextSize(18);
-                    return textView;
+                TextView textView = new TextView(requireContext());
+                textView.setText("Welcome! Main screen is loading...");
+                textView.setGravity(Gravity.CENTER);
+                textView.setTextSize(18);
+                return textView;
                 }
             };
 
             getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, fallback)
-                    .commit();
+                .beginTransaction()
+                .replace(R.id.fragment_container, fallback)
+                .commit();
         } catch (Exception e) {
             Log.e(TAG, "Even fallback fragment failed", e);
         }
