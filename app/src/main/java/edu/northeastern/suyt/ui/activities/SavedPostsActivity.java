@@ -149,14 +149,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         loadSavedPosts();
@@ -167,6 +159,19 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         super.onDestroy();
         if (savedPostsList != null) {
             savedPostsList.clear();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 }
