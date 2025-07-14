@@ -21,9 +21,7 @@ public class PostsController {
     private static final List<Post> cachedPosts = new ArrayList<>();
     private static boolean isInitialLoadComplete;
 
-    public PostsController() {
-
-    }
+    public PostsController() {}
 
     public void createPost(Post post, PostCreatedCallback callback) {
         postsRef.child(post.getPostID()).setValue(post)
@@ -117,6 +115,11 @@ public class PostsController {
     public void getUserSavedPosts(List<String> savedPostIDs, GetAllPostsCallback callback) {
         if (savedPostIDs == null || savedPostIDs.isEmpty()) {
             callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        if (!isInitialLoadComplete) {
+            callback.onFailure(new IllegalStateException("Posts not loaded yet. Call loadInitialPosts() first."));
             return;
         }
 

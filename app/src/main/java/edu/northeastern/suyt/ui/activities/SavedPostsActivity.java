@@ -20,7 +20,6 @@ import java.util.List;
 
 import edu.northeastern.suyt.R;
 import edu.northeastern.suyt.controller.PostsController;
-import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.Post;
 import edu.northeastern.suyt.ui.adapters.PostAdapter;
 import edu.northeastern.suyt.utils.SessionManager;
@@ -35,7 +34,6 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
     private TextView emptyStateTextView;
 
     private SessionManager sessionManager;
-    private UserController userController;
     private PostsController postsController;
 
     private List<Post> savedPostsList;
@@ -46,10 +44,7 @@ public class SavedPostsActivity extends AppCompatActivity implements PostAdapter
         setContentView(R.layout.activity_saved_posts);
 
         sessionManager = new SessionManager(this);
-        userController = new UserController(sessionManager.getUserId());
         postsController = new PostsController();
-
-        savedPostsList = new ArrayList<Post>();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
