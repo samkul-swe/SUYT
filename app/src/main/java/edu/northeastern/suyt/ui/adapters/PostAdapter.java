@@ -1,10 +1,8 @@
 package edu.northeastern.suyt.ui.adapters;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,12 +18,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.UserController;
-import edu.northeastern.suyt.firebase.repository.database.PostsRepository;
 import edu.northeastern.suyt.model.Post;
-import edu.northeastern.suyt.model.User;
 import edu.northeastern.suyt.ui.fragments.HomeFragment;
-import edu.northeastern.suyt.utils.SessionManager;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
@@ -71,23 +65,21 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
         Post post = posts.get(position);
 
-        executorService.execute(() -> {
-            mainHandler.post(() -> {
-                if (post.getPostCategory().equalsIgnoreCase("reuse")) {
-                    holder.postImageView.setImageResource(R.drawable.reuse);
-                } else if (post.getPostCategory().equalsIgnoreCase("recycle")) {
-                    holder.postImageView.setImageResource(R.drawable.recycle);
-                } else {
-                    holder.postImageView.setImageResource(R.drawable.reduce);
-                }
+        executorService.execute(() -> mainHandler.post(() -> {
+            if (post.getPostCategory().equalsIgnoreCase("reuse")) {
+                holder.postImageView.setImageResource(R.drawable.reuse);
+            } else if (post.getPostCategory().equalsIgnoreCase("recycle")) {
+                holder.postImageView.setImageResource(R.drawable.recycle);
+            } else {
+                holder.postImageView.setImageResource(R.drawable.reduce);
+            }
 
-                holder.postImageView.setTag(post.getPostImage());
-                holder.titleTextView.setText(post.getPostTitle());
-                holder.usernameTextView.setText(post.getPostedBy());
-                holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
-                holder.dateTextView.setText(post.getPostedOn());
-            });
-        });
+            holder.postImageView.setTag(post.getPostImage());
+            holder.titleTextView.setText(post.getPostTitle());
+            holder.usernameTextView.setText(post.getPostedBy());
+            holder.likesTextView.setText(String.valueOf(post.getNumberOfLikes()));
+            holder.dateTextView.setText(post.getPostedOn());
+        }));
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -126,7 +118,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         }
     }
 
-    static class PostViewHolder extends RecyclerView.ViewHolder {
+    public static class PostViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView;
         TextView usernameTextView;
         TextView likesTextView;

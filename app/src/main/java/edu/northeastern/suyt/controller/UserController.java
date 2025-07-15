@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
+import edu.northeastern.suyt.utils.SessionManager;
 
 public class UserController {
     private static final String TAG = "UserController";

@@ -168,7 +168,6 @@ public class PostsController {
         postsRef.orderByKey().endBefore(lastPostKey).limitToLast(limit).get()
                 .addOnSuccessListener(dataSnapshot -> {
                     List<Post> newPosts = new ArrayList<>();
-
                     if (dataSnapshot.exists()) {
                         for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                             try {
@@ -181,7 +180,6 @@ public class PostsController {
                             }
                         }
                     }
-
                     cachedPosts.addAll(0, newPosts);
                     Log.d(TAG, "Loaded " + newPosts.size() + " more posts. Total cached: " + cachedPosts.size());
 

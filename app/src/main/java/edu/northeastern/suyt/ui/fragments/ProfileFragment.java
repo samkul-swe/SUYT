@@ -33,7 +33,6 @@ import edu.northeastern.suyt.utils.GeneralHelper;
 import edu.northeastern.suyt.utils.SessionManager;
 
 public class ProfileFragment extends Fragment {
-    // UI Components
     private ImageView profileImageView;
     private TextView usernameTextView;
     private TextView emailTextView;
@@ -46,7 +45,6 @@ public class ProfileFragment extends Fragment {
     private Button logoutButton;
     private SessionManager sessionManager;
 
-    // Controllers
     private UserController userController;
     private AnalysisController analysisController;
 
@@ -54,32 +52,24 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        // Initialize controllers
+
         sessionManager = new SessionManager(requireContext());
-        Log.d("ProfileFragment", "User ID: " + sessionManager.getUsername());
         userController = new UserController(sessionManager.getUserId());
         analysisController = new AnalysisController();
 
-        // Initialize views
         initializeViews(view);
-
-        // Set profile data
         loadProfileData();
-
-        // Set button click listeners
         setupButtonListeners();
 
         return view;
     }
 
     private void initializeViews(View view) {
-        // Profile header views
         profileImageView = view.findViewById(R.id.profile_image_view);
         usernameTextView = view.findViewById(R.id.username_text_view);
         emailTextView = view.findViewById(R.id.email_text_view);
         rankTextView = view.findViewById(R.id.rank_text_view);
 
-        // Button views
         recentAnalysisButton = view.findViewById(R.id.recent_analysis_button);
         changeEmailButton = view.findViewById(R.id.change_email);
         changePasswordButton = view.findViewById(R.id.change_password);
@@ -89,19 +79,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadProfileData() {
-        // Get current user data from UserController
         GeneralHelper generalHelper = new GeneralHelper();
         usernameTextView.setText(sessionManager.getUsername() != null ? sessionManager.getUsername() : "Swarley");
         emailTextView.setText(sessionManager.getEmail() != null ? sessionManager.getEmail() : "exampler@example.com");
         rankTextView.setText(generalHelper.calculateUserRank(sessionManager.getReducePoints() + sessionManager.getReusePoints() + sessionManager.getRecyclePoints()));
 
-        // Set profile image
         profileImageView.setImageResource(R.drawable.placeholder_profile);
     }
 
     @SuppressLint("DefaultLocale")
     private String formatCount(int count) {
-        // Format large numbers (e.g., 1200 -> 1.2k)
         if (count >= 1000000) {
             return String.format("%.1fM", count / 1000000.0);
         } else if (count >= 1000) {
@@ -112,32 +99,26 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupButtonListeners() {
-        // Recent Analysis Button (NEW)
         recentAnalysisButton.setOnClickListener(v -> {
             openRecentAnalysis();
         });
 
-        // Change Email Button
         changeEmailButton.setOnClickListener(v -> {
             showChangeEmailDialog();
         });
 
-        // Change Password Button
         changePasswordButton.setOnClickListener(v -> {
             showChangePasswordDialog();
         });
 
-        // Saved Posts Button
         savedPostsButton.setOnClickListener(v -> {
             openSavedPosts();
         });
 
-        // Create Post Button
         createPostButton.setOnClickListener(v -> {
             openCreatePost();
         });
 
-        // Logout Button
         logoutButton.setOnClickListener(v -> {
             showLogoutConfirmationDialog();
         });
@@ -145,11 +126,9 @@ public class ProfileFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void openRecentAnalysis() {
-        // Show loading state
         recentAnalysisButton.setEnabled(false);
         recentAnalysisButton.setText("Loading...");
 
-        // Get user's recent analysis from database
         analysisController.getUserRecentAnalysis(new AnalysisController.RecentAnalysisCallback() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -158,17 +137,14 @@ public class ProfileFragment extends Fragment {
                     return;
                 }
 
-                // Reset button state
                 recentAnalysisButton.setEnabled(true);
                 recentAnalysisButton.setText("My Recent Analysis");
 
                 if (recentAnalysis != null) {
-                    // Open RecentAnalysisActivity with the analysis data
                     Intent intent = new Intent(requireContext(), RecentAnalysisActivity.class);
                     intent.putExtra("analysis_result", recentAnalysis); // Pass the entire AnalysisResult object
                     startActivity(intent);
                 } else {
-                    // No analysis found
                     Toast.makeText(requireContext(),
                             "No recent analysis found. Start analyzing items to see your results here!",
                             Toast.LENGTH_LONG).show();
@@ -182,7 +158,6 @@ public class ProfileFragment extends Fragment {
                     return;
                 }
 
-                // Reset button state
                 recentAnalysisButton.setEnabled(true);
                 recentAnalysisButton.setText("My Recent Analysis");
 
@@ -197,7 +172,6 @@ public class ProfileFragment extends Fragment {
         ChangeEmailDialog dialog = new ChangeEmailDialog(requireContext(),
                 emailTextView.getText().toString(),
                 newEmail -> {
-                    // Update email in database and UI
                     userController.updateUserEmail(newEmail, new UserController.UpdateCallback() {
                         @Override
                         public void onSuccess() {
@@ -258,7 +232,6 @@ public class ProfileFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void logout() {
-        // Show logout progress
         logoutButton.setEnabled(false);
         logoutButton.setText("Signing Out...");
 
@@ -284,7 +257,6 @@ public class ProfileFragment extends Fragment {
                     return;
                 }
 
-                // Reset logout button
                 logoutButton.setEnabled(true);
                 logoutButton.setText("Sign Out");
 
@@ -296,7 +268,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh data when returning to this fragment
         loadProfileData();
     }
 }

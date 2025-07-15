@@ -2,8 +2,7 @@ package edu.northeastern.suyt.ui.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +41,6 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private ProgressBar quoteLoadingProgress;
 
     private HomeViewModel viewModel;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private PostAdapter postAdapter;
     private LinearLayoutManager layoutManager;
@@ -99,9 +97,9 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private void setupRecyclerView() {
         layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(20);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setNestedScrollingEnabled(true);
     }
 
     private void handleQuoteLoading() {
@@ -165,19 +163,14 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     @Override
     public void onPause() {
         super.onPause();
-
-        if (layoutManager != null) {
-            viewModel.setRecyclerViewState(layoutManager.onSaveInstanceState());
-        }
+        saveScrollPosition();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
 
-        if (layoutManager != null) {
-            viewModel.setRecyclerViewState(layoutManager.onSaveInstanceState());
-        }
+        saveScrollPosition();
 
         recyclerView = null;
         postAdapter = null;
@@ -202,6 +195,13 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
         outState.putInt("reducePoints", reducePoints);
         outState.putInt("reusePoints", reusePoints);
         outState.putInt("recyclePoints", recyclePoints);
+    }
+
+    private void saveScrollPosition() {
+        if (layoutManager != null && recyclerView != null) {
+            viewModel.setRecyclerViewState(layoutManager.onSaveInstanceState());
+            Log.d(TAG, "Saved scroll position");
+        }
     }
 
     private void restoreInstanceState(@NonNull Bundle savedInstanceState) {
@@ -231,26 +231,24 @@ public class HomeFragment extends Fragment implements PostAdapter.OnPostClickLis
     private void updatePostsUI(List<Post> posts) {
         if (!isAdded() || recyclerView == null) return;
 
-        mainHandler.post(() -> {
-            if (isAdded() && recyclerView != null) {
-                recyclerView.setVisibility(View.VISIBLE);
+        if (postAdapter == null) {
+            postAdapter = new PostAdapter();
+            postAdapter.setOnPostClickListener(this);
+            recyclerView.setAdapter(postAdapter);
+        }
 
-                if (postAdapter == null) {
-                    postAdapter = new PostAdapter();
-                    postAdapter.setOnPostClickListener(this);
-                    recyclerView.setAdapter(postAdapter);
-                }
+        postAdapter.updateData(posts);
+        recyclerView.setVisibility(View.VISIBLE);
 
-                postAdapter.updateData(posts);
-            }
-        });
+        recyclerView.post(this::restoreScrollPosition);
     }
 
     private void restoreScrollPosition() {
-        if (layoutManager != null) {
-            android.os.Parcelable savedState = viewModel.getRecyclerViewState();
+        if (layoutManager != null && recyclerView != null) {
+            Parcelable savedState = viewModel.getRecyclerViewState();
             if (savedState != null) {
                 layoutManager.onRestoreInstanceState(savedState);
+                Log.d(TAG, "Restored scroll position");
             }
         }
     }

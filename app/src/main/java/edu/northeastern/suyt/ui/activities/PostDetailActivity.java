@@ -35,7 +35,6 @@ public class PostDetailActivity extends AppCompatActivity {
     private View categoryIndicator;
     private ImageButton saveToolbarButton;
     private MaterialButton likeButton;
-    private MaterialButton shareButton;
 
     private Post post;
     private UserController userController;
@@ -80,7 +79,7 @@ public class PostDetailActivity extends AppCompatActivity {
         categoryIndicator = findViewById(R.id.category_indicator);
 
         likeButton = findViewById(R.id.like_button);
-        shareButton = findViewById(R.id.share_button);
+        MaterialButton shareButton = findViewById(R.id.share_button);
         saveToolbarButton = findViewById(R.id.save_button_toolbar);
     }
 
