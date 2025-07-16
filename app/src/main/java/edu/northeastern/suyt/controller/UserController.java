@@ -164,18 +164,15 @@ public class UserController {
         }
     }
 
-    public void updateUserPassword(String currentEmail, String currentPassword, String newPassword, UpdateCallback callback) {
+    public void updateUserPassword(String currentEmail, String currentPassword, UpdateCallback callback) {
         Log.d(TAG, "Attempting to update password");
 
         AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, currentPassword);
 
         currentUser.reauthenticate(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Reauthentication successful, proceed to update password
-                currentUser.updatePassword(newPassword);
                 callback.onSuccess();
             } else {
-                // Handle reauthentication failure (e.g., incorrect old password)
                 callback.onFailure("Authentication failed");
             }
         });

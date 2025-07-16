@@ -47,10 +47,6 @@ public class HomeViewModel extends ViewModel {
         return postsLiveData;
     }
 
-    public LiveData<Boolean> getLoading() {
-        return loadingLiveData;
-    }
-
     public LiveData<String> getError() {
         return errorLiveData;
     }

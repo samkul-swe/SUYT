@@ -7,8 +7,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.GenericTypeIndicator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 import edu.northeastern.suyt.firebase.AuthConnector;
@@ -121,13 +123,21 @@ public class UsersController {
                 user.setEmail(dataSnapshot.child("email").getValue(String.class));
                 user.setEmailVerified(Boolean.TRUE.equals(dataSnapshot.child("emailVerified").getValue(Boolean.class)));
                 if (dataSnapshot.child("savedPosts").exists()) {
-                    for (Object postId : Objects.requireNonNull(dataSnapshot.child("savedPosts").getValue(ArrayList.class))) {
-                        user.addSavedPost((String) postId);
+                    HashMap<String, Object> savedPostsMap = dataSnapshot.child("savedPosts").getValue(new GenericTypeIndicator<>() {
+                    });
+                    if (savedPostsMap != null) {
+                        for (String postId : savedPostsMap.keySet()) {
+                            user.addSavedPost(postId);
+                        }
                     }
                 }
                 if (dataSnapshot.child("likedPosts").exists()) {
-                    for (Object postId : Objects.requireNonNull(dataSnapshot.child("likedPosts").getValue(ArrayList.class))) {
-                        user.addLikedPost((String) postId);
+                    HashMap<String, Object> likedPostsMap = dataSnapshot.child("likedPosts").getValue(new GenericTypeIndicator<>() {
+                    });
+                    if (likedPostsMap != null) {
+                        for (String postId : likedPostsMap.keySet()) {
+                            user.addLikedPost(postId);
+                        }
                     }
                 }
                 if (dataSnapshot.child("userStats").exists()) {

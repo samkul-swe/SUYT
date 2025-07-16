@@ -1,6 +1,7 @@
 package edu.northeastern.suyt.ui.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -35,21 +36,23 @@ public class MainActivity extends AppCompatActivity {
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.getLimitedUseAppCheckToken();
 
-        PostsController postsController = new PostsController();
-        postsController.loadInitialPosts(new PostsController.PostsLoadedCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d(TAG, "Posts loaded successfully");
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Log.e(TAG, "Error loading posts", e);
-            }
-        });
 
         if (new SessionManager(this).isLoggedIn()) {
             try {
+                PostsController postsController = new PostsController();
+                postsController.loadInitialPosts(new PostsController.PostsLoadedCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Posts loaded successfully");
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e(TAG, "Error loading posts", e);
+                    }
+                });
+
+
                 setContentView(R.layout.activity_main);
 
                 BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -92,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         }  else {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Redirecting to login screen", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
     }

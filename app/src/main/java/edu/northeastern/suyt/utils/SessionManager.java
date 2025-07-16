@@ -1,12 +1,16 @@
 package edu.northeastern.suyt.utils;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.northeastern.suyt.model.User;
+import edu.northeastern.suyt.ui.activities.LoginActivity;
 
 
 public class SessionManager {
@@ -146,6 +150,18 @@ public class SessionManager {
 
     public void logout() {
         editor.clear();
+        editor.putBoolean(KEY_IS_LOGGED_IN, false);
+        editor.putString(KEY_USER_ID, null);
+        editor.putString(KEY_USERNAME, null);
+        editor.putString(KEY_EMAIL, null);
+        editor.putInt(KEY_RECYCLE_POINTS, 0);
+        editor.putInt(KEY_REDUCE_POINTS, 0);
+        editor.putInt(KEY_REUSE_POINTS, 0);
+        editor.putStringSet(KEY_SAVED_POSTS, new HashSet<>());
+        editor.putStringSet(KEY_LIKED_POSTS, new HashSet<>());
+        editor.putString(KEY_QUOTE, null);
+        editor.putLong(KEY_TIMESTAMP, 0);
         editor.apply();
     }
+
 }

@@ -1,6 +1,5 @@
 package edu.northeastern.suyt.ui.fragments;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -8,8 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import edu.northeastern.suyt.R;
-import edu.northeastern.suyt.controller.AnalysisController;
-import edu.northeastern.suyt.controller.UserController;
 import edu.northeastern.suyt.model.AnalysisResult;
 import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
@@ -29,7 +26,7 @@ import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.activities.RecentAnalysisActivity;
 import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
 import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
-import edu.northeastern.suyt.utils.GeneralHelper;
+import edu.northeastern.suyt.ui.viewmodel.ProfileViewModel;
 import edu.northeastern.suyt.utils.SessionManager;
 
 public class ProfileFragment extends Fragment {
@@ -43,10 +40,9 @@ public class ProfileFragment extends Fragment {
     private LinearLayout savedPostsButton;
     private Button createPostButton;
     private Button logoutButton;
-    private SessionManager sessionManager;
 
-    private UserController userController;
-    private AnalysisController analysisController;
+    private ProfileViewModel viewModel;
+    private SessionManager sessionManager;
 
     @Nullable
     @Override
@@ -54,11 +50,11 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         sessionManager = new SessionManager(requireContext());
-        userController = new UserController(sessionManager.getUserId());
-        analysisController = new AnalysisController();
+        viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
+        viewModel.initialize(sessionManager);
 
         initializeViews(view);
-        loadProfileData();
+        setupViewModelObservers();
         setupButtonListeners();
 
         return view;
@@ -76,148 +72,126 @@ public class ProfileFragment extends Fragment {
         savedPostsButton = view.findViewById(R.id.saved_posts_button);
         createPostButton = view.findViewById(R.id.create_post_button);
         logoutButton = view.findViewById(R.id.logout_button);
-    }
 
-    private void loadProfileData() {
-        GeneralHelper generalHelper = new GeneralHelper();
-        usernameTextView.setText(sessionManager.getUsername() != null ? sessionManager.getUsername() : "Swarley");
-        emailTextView.setText(sessionManager.getEmail() != null ? sessionManager.getEmail() : "exampler@example.com");
-        rankTextView.setText(generalHelper.calculateUserRank(sessionManager.getReducePoints() + sessionManager.getReusePoints() + sessionManager.getRecyclePoints()));
-
+        // Set placeholder profile image
         profileImageView.setImageResource(R.drawable.placeholder_profile);
     }
 
-    @SuppressLint("DefaultLocale")
-    private String formatCount(int count) {
-        if (count >= 1000000) {
-            return String.format("%.1fM", count / 1000000.0);
-        } else if (count >= 1000) {
-            return String.format("%.1fk", count / 1000.0);
-        } else {
-            return String.valueOf(count);
-        }
+    private void setupViewModelObservers() {
+        viewModel.getUsername().observe(getViewLifecycleOwner(), username -> {
+            if (username != null) {
+                usernameTextView.setText(username);
+            }
+        });
+
+        viewModel.getEmail().observe(getViewLifecycleOwner(), email -> {
+            if (email != null) {
+                emailTextView.setText(email);
+            }
+        });
+
+        viewModel.getRank().observe(getViewLifecycleOwner(), rank -> {
+            if (rank != null) {
+                rankTextView.setText(rank);
+            }
+        });
+
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
+                viewModel.clearErrorMessage();
+            }
+        });
+
+        viewModel.getRecentAnalysis().observe(getViewLifecycleOwner(), analysis -> {
+            if (analysis != null) {
+                openRecentAnalysisActivity(analysis);
+            }
+        });
+
+        viewModel.getIsAnalysisLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            recentAnalysisButton.setEnabled(!isLoading);
+            recentAnalysisButton.setText(isLoading ? "Loading..." : "My Recent Analysis");
+        });
+
+        viewModel.getIsLogoutLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            logoutButton.setEnabled(!isLoading);
+            logoutButton.setText(isLoading ? "Signing Out..." : "Sign Out");
+        });
+
+        viewModel.getEmailUpdateSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success != null) {
+                String message = success ? "Email updated successfully" : "Failed to update email";
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.clearSuccessFlags();
+            }
+        });
+
+        viewModel.getPasswordUpdateSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success != null) {
+                String message = success ? "Password updated successfully" : "Failed to update password";
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.clearSuccessFlags();
+            }
+        });
+
+        viewModel.getLogoutSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success != null && success) {
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                if (getActivity() != null) {
+                    getActivity().finish();
+                }
+                Toast.makeText(getActivity(), "Signed out successfully", Toast.LENGTH_SHORT).show();
+                viewModel.clearSuccessFlags();
+            }
+        });
     }
 
     private void setupButtonListeners() {
-        recentAnalysisButton.setOnClickListener(v -> {
-            openRecentAnalysis();
-        });
+        recentAnalysisButton.setOnClickListener(v -> viewModel.loadRecentAnalysis());
 
-        changeEmailButton.setOnClickListener(v -> {
-            showChangeEmailDialog();
-        });
+        changeEmailButton.setOnClickListener(v -> showChangeEmailDialog());
 
-        changePasswordButton.setOnClickListener(v -> {
-            showChangePasswordDialog();
-        });
+        changePasswordButton.setOnClickListener(v -> showChangePasswordDialog());
 
-        savedPostsButton.setOnClickListener(v -> {
-            openSavedPosts();
-        });
+        savedPostsButton.setOnClickListener(v -> openSavedPosts());
 
-        createPostButton.setOnClickListener(v -> {
-            openCreatePost();
-        });
+        createPostButton.setOnClickListener(v -> openCreatePost());
 
-        logoutButton.setOnClickListener(v -> {
-            showLogoutConfirmationDialog();
-        });
+        logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
     }
 
-    @SuppressLint("SetTextI18n")
-    private void openRecentAnalysis() {
-        recentAnalysisButton.setEnabled(false);
-        recentAnalysisButton.setText("Loading...");
-
-        analysisController.getUserRecentAnalysis(new AnalysisController.RecentAnalysisCallback() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onSuccess(AnalysisResult recentAnalysis) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                recentAnalysisButton.setEnabled(true);
-                recentAnalysisButton.setText("My Recent Analysis");
-
-                if (recentAnalysis != null) {
-                    Intent intent = new Intent(requireContext(), RecentAnalysisActivity.class);
-                    intent.putExtra("analysis_result", recentAnalysis); // Pass the entire AnalysisResult object
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(requireContext(),
-                            "No recent analysis found. Start analyzing items to see your results here!",
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onFailure(String errorMessage) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                recentAnalysisButton.setEnabled(true);
-                recentAnalysisButton.setText("My Recent Analysis");
-
-                Toast.makeText(requireContext(),
-                        "Failed to load recent analysis: " + errorMessage,
-                        Toast.LENGTH_LONG).show();
-            }
-        });
+    private void openRecentAnalysisActivity(AnalysisResult analysis) {
+        Intent intent = new Intent(requireContext(), RecentAnalysisActivity.class);
+        intent.putExtra("analysis_result", analysis);
+        startActivity(intent);
     }
 
     private void showChangeEmailDialog() {
         ChangeEmailDialog dialog = new ChangeEmailDialog(requireContext(),
                 emailTextView.getText().toString(),
-                newEmail -> {
-                    userController.updateUserEmail(newEmail, new UserController.UpdateCallback() {
-                        @Override
-                        public void onSuccess() {
-                            if (getActivity() == null || !isAdded()) {
-                                return;
-                            }
-                            emailTextView.setText(newEmail);
-                            Toast.makeText(requireContext(), "Email updated successfully", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailure(String errorMessage) {
-                            if (getActivity() == null || !isAdded()) {
-                                return;
-                            }
-                            Toast.makeText(requireContext(), "Failed to update email: " + errorMessage, Toast.LENGTH_LONG).show();
-                        }
-                    });
-                });
+                newEmail -> viewModel.updateEmail(newEmail));
         dialog.show();
     }
 
     private void showChangePasswordDialog() {
         ChangePasswordDialog dialog = new ChangePasswordDialog(requireContext(),
-            success -> {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                if (success) {
-                    Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), "Failed to update password", Toast.LENGTH_SHORT).show();
-                }
-            });
+                success -> {
+                    // The ViewModel will handle the callback through LiveData observers
+                });
         dialog.show();
     }
 
     private void showLogoutConfirmationDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Sign Out")
-                .setMessage("Are you sure you want to sign out of your account?")
-                .setPositiveButton("Sign Out", (dialog, which) -> logout())
-                .setNegativeButton("Cancel", null)
-                .setCancelable(true)
-                .show();
+            .setTitle("Sign Out")
+            .setMessage("Are you sure you want to sign out of your account?")
+            .setPositiveButton("Sign Out", (dialog, which) -> viewModel.logout())
+            .setNegativeButton("Cancel", null)
+            .setCancelable(true)
+            .show();
     }
 
     private void openSavedPosts() {
@@ -230,44 +204,9 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
     }
 
-    @SuppressLint("SetTextI18n")
-    private void logout() {
-        logoutButton.setEnabled(false);
-        logoutButton.setText("Signing Out...");
-
-        userController.logoutUser(new UserController.LogoutCallback() {
-            @Override
-            public void onSuccess() {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                Intent intent = new Intent(getActivity(), LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                getActivity().finish();
-
-                Toast.makeText(getActivity(), "Signed out successfully", Toast.LENGTH_SHORT).show();
-            }
-
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onFailure(String errorMessage) {
-                if (getActivity() == null || !isAdded()) {
-                    return;
-                }
-
-                logoutButton.setEnabled(true);
-                logoutButton.setText("Sign Out");
-
-                Toast.makeText(getContext(), "Logout failed: " + errorMessage, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
     @Override
     public void onResume() {
         super.onResume();
-        loadProfileData();
+        viewModel.loadProfileData();
     }
 }
