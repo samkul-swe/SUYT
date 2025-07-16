@@ -2,15 +2,11 @@ package edu.northeastern.suyt.controller;
 
 import android.util.Log;
 
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 
 import edu.northeastern.suyt.firebase.repository.database.UsersRepository;
-import edu.northeastern.suyt.utils.SessionManager;
 
 public class UserController {
     private static final String TAG = "UserController";
@@ -145,88 +141,6 @@ public class UserController {
         }
     }
 
-    public void updateUserEmail(String newEmail, UpdateCallback callback) {
-        Log.d(TAG, "Attempting to update email to: " + newEmail);
-        if (currentUser == null) {
-            Log.e(TAG, "No user is currently logged in");
-            callback.onFailure("No user is currently logged in");
-        }
-        String currentEmail = currentUser.getEmail();
-        if (currentEmail == null) {
-            Log.e(TAG, "Current user has no email");
-            callback.onFailure("Current user has no email");
-        }
-        try {
-            currentUser.verifyBeforeUpdateEmail(newEmail);
-            callback.onSuccess();
-        } catch (Exception e) {
-            callback.onFailure("Error updating email : " + e);
-        }
-    }
-
-    public void updateUserPassword(String currentEmail, String currentPassword, UpdateCallback callback) {
-        Log.d(TAG, "Attempting to update password");
-
-        AuthCredential credential = EmailAuthProvider.getCredential(currentEmail, currentPassword);
-
-        currentUser.reauthenticate(credential).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                callback.onSuccess();
-            } else {
-                callback.onFailure("Authentication failed");
-            }
-        });
-    }
-
-    public void sendPasswordResetEmail(String email, PasswordResetCallback callback) {
-        Log.d(TAG, "Sending password reset email to: " + email);
-
-        if (email == null || email.trim().isEmpty()) {
-            callback.onFailure("Please enter your email address");
-            return;
-        }
-
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            callback.onFailure("Please enter a valid email address");
-            return;
-        }
-
-        mAuth.sendPasswordResetEmail(email.trim())
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "Password reset email sent successfully");
-                    callback.onSuccess();
-                } else {
-                    Log.e(TAG, "Failed to send password reset email", task.getException());
-
-                    Exception exception = task.getException();
-                    String errorMessage = "Failed to send password reset email";
-
-                    if (exception instanceof FirebaseAuthException) {
-                        FirebaseAuthException authException = (FirebaseAuthException) exception;
-                        String errorCode = authException.getErrorCode();
-
-                        switch (errorCode) {
-                            case "ERROR_USER_NOT_FOUND":
-                                errorMessage = "No account found with this email address";
-                                break;
-                            case "ERROR_INVALID_EMAIL":
-                                errorMessage = "Invalid email address";
-                                break;
-                            case "ERROR_TOO_MANY_REQUESTS":
-                                errorMessage = "Too many requests. Please try again later";
-                                break;
-                            default:
-                                errorMessage = authException.getMessage();
-                                break;
-                        }
-                    }
-
-                    callback.onFailure(errorMessage);
-                }
-            });
-    }
-
     public void logoutUser(LogoutCallback callback){
         try{
             Log.d("Logout Activity", "Logging out from profile");
@@ -239,11 +153,6 @@ public class UserController {
     }
 
     // CALLBACK INTERFACES
-    public interface ContainsCallback {
-        void onSuccess();
-        void onFailure();
-    }
-
     public interface UpdateCallback {
         void onSuccess();
         void onFailure(String errorMessage);

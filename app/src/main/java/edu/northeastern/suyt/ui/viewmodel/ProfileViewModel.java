@@ -1,9 +1,7 @@
 package edu.northeastern.suyt.ui.viewmodel;
 
-import static androidx.core.content.ContextCompat.startActivity;
-import static androidx.lifecycle.AndroidViewModel_androidKt.getApplication;
-
-import android.content.Intent;
+import android.content.Context;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -11,12 +9,14 @@ import androidx.lifecycle.ViewModel;
 
 import edu.northeastern.suyt.controller.AnalysisController;
 import edu.northeastern.suyt.controller.UserController;
+import edu.northeastern.suyt.controller.UsersController;
 import edu.northeastern.suyt.model.AnalysisResult;
-import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.utils.GeneralHelper;
 import edu.northeastern.suyt.utils.SessionManager;
 
 public class ProfileViewModel extends ViewModel {
+
+    private static final String TAG = "ProfileViewModel";
 
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<String> email = new MutableLiveData<>();
@@ -102,49 +102,6 @@ public class ProfileViewModel extends ViewModel {
         });
     }
 
-    public void updateEmail(String newEmail) {
-        if (userController == null) return;
-
-        isLoading.setValue(true);
-
-        userController.updateUserEmail(newEmail, new UserController.UpdateCallback() {
-            @Override
-            public void onSuccess() {
-                isLoading.setValue(false);
-                email.setValue(newEmail);
-                emailUpdateSuccess.setValue(true);
-            }
-
-            @Override
-            public void onFailure(String errorMsg) {
-                isLoading.setValue(false);
-                errorMessage.setValue("Failed to update email: " + errorMsg);
-                emailUpdateSuccess.setValue(false);
-            }
-        });
-    }
-
-    public void updatePassword(String currentPassword, String newPassword) {
-        if (userController == null) return;
-
-        isLoading.setValue(true);
-
-        userController.updateUserPassword(currentPassword, newPassword, new UserController.UpdateCallback() {
-            @Override
-            public void onSuccess() {
-                isLoading.setValue(false);
-                passwordUpdateSuccess.setValue(true);
-            }
-
-            @Override
-            public void onFailure(String errorMsg) {
-                isLoading.setValue(false);
-                errorMessage.setValue("Failed to update password: " + errorMsg);
-                passwordUpdateSuccess.setValue(false);
-            }
-        });
-    }
-
     public void logout() {
         if (userController == null) return;
 
@@ -163,6 +120,21 @@ public class ProfileViewModel extends ViewModel {
                 isLogoutLoading.setValue(false);
                 errorMessage.setValue("Logout failed: " + errorMsg);
                 logoutSuccess.setValue(false);
+            }
+        });
+    }
+
+    public void deleteAccount(Context context) {
+        UsersController usersController = new UsersController(context);
+        String userId = sessionManager.getUserId();
+        usersController.removeUser(userId, new UsersController.RemoveUserCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "User account deleted successfully");
+            }
+            @Override
+            public void onFailure(String errorMsg) {
+                errorMessage.setValue("Failed to delete account: " + errorMsg);
             }
         });
     }

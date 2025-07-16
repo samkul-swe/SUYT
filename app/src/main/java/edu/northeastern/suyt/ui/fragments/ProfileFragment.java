@@ -24,8 +24,6 @@ import edu.northeastern.suyt.ui.activities.CreatePostActivity;
 import edu.northeastern.suyt.ui.activities.LoginActivity;
 import edu.northeastern.suyt.ui.activities.SavedPostsActivity;
 import edu.northeastern.suyt.ui.activities.RecentAnalysisActivity;
-import edu.northeastern.suyt.ui.dialogs.ChangeEmailDialog;
-import edu.northeastern.suyt.ui.dialogs.ChangePasswordDialog;
 import edu.northeastern.suyt.ui.viewmodel.ProfileViewModel;
 import edu.northeastern.suyt.utils.SessionManager;
 
@@ -35,11 +33,10 @@ public class ProfileFragment extends Fragment {
     private TextView emailTextView;
     private TextView rankTextView;
     private Button recentAnalysisButton;
-    private LinearLayout changeEmailButton;
-    private LinearLayout changePasswordButton;
     private LinearLayout savedPostsButton;
     private Button createPostButton;
     private Button logoutButton;
+    private Button deleteAccountButton;
 
     private ProfileViewModel viewModel;
     private SessionManager sessionManager;
@@ -67,11 +64,10 @@ public class ProfileFragment extends Fragment {
         rankTextView = view.findViewById(R.id.rank_text_view);
 
         recentAnalysisButton = view.findViewById(R.id.recent_analysis_button);
-        changeEmailButton = view.findViewById(R.id.change_email);
-        changePasswordButton = view.findViewById(R.id.change_password);
         savedPostsButton = view.findViewById(R.id.saved_posts_button);
         createPostButton = view.findViewById(R.id.create_post_button);
         logoutButton = view.findViewById(R.id.logout_button);
+        deleteAccountButton = view.findViewById(R.id.delete_account_button);
 
         // Set placeholder profile image
         profileImageView.setImageResource(R.drawable.placeholder_profile);
@@ -152,15 +148,13 @@ public class ProfileFragment extends Fragment {
     private void setupButtonListeners() {
         recentAnalysisButton.setOnClickListener(v -> viewModel.loadRecentAnalysis());
 
-        changeEmailButton.setOnClickListener(v -> showChangeEmailDialog());
-
-        changePasswordButton.setOnClickListener(v -> showChangePasswordDialog());
-
         savedPostsButton.setOnClickListener(v -> openSavedPosts());
 
         createPostButton.setOnClickListener(v -> openCreatePost());
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
+
+        deleteAccountButton.setOnClickListener(v -> showDeleteAccountConfirmationDialog());
     }
 
     private void openRecentAnalysisActivity(AnalysisResult analysis) {
@@ -169,26 +163,21 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
     }
 
-    private void showChangeEmailDialog() {
-        ChangeEmailDialog dialog = new ChangeEmailDialog(requireContext(),
-                emailTextView.getText().toString(),
-                newEmail -> viewModel.updateEmail(newEmail));
-        dialog.show();
-    }
-
-    private void showChangePasswordDialog() {
-        ChangePasswordDialog dialog = new ChangePasswordDialog(requireContext(),
-                success -> {
-                    // The ViewModel will handle the callback through LiveData observers
-                });
-        dialog.show();
-    }
-
     private void showLogoutConfirmationDialog() {
         new AlertDialog.Builder(requireContext())
             .setTitle("Sign Out")
             .setMessage("Are you sure you want to sign out of your account?")
             .setPositiveButton("Sign Out", (dialog, which) -> viewModel.logout())
+            .setNegativeButton("Cancel", null)
+            .setCancelable(true)
+            .show();
+    }
+
+    private void showDeleteAccountConfirmationDialog() {
+        new AlertDialog.Builder(requireContext())
+            .setTitle("Delete Account")
+            .setMessage("Are you sure you want to delete your account?")
+            .setPositiveButton("Delete", (dialog, which) -> viewModel.deleteAccount(requireContext()))
             .setNegativeButton("Cancel", null)
             .setCancelable(true)
             .show();

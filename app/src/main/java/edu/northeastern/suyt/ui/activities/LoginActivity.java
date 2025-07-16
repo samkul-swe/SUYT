@@ -52,12 +52,6 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setOnClickListener(v -> attemptLogin());
         signupButton.setOnClickListener(v -> navigateToSignUp());
-        forgotPasswordButton.setOnClickListener(v -> navigateToForgotPassword());
-    }
-
-    public void navigateToForgotPassword(){
-        Intent intent = new Intent(this, ForgotPassword.class);
-        startActivity(intent);
     }
 
     private void attemptLogin() {

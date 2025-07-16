@@ -9,7 +9,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.GenericTypeIndicator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
